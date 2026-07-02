@@ -57,6 +57,7 @@
   .canon-col{color:#333; max-width:200px;}
   .canon-col code{font-size:11.5px;}
   .meta{color:#777; font-size:11px;}
+  .rule-col{max-width:280px; white-space:normal; line-height:1.4;}
   input.field-input{
     width:100%; min-width:160px; border:1px solid #cbd5e1; border-radius:4px; padding:5px 6px; font-size:12.5px; font-family:inherit;
   }
@@ -162,23 +163,28 @@
   <thead>
     <tr class="group">
       <th colspan="3">Reference &amp; MDFS capture</th>
-      <th colspan="6">INT-21-CanonicalServiceOrderCreateUpdate</th>
-      <th colspan="4">INT-22-WBSCreateUpdate</th>
+      <th colspan="6">INT-21 — Canonical Service Order (Create/Update)</th>
+      <th colspan="2">Mapping status</th>
+      <th colspan="6">INT-22 — WBS (Create/Update)</th>
     </tr>
     <tr class="cols">
-      <th style="min-width:190px;">JAMS Field (confirmed reference)</th>
-      <th style="min-width:200px;">MDFS Field <span class="badge">live capture</span></th>
-      <th style="min-width:160px;">Sample value <span class="badge">from extract</span></th>
-      <th>Canonical Field</th>
+      <th style="min-width:180px;">JAMS Field (confirmed reference)</th>
+      <th style="min-width:190px;">MDFS Field <span class="badge">live capture</span></th>
+      <th style="min-width:150px;">Sample value <span class="badge">from extract</span></th>
+      <th style="min-width:190px;">Canonical Field</th>
       <th>Type</th>
       <th>Mandatory</th>
-      <th>Conditional Msg Type</th>
-      <th style="min-width:170px;">Coverage</th>
-      <th style="min-width:180px;">Notes / rule captured live</th>
-      <th>Canonical Field</th>
+      <th>Cond. Msg Type</th>
+      <th>Transformation</th>
+      <th style="min-width:240px;">Business Rule / definition</th>
+      <th style="min-width:150px;">Coverage</th>
+      <th style="min-width:170px;">Notes captured live</th>
+      <th style="min-width:190px;">Canonical Field</th>
       <th>Type</th>
       <th>Mandatory</th>
-      <th>Conditional Msg Type</th>
+      <th>Cond. Msg Type</th>
+      <th>Transformation</th>
+      <th style="min-width:240px;">Business Rule / definition</th>
     </tr>
   </thead>
   <tbody id="tbody"></tbody>
@@ -335,6 +341,49 @@
 const ROWS = [{"jams": "messageID", "c21": "`header.sourceMessageId`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": "`header.sourceMessageId`", "t22": "string", "m22": "Yes", "cm22": "All"}, {"jams": "fsmSystem", "c21": "`header.sourceSystem`", "t21": "string enum", "m21": "Yes", "cm21": "All", "c22": "`header.sourceSystemTag`", "t22": "string", "m22": "Yes", "cm22": "All"}, {"jams": "messageType", "c21": "`header.sourceMessageType`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": "All"}, {"jams": "jobID", "c21": "`header.fsmJobNumber`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "refNo", "c21": "`header.clientJobNumber`", "t21": "string", "m21": "Conditional", "cm21": "CREATE_SO", "c22": "`header.clientJobNumber`", "t22": "string", "m22": "Yes", "cm22": "PROJECT"}, {"jams": "contractID", "c21": "`header.clientContractId`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": "`header.clientContractId`", "t22": "string", "m22": "Yes", "cm22": "All"}, {"jams": "department", "c21": "`header.serviceHierarchy`", "t21": "string", "m21": "Conditional", "cm21": "CREATE_SO", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "jobType", "c21": "`item.serviceHierarchy2`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "rateCardCustomerID", "c21": "`header.customerRegion`", "t21": "string", "m21": "Conditional", "cm21": "CREATE_SO", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "rateCardSubbieID", "c21": "`item.subbieRegion`", "t21": "string", "m21": "Conditional", "cm21": "RCTI", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "costDetailID (for SORs)\nresID (for resources, plant,  stock and labor)", "c21": "`items[].lineNumber`", "t21": "int", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "stockNo if message type is MATERIALS_USAGE\nsorID if message type is RCTI; REQUEST_PO; CLAIM", "c21": "`items[].product`", "t21": "code", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "qty", "c21": "`items[].quantity`", "t21": "decimal", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "uom", "c21": "`items[]. quantityUnit`", "t21": "code", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TimeBooking = N/A JAMS will not send labor time booking.\nCustomerService = If the customer claim canonical is being used this value will be set\nEquipment = N/A JAMS will not send labor time booking.\nSubcontractorProcurement = Trajce will include messageType field in the payload if this this message type  value is RCTI and the procurement canonical is being used set this field to SubcontractorProcurement\nIndirectProcurement = Trajce will include messageType field in the payload if this this message type  value is REQUEST_PO and the procurement canonical is being used set this field to IndirectProcurement. If the sorID field in this payload is empy or is not there then use the generic material XXXX and overwrite the description, UOM, price etc.\nVanStockConsumption =  If the stock consumption canonical is being used(message type = MATERIALS_USAGE) set the value of this field to VanStockConsumption. The plant will be determined based on the remote plant assigned to the contract.\nWarehouseStockReservation = This scenario is not relevant for JAMS", "c21": "`items[].lineType`", "t21": "enum", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TBC", "c21": "`items[].isBillable`", "t21": "boolean", "m21": "Yes", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TBC\nCost Plus = Might not be relevant for JAMS pattern 1.1 or 1.3. Karan will confirm with the business if the contracts map to this scenarios is mapped correctly.\nBack to Back = Not something that JAMS does.\nNon-Back to Back = Will only come through at point of customer claim\nFixed Price = Will need to chekc with the business\nFixed Fee = Will need to chekc with the business", "c21": "`items[].pricingMode`", "t21": "enum", "m21": "Yes", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TimeBooking = N/A\nCustomerService = Based on the contract mapping table\nEquipment = Based on the contract mapping table\nSubcontractorProcurement = Based on the contract mapping table\nIndirectProcurement = Based on the contract mapping table\nVanStockConsumption = Based on the contract mapping table\nWarehouseStockReservation = N/A", "c21": "`items[].plant`", "t21": "string", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "warehouseId", "c21": "`items[].vanID`", "t21": "string", "m21": "Conditional", "cm21": "MATERIALS_USAGE", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "rctiId", "c21": "`items[].RCTIReference`", "t21": "string", "m21": "Conditional", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "supplierId", "c21": "`items[].supplier`", "t21": "code", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "woId", "c21": "`items[].activity`", "t21": "string", "m21": "Optional", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TBC", "c21": "`items[].pricingElements[]`", "t21": "array", "m21": "Conditional", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "PROJREF", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].parentProjectElement`", "t22": "string", "m22": "Yes", "cm22": null}, {"jams": "WBSREF/jobID", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].ProjectElement`", "t22": "string", "m22": "No", "cm22": null}, {"jams": "jobDesc", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].projectElementDescription`", "t22": "string(40)", "m22": "Yes", "cm22": null}, {"jams": "TBC", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].isBillingElement`", "t22": "boolean", "m22": "Yes", "cm22": null}, {"jams": "TBC", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].doaApproverLevel1`", "t22": "string", "m22": "No", "cm22": null}, {"jams": "TBC", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].doaApproverLevel2`", "t22": "string", "m22": "No", "cm22": null}]
 ;
 
+// Canonical-field definitions (Transformation + Business Rule) so the workshop
+// can see what each canonical field is for. Keyed by the field path (backticks
+// and spaces stripped) and looked up against each row's c21 / c22.
+const DEF21 = {
+  "header.sourceMessageId":["Pass-through","FSM-supplied. Idempotency key together with sourceSystem."],
+  "header.sourceSystem":["Pass-through","FSM-supplied. Idempotency key together with messageID."],
+  "header.sourceMessageType":["Routing","CREATE_SO = Route to Service Order or WBS creation canonical; RCTI = Procurement canonical; REQUEST_PO = Procurement canonical; MATERIALS_USAGE = Stock Consumption canonicals; MATERIAL_REQUEST = Stock Consumption canonicals; CLAIM = billing canonicals."],
+  "header.fsmJobNumber":["Pass-through",""],
+  "header.clientJobNumber":["Pass-through","Only required if the message type is CREATE_SO."],
+  "header.clientContractId":["Pass-through",""],
+  "header.serviceHierarchy":["Pass-through","Only required if the message type is CREATE_SO."],
+  "item.serviceHierarchy2":["Pass-through",""],
+  "header.customerRegion":["Pass-through","Only required if the message type is CREATE_SO."],
+  "item.subbieRegion":["Pass-through","Only required if the message type is RCTI."],
+  "items[].lineNumber":["Pass-through","Each new FSM line ID creates a new SAP line item, starting from 20 in increments of 10."],
+  "items[].product":["Pass-through","Only required if the message type is RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM."],
+  "items[].quantity":["Pass-through","Only required if the message type is RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM."],
+  "items[].quantityUnit":["Pass-through","Only required if the message type is RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM."],
+  "items[].lineType":["Derived","Each FSM option maps to one of: TimeBooking, CustomerService, Equipment, SubcontractorProcurement, IndirectProcurement, VanStockConsumption, WarehouseStockReservation."],
+  "items[].isBillable":["Derived","The FSM value needs to map to either TRUE or FALSE."],
+  "items[].pricingMode":["Derived","The FSM needs to indicate if the line is a SOR, Cost Plus Margin, or None-relevant line."],
+  "items[].plant":["Pass-through","Only required if the message type is RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM."],
+  "items[].vanID":["Pass-through","Only required if the message type is MATERIALS_USAGE."],
+  "items[].RCTIReference":["Pass-through","Custom field on the SO item. Only for contract patterns 1.1/1.3 where lineType = SubcontractorProcurement or IndirectProcurement. Passed to the SAP invoice/RCTI so payment can clear against this ID."],
+  "items[].supplier":["Pass-through","Only required if the message type is RCTI; REQUEST_PO."],
+  "items[].activity":["Pass-through","The FSM intermediate tier between Job and SOR tiers."],
+  "items[].pricingElements[]":["Derived","Based on the pricingMode from the FSM; if pricingMode = None this is not mandatory. Maps SOR / Cost Plus pricing amounts back to SAP pricing conditions."],
+};
+const DEF22 = {
+  "header.sourceMessageId":["Pass-through","FSM-supplied. Idempotency key together with sourceSystem."],
+  "header.sourceSystemTag":["Pass-through","Source FSM system tag. PENDING key-user extension field. May be captured by Project Type."],
+  "header.clientJobNumber":["Pass-through","Parent/client job number; basis for Project + WBS element ID derivation."],
+  "header.clientContractId":["Lookup","Drives Contract Mapping lookup + INT-21/INT-22 pattern routing."],
+  "items[].parentProjectElement":["","Parent WBS element resolved from parent client job number."],
+  "items[].ProjectElement":["",""],
+  "items[].projectElementDescription":["","Jobs have a description in FSM (generally an address). 40-char limit; overflow behaviour TBC."],
+  "items[].isBillingElement":["","Set at element level with header IsBillingRelevant=false, atomically in the create deep-insert. Each Lvl 1 WBS is a billing element; non-billing elements are identified with a code in FSM."],
+  "items[].doaApproverLevel1":["Pass-through","Populated by substitution."],
+  "items[].doaApproverLevel2":["Pass-through","Populated by substitution."],
+};
+function canonKey(c){ return String(c||"").replace(/`/g,"").replace(/\s+/g,"").trim(); }
+function defOf(map, canon){ return map[canonKey(canon)] || ["",""]; }
+
 const STATUS_OPTS = [
   {v:"TBC", label:"TBC", cls:"tbc"},
   {v:"Fit", label:"Fit", cls:"fit"},
@@ -366,28 +415,34 @@ function buildRows(){
     html += `<td class="jams-col">${esc(r.jams).replace(/\\n/g,'<br>')}</td>`;
     html += `<td><input class="field-input" id="ff_${rowId}" placeholder="MDFS field name..." /></td>`;
     html += `<td><input class="field-input" id="sv_${rowId}" placeholder="Sample value..." /></td>`;
-    // INT-21 canonical block
+    // INT-21 canonical block (Canonical, Type, Mandatory, Cond, Transformation, Business Rule)
     if(has21){
+      const [x21,rule21] = defOf(DEF21, r.c21);
       html += `<td class="canon-col"><code>${esc(r.c21)}</code></td>`;
       html += `<td class="meta">${esc(r.t21)||'—'}</td>`;
       html += `<td class="meta">${esc(r.m21)||'—'}</td>`;
       html += `<td class="meta">${esc(r.cm21)||'—'}</td>`;
+      html += `<td class="meta">${esc(x21)||'—'}</td>`;
+      html += `<td class="meta rule-col">${esc(rule21)||'—'}</td>`;
     } else {
-      html += `<td class="meta">—</td><td class="meta">—</td><td class="meta">—</td><td class="meta">—</td>`;
+      html += `<td class="meta">—</td><td class="meta">—</td><td class="meta">—</td><td class="meta">—</td><td class="meta">—</td><td class="meta">—</td>`;
     }
-    // Coverage + Notes
+    // Coverage + Notes (mapping status)
     html += `<td><select class="status-select tbc" id="st_${rowId}">`;
     STATUS_OPTS.forEach(o => html += `<option value="${o.v}">${o.label}</option>`);
     html += `</select></td>`;
-    html += `<td><input class="notes-input" id="nt_${rowId}" placeholder="Rule / caveat..." /></td>`;
+    html += `<td><input class="notes-input" id="nt_${rowId}" placeholder="Notes / caveat..." /></td>`;
     // INT-22 canonical block
     if(has22){
+      const [x22,rule22] = defOf(DEF22, r.c22);
       html += `<td class="canon-col"><code>${esc(r.c22)}</code></td>`;
       html += `<td class="meta">${esc(r.t22)||'—'}</td>`;
       html += `<td class="meta">${esc(r.m22)||'—'}</td>`;
       html += `<td class="meta">${esc(r.cm22)||'—'}</td>`;
+      html += `<td class="meta">${esc(x22)||'—'}</td>`;
+      html += `<td class="meta rule-col">${esc(rule22)||'—'}</td>`;
     } else {
-      html += `<td class="meta">—</td><td class="meta">—</td><td class="meta">—</td><td class="meta">—</td>`;
+      html += `<td class="meta">—</td><td class="meta">—</td><td class="meta">—</td><td class="meta">—</td><td class="meta">—</td><td class="meta">—</td>`;
     }
     html += `</tr>`;
   });
@@ -523,16 +578,18 @@ document.getElementById('exportCsv').addEventListener('click', () => {
   const state = collectState();
   const header = [
     "JAMS Field (Reference)", (state.fsmName||"FSM")+" Field", "Sample Value", "Coverage", "Notes",
-    "Canonical Field (INT-21)", "Type", "Mandatory from FSM", "Conditional Message Type",
-    "Canonical Field (INT-22)", "Type", "Mandatory from FSM", "Conditional Message Type"
+    "Canonical Field (INT-21)", "Type", "Mandatory from FSM", "Conditional Message Type", "Transformation", "Business Rule",
+    "Canonical Field (INT-22)", "Type", "Mandatory from FSM", "Conditional Message Type", "Transformation", "Business Rule"
   ];
   const lines = [header.map(csvEscape).join(",")];
   ROWS.forEach((r,i) => {
     const row = state.rows[i];
+    const [x21,rule21] = defOf(DEF21, r.c21);
+    const [x22,rule22] = defOf(DEF22, r.c22);
     lines.push([
       r.jams, row.fsmField, row.sampleValue, row.status, row.notes,
-      r.c21, r.t21, r.m21, r.cm21,
-      r.c22, r.t22, r.m22, r.cm22
+      r.c21, r.t21, r.m21, r.cm21, (r.c21?x21:""), (r.c21?rule21:""),
+      r.c22, r.t22, r.m22, r.cm22, (r.c22?x22:""), (r.c22?rule22:"")
     ].map(csvEscape).join(","));
   });
   lines.push("");
