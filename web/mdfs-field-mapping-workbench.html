@@ -448,33 +448,34 @@ function seedFields(){
   const lvl=(p)=> /items?\[\]|^item\./.test(p) ? "Item" : "Header";
 
   // ===== INT-21 Service Order — Inbound (canonical field ← MDFS field) =====
+  // [ canonical, type, mandatory, condMsg, JAMS ref (FSM field), transform, business rule ]
   [
-    ["header.sourceMessageId","string","Yes","All","messageID"],
-    ["header.sourceSystem","string enum","Yes","All","fsmSystem"],
-    ["header.sourceMessageType","string","Yes","All","messageType"],
-    ["header.fsmJobNumber","string","Yes","All","jobID"],
-    ["header.clientJobNumber","string","Conditional","CREATE_SO","refNo"],
-    ["header.clientContractId","string","Yes","All","contractID"],
-    ["header.serviceHierarchy","string","Conditional","CREATE_SO","department"],
-    ["item.serviceHierarchy2","string","Yes","All","jobType"],
-    ["header.customerRegion","string","Conditional","CREATE_SO","rateCardCustomerID"],
-    ["item.subbieRegion","string","Conditional","RCTI","rateCardSubbieID"],
-    ["items[].lineNumber","int","Yes","All","costDetailID / resID"],
-    ["items[].product","code","Conditional","RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM","stockNo / sorID"],
-    ["items[].quantity","decimal","Conditional","RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM","qty"],
-    ["items[].quantityUnit","code","Conditional","RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM","uom"],
-    ["items[].lineType","enum","Yes","All","(scenario rule — TimeBooking / CustomerService / …)"],
-    ["items[].isBillable","boolean","Yes","","TBC"],
-    ["items[].pricingMode","enum","Yes","","TBC — Cost Plus / Back-to-Back / Fixed Price (Karan to confirm)"],
-    ["items[].plant","string","Conditional","RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM","(contract mapping table)"],
-    ["items[].vanID","string","Conditional","MATERIALS_USAGE","warehouseId"],
-    ["items[].RCTIReference","string","Conditional","","rctiId"],
-    ["items[].supplier","code","Conditional","RCTI; REQUEST_PO","supplierId"],
-    ["items[].activity","string","Optional","","woId"],
-    ["items[].pricingElements[]","array","Conditional","","TBC"],
-  ].forEach(([t,ty,m,cm,ref])=>push({module:"Service Order",direction:"Inbound",level:lvl(t),
-    target:t,canonType:ty,mandatory:m,condMsg:cm,reference:ref,
-    lookup:/plant|supplier/.test(t)}));
+    ["header.sourceMessageId","string","Yes","All","messageID","Pass-through","FSM-supplied. Idempotency key together with sourceSystem."],
+    ["header.sourceSystem","string enum","Yes","All","fsmSystem","Pass-through","FSM-supplied. Idempotency key together with messageID."],
+    ["header.sourceMessageType","string","Yes","All","messageType","Routing","CREATE_SO = Route to Service Order or WBS creation canonical; RCTI = Procurement canonical; REQUEST_PO = Procurement canonical; MATERIALS_USAGE = Stock Consumption canonicals; MATERIAL_REQUEST = Stock Consumption canonicals; CLAIM = billing canonicals."],
+    ["header.fsmJobNumber","string","Yes","All","jobID","Pass-through",""],
+    ["header.clientJobNumber","string","Conditional","CREATE_SO","refNo","Pass-through","Only required if the message type is CREATE_SO."],
+    ["header.clientContractId","string","Yes","All","contractID","Pass-through",""],
+    ["header.serviceHierarchy","string","Conditional","CREATE_SO","department","Pass-through","Only required if the message type is CREATE_SO."],
+    ["item.serviceHierarchy2","string","Yes","All","jobType","Pass-through",""],
+    ["header.customerRegion","string","Conditional","CREATE_SO","rateCardCustomerID","Pass-through","Only required if the message type is CREATE_SO."],
+    ["item.subbieRegion","string","Conditional","RCTI","rateCardSubbieID","Pass-through","Only required if the message type is RCTI."],
+    ["items[].lineNumber","int","Yes","All","costDetailID (SORs) / resID (resources, plant, stock, labor)","Pass-through","Each new FSM line ID creates a new SAP line item, starting from 20 in increments of 10."],
+    ["items[].product","code","Conditional","RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM","stockNo (MATERIALS_USAGE) / sorID (RCTI; REQUEST_PO; CLAIM)","Pass-through","Only required if the message type is RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM."],
+    ["items[].quantity","decimal","Conditional","RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM","qty","Pass-through","Only required if the message type is RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM."],
+    ["items[].quantityUnit","code","Conditional","RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM","uom","Pass-through","Only required if the message type is RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM."],
+    ["items[].lineType","enum","Yes","All","(FSM line → SAP line type mapping)","Derived","Each FSM option maps to one of: TimeBooking, CustomerService, Equipment, SubcontractorProcurement, IndirectProcurement, VanStockConsumption, WarehouseStockReservation."],
+    ["items[].isBillable","boolean","Yes","","TBC","Derived","The FSM value needs to map to either TRUE or FALSE."],
+    ["items[].pricingMode","enum","Yes","","TBC","Derived","The FSM needs to indicate if the line is a SOR, Cost Plus Margin, or None-relevant line."],
+    ["items[].plant","string","Conditional","RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM","(contract mapping table)","Pass-through","Only required if the message type is RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM."],
+    ["items[].vanID","string","Conditional","MATERIALS_USAGE","warehouseId","Pass-through","Only required if the message type is MATERIALS_USAGE."],
+    ["items[].RCTIReference","string","Conditional","","rctiId","Pass-through","Custom field on the SO item. Only for contract patterns 1.1/1.3 where lineType = SubcontractorProcurement or IndirectProcurement. Passed to the SAP invoice/RCTI so payment can clear against this ID."],
+    ["items[].supplier","code","Conditional","RCTI; REQUEST_PO","supplierId","Pass-through","Only required if the message type is RCTI; REQUEST_PO."],
+    ["items[].activity","string","Optional","","woId","Pass-through","The FSM intermediate tier between Job and SOR tiers."],
+    ["items[].pricingElements[]","array","Conditional","","TBC","Derived","Based on the pricingMode from the FSM; if pricingMode = None this is not mandatory. Maps SOR / Cost Plus pricing amounts back to SAP pricing conditions."],
+  ].forEach(([t,ty,m,cm,ref,tr,rule])=>push({module:"Service Order",direction:"Inbound",level:lvl(t),
+    target:t,canonType:ty,mandatory:m,condMsg:cm,reference:ref,transform:tr,rule:rule,
+    lookup:tr==="Lookup"}));
 
   // ===== INT-21 Service Order — Outbound (S4HC → canonical callback → FSM) =====
   [
@@ -485,19 +486,21 @@ function seedFields(){
     target:t,s4hc:s4,transform:tr,rule:rule,canonType:"callback",mandatory:"—"}));
 
   // ===== INT-22 WBS — Inbound =====
+  // [ canonical, type, mandatory, condMsg, JAMS ref, transform, business rule ]
   [
-    ["header.sourceMessageId","string","Yes","All","messageID"],
-    ["header.sourceSystemTag","string","Yes","All","fsmSystem"],
-    ["header.clientJobNumber","string","Yes","PROJECT","refNo"],
-    ["header.clientContractId","string","Yes","All","contractID"],
-    ["items[].parentProjectElement","string","Yes","","PROJREF"],
-    ["items[].ProjectElement","string","No","","WBSREF / jobID"],
-    ["items[].projectElementDescription","string(40)","Yes","","jobDesc"],
-    ["items[].isBillingElement","boolean","Yes","","TBC"],
-    ["items[].doaApproverLevel1","string","No","","TBC"],
-    ["items[].doaApproverLevel2","string","No","","TBC"],
-  ].forEach(([t,ty,m,cm,ref])=>push({module:"WBS",direction:"Inbound",level:lvl(t),
-    target:t,canonType:ty,mandatory:m,condMsg:cm,reference:ref}));
+    ["header.sourceMessageId","string","Yes","All","messageID","Pass-through","FSM-supplied. Idempotency key together with sourceSystem."],
+    ["header.sourceSystemTag","string","Yes","All","fsmSystem","Pass-through","Source FSM system tag. PENDING key-user extension field. May be captured by Project Type."],
+    ["header.clientJobNumber","string","Yes","PROJECT","refNo","Pass-through","Parent/client job number; basis for Project + WBS element ID derivation."],
+    ["header.clientContractId","string","Yes","All","contractID","Lookup","Drives the Contract Mapping lookup + INT-21/INT-22 pattern routing."],
+    ["items[].parentProjectElement","string","Yes","","PROJREF","","Parent WBS element resolved from parent client job number."],
+    ["items[].ProjectElement","string","No","","WBSREF / jobID","",""],
+    ["items[].projectElementDescription","string(40)","Yes","","jobDesc","","Jobs have a description in FSM (generally an address). 40-char limit; overflow behaviour TBC."],
+    ["items[].isBillingElement","boolean","Yes","","TBC","","Set at element level with header IsBillingRelevant=false, atomically in the create deep-insert. Each Lvl 1 WBS is a billing element; non-billing elements are identified with a code in FSM."],
+    ["items[].doaApproverLevel1","string","No","","TBC","Pass-through","Populated by substitution."],
+    ["items[].doaApproverLevel2","string","No","","TBC","Pass-through","Populated by substitution."],
+  ].forEach(([t,ty,m,cm,ref,tr,rule])=>push({module:"WBS",direction:"Inbound",level:lvl(t),
+    target:t,canonType:ty,mandatory:m,condMsg:cm,reference:ref,transform:tr,rule:rule,
+    lookup:tr==="Lookup"}));
 
   // ===== INT-23 Procurement — Inbound =====
   [
@@ -814,9 +817,10 @@ function rowFor(f){
   const conf=f.confidence!=null?f.confidence:null;
   const out=f.direction==="Outbound";
 
-  // metadata line under the canonical path
+  // metadata line under the canonical path — mirrors the mapping-sheet columns
   const parts=[];
   if(f.canonType && f.canonType!=="callback") parts.push(esc(f.canonType));
+  if(f.transform && !out) parts.push(esc(f.transform));
   if(f.condMsg) parts.push("msg: "+esc(f.condMsg));
   if(f.reference) parts.push("JAMS: "+esc(f.reference));
   const meta=parts.join(" · ");
