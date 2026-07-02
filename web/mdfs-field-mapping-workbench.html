@@ -106,15 +106,17 @@
   .chk input{accent-color:var(--accent);width:15px;height:15px}
 
   /* ---------- Mapping table ---------- */
+  /* table-layout:fixed + % column widths means the grid always fits the card
+     width and long text wraps, instead of forcing a left/right scroll. */
   .tablecard{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
   .tablescroll{overflow-x:auto}
-  table.map{border-collapse:separate;border-spacing:0;width:100%;min-width:1120px;font-size:13px}
+  table.map{border-collapse:separate;border-spacing:0;width:100%;min-width:760px;table-layout:fixed;font-size:12.5px}
   table.map thead th{
     position:sticky;top:0;z-index:2;background:var(--surface-2);text-align:left;
-    font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:650;
-    padding:11px 12px;border-bottom:1px solid var(--hair-strong);white-space:nowrap
+    font-size:10.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);font-weight:650;
+    padding:10px 10px;border-bottom:1px solid var(--hair-strong);white-space:normal
   }
-  table.map tbody td{padding:9px 12px;border-bottom:1px solid var(--hair);vertical-align:middle}
+  table.map tbody td{padding:9px 10px;border-bottom:1px solid var(--hair);vertical-align:top;word-break:break-word;overflow-wrap:anywhere}
   table.map tbody tr{position:relative}
   table.map tbody tr:hover{background:#f9fbfc}
   .grouprow td{background:#eef1f5;font-weight:700;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:7px 12px;border-bottom:1px solid var(--hair-strong)}
@@ -137,7 +139,7 @@
   .cellinput::placeholder{font-family:var(--ui);color:var(--faint)}
   .cellselect{font-family:var(--mono);font-size:12px;background:var(--surface)}
   .cellselect.empty{color:var(--faint);font-family:var(--ui)}
-  .sample{font-family:var(--mono);font-size:11.5px;color:var(--accent-ink);background:var(--accent-wash);border-radius:5px;padding:2px 6px;display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+  .sample{font-family:var(--mono);font-size:11px;color:var(--accent-ink);background:var(--accent-wash);border-radius:5px;padding:2px 6px;display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
   .sample.none{color:var(--faint);background:var(--grey-wash)}
 
   .lookchk{display:flex;align-items:center;justify-content:center}
@@ -152,7 +154,7 @@
   .pill.unmapped{background:var(--grey-wash);color:var(--grey)} .pill.unmapped .dot{background:var(--grey)}
   select.statusselect{border:0;background:transparent;font-weight:650;font-size:11.5px;color:inherit;padding:2px 4px;border-radius:6px}
 
-  .conf{display:flex;align-items:center;gap:7px;min-width:74px}
+  .conf{display:flex;align-items:center;gap:6px;min-width:0}
   .conf .bar{flex:1;height:5px;border-radius:99px;background:var(--grey-wash);overflow:hidden}
   .conf .bar > i{display:block;height:100%;background:var(--accent)}
   .conf .pct{font-size:11px;font-weight:650;color:var(--muted);font-variant-numeric:tabular-nums;min-width:26px;text-align:right}
@@ -161,7 +163,7 @@
   .noteinput{width:100%;padding:6px 8px;border:1px solid transparent;border-radius:6px;background:transparent;font-size:12px;color:var(--ink);resize:none;min-height:30px;line-height:1.35}
   .noteinput:hover{background:var(--surface-2);border-color:var(--hair)}
   .noteinput:focus{background:var(--surface);border-color:var(--accent)}
-  .owner{width:100%;max-width:120px;padding:5px 7px;border:1px solid var(--hair-strong);border-radius:6px;background:var(--surface);font-size:12px}
+  .owner{width:100%;max-width:100%;padding:5px 6px;border:1px solid var(--hair-strong);border-radius:6px;background:var(--surface);font-size:12px}
 
   .rowreason{font-size:11px;color:var(--faint);margin-top:3px;font-style:italic}
 
@@ -319,16 +321,16 @@
         <table class="map">
           <thead>
             <tr>
-              <th style="min-width:230px">Canonical field</th>
-              <th style="min-width:210px">MDFS source <span style="opacity:.6">/ S4HC (out)</span></th>
-              <th style="min-width:150px">Logical name <span style="opacity:.6">/ FSM transport</span></th>
-              <th style="min-width:120px">Sample value</th>
-              <th style="width:56px;text-align:center">Look&nbsp;up</th>
-              <th style="min-width:130px">Confidence</th>
-              <th style="min-width:130px">Status</th>
-              <th style="min-width:110px">Owner</th>
-              <th style="min-width:220px">Notes / rule</th>
-              <th style="width:34px"></th>
+              <th style="width:26%">Canonical field</th>
+              <th style="width:14%">MDFS source <span style="opacity:.6">/ S4HC</span></th>
+              <th style="width:9%">Logical <span style="opacity:.6">/ transport</span></th>
+              <th style="width:8%">Sample</th>
+              <th style="width:4%;text-align:center">Look&nbsp;up</th>
+              <th style="width:8%">Conf.</th>
+              <th style="width:10%">Status</th>
+              <th style="width:8%">Owner</th>
+              <th style="width:10%">Notes</th>
+              <th style="width:3%"></th>
             </tr>
           </thead>
           <tbody id="mapBody"></tbody>
