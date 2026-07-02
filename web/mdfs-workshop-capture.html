@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Apollo — MDFS Field Mapping Workshop Capture</title>
+<style>
+  :root{
+    --navy:#1F3864; --navy2:#1F4E79; --paper:#f4f6f9; --line:#d9dee6;
+    --green:#dcfce7; --greenText:#16A34A;
+    --amber:#fef9c3; --amberText:#CA8A04;
+    --red:#fee2e2; --redText:#DC2626;
+    --grey:#e5e7eb; --greyText:#6B7280;
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:Arial, "Helvetica Neue", sans-serif;
+    background:var(--paper); margin:0; color:#1a1a1a;
+  }
+  header{
+    background:var(--navy); color:#fff; padding:18px 24px;
+    display:flex; flex-wrap:wrap; align-items:center; gap:16px;
+    position:sticky; top:0; z-index:20;
+  }
+  header h1{font-size:18px; margin:0; font-weight:700;}
+  header .sub{font-size:12px; opacity:.85; margin-top:2px;}
+  .hdr-controls{display:flex; gap:10px; flex-wrap:wrap; margin-left:auto; align-items:center;}
+  .hdr-controls label{font-size:11px; opacity:.85; display:block; margin-bottom:2px;}
+  .hdr-controls input, .hdr-controls select{
+    padding:6px 8px; border-radius:4px; border:1px solid #33507e; background:#28477a; color:#fff; font-size:12px;
+  }
+  .hdr-controls input::placeholder{color:#c7d2e6;}
+  .toolbar{
+    display:flex; gap:8px; padding:10px 24px; background:#fff; border-bottom:1px solid var(--line);
+    flex-wrap:wrap; align-items:center;
+  }
+  .toolbar .stats{font-size:12px; color:#555; margin-right:auto; display:flex; gap:14px;}
+  .stat{display:flex; align-items:center; gap:5px;}
+  .dot{width:9px; height:9px; border-radius:50%; display:inline-block;}
+  .dot.fit{background:var(--greenText);} .dot.partial{background:var(--amberText);}
+  .dot.gap{background:var(--redText);} .dot.tbc{background:var(--greyText);}
+  button{
+    font-family:inherit; font-size:12px; font-weight:600; padding:8px 14px; border-radius:5px;
+    border:1px solid var(--navy2); background:#fff; color:var(--navy2); cursor:pointer;
+  }
+  button.primary{background:var(--navy2); color:#fff;}
+  button:hover{opacity:.85;}
+  .wrap{padding:0 24px 40px; overflow-x:auto;}
+  table{border-collapse:collapse; width:100%; min-width:1500px; background:#fff; font-size:12.5px;}
+  thead th{
+    background:var(--navy2); color:#fff; padding:8px 8px; text-align:left; font-weight:600;
+    border-right:1px solid #2c5a8c;
+  }
+  thead tr.group th{background:var(--navy); font-size:11px; text-align:center;}
+  td{padding:6px 8px; border:1px solid var(--line); vertical-align:top;}
+  tr:nth-child(even) td{background:#fafbfd;}
+  .jams-col{background:#eaf1fb !important; color:#2E5395; font-style:italic; max-width:220px;}
+  .canon-col{color:#333; max-width:200px;}
+  .canon-col code{font-size:11.5px;}
+  .meta{color:#777; font-size:11px;}
+  input.field-input{
+    width:100%; min-width:160px; border:1px solid #cbd5e1; border-radius:4px; padding:5px 6px; font-size:12.5px; font-family:inherit;
+  }
+  input.field-input:focus{outline:2px solid var(--navy2); border-color:var(--navy2);}
+  select.status-select{
+    width:100%; border-radius:4px; padding:5px 4px; font-size:12px; font-weight:600; border:1px solid #cbd5e1;
+  }
+  select.status-select.fit{background:var(--green); color:var(--greenText);}
+  select.status-select.partial{background:var(--amber); color:var(--amberText);}
+  select.status-select.gap{background:var(--red); color:var(--redText);}
+  select.status-select.tbc{background:var(--grey); color:var(--greyText);}
+  input.notes-input{width:100%; border:1px solid #cbd5e1; border-radius:4px; padding:5px 6px; font-size:12px; font-family:inherit;}
+  .section-row td{background:var(--navy); color:#fff; font-weight:700; font-size:12.5px; padding:8px 10px;}
+  .footer-note{padding:14px 24px 30px; font-size:11.5px; color:#666; max-width:900px;}
+  .badge{display:inline-block; font-size:10px; padding:1px 6px; border-radius:9px; background:#eef2f7; color:#555; margin-left:6px;}
+
+  .tabnav{
+    display:flex; gap:2px; background:var(--navy); padding:0 24px;
+  }
+  .tabnav button{
+    background:transparent; border:none; color:#c7d2e6; padding:10px 18px; font-size:13px; font-weight:600;
+    border-radius:0; border-bottom:3px solid transparent; cursor:pointer;
+  }
+  .tabnav button.active{color:#fff; border-bottom:3px solid #ffffff; background:rgba(255,255,255,.06);}
+  .tabnav button:hover{color:#fff;}
+  .tabpage{display:none;}
+  .tabpage.active{display:block;}
+
+  .ws-toolbar{
+    display:flex; gap:8px; padding:10px 24px; background:#fff; border-bottom:1px solid var(--line);
+    flex-wrap:wrap; align-items:center;
+  }
+  .ws-section-title{
+    padding:14px 24px 4px; font-size:14px; font-weight:700; color:var(--navy);
+  }
+  .ws-section-sub{padding:0 24px 8px; font-size:11.5px; color:#666; max-width:900px;}
+  table.ws-table{border-collapse:collapse; width:100%; min-width:1400px; background:#fff; font-size:12.5px;}
+  table.ws-table thead th{
+    background:var(--navy2); color:#fff; padding:7px 7px; text-align:left; font-weight:600;
+    border-right:1px solid #2c5a8c; position:static;
+  }
+  table.ws-table td{padding:5px 6px; border:1px solid var(--line); vertical-align:top;}
+  table.ws-table tr:nth-child(even) td{background:#fafbfd;}
+  input.ws-input, textarea.ws-textarea{
+    width:100%; border:1px solid #cbd5e1; border-radius:4px; padding:5px 6px; font-size:12px; font-family:inherit;
+  }
+  select.ws-status{
+    width:100%; border-radius:4px; padding:5px 4px; font-size:12px; font-weight:600; border:1px solid #cbd5e1;
+  }
+  select.ws-status.proposed{background:var(--amber); color:var(--amberText);}
+  select.ws-status.confirmed{background:var(--green); color:var(--greenText);}
+  select.ws-status.outofscope{background:var(--grey); color:var(--greyText);}
+  select.ws-status.rejected{background:var(--red); color:var(--redText);}
+  .row-del{background:#fff; border:1px solid #e2b8b8; color:#c0392b; padding:3px 8px; font-size:11px; border-radius:4px; cursor:pointer;}
+  .free-block{padding:0 24px 20px; max-width:1000px;}
+  textarea.free-textarea{
+    width:100%; min-height:130px; border:1px solid #cbd5e1; border-radius:6px; padding:10px 12px;
+    font-family:inherit; font-size:12.5px; line-height:1.6; resize:vertical;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>MDFS Field Mapping — Workshop Capture</h1>
+    <div class="sub">Canonical Service Order (INT-21), WBS (INT-22) &amp; Procurement (INT-23) · JAMS confirmed as reference for Service Order/WBS · MDFS capture file</div>
+  </div>
+  <div class="hdr-controls">
+    <div><label>FSM being mapped</label>
+      <input id="fsmName" list="fsmList" placeholder="e.g. MDFS" style="width:140px;" value="MDFS">
+      <datalist id="fsmList">
+        <option value="MDFS"><option value="PIMS"><option value="MARS"><option value="Konect-Excled">
+      </datalist>
+    </div>
+    <div><label>Workshop date</label><input id="wsDate" type="date" style="width:130px;"></div>
+    <div><label>Facilitator</label><input id="facilitator" placeholder="Name" style="width:120px;"></div>
+    <div><label>Attendees</label><input id="attendees" placeholder="Names, comma-sep" style="width:200px;"></div>
+    <div style="display:flex; gap:8px; align-items:flex-end;">
+      <button id="exportAllJson" class="primary" title="Export the whole mapping (all tabs + captured values + sample values) as one file to share with the MDFS team">&#11015; Export mapping</button>
+      <button id="importAllBtn" title="Import a mapping file to load captured values back in">&#11014; Import</button>
+      <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+    </div>
+  </div>
+</header>
+
+<div class="tabnav">
+  <button id="tabBtnMapping" class="active">Service Order Field Mapping</button>
+  <button id="tabBtnProc">Procurement Field Mapping</button>
+  <button id="tabBtnWorksheet">Future Integration Points Worksheet</button>
+</div>
+
+<div id="tabMapping" class="tabpage active">
+
+<div class="toolbar">
+  <div class="stats" id="stats"></div>
+  <button id="loadDraftBtn" title="Reload the last autosaved draft for this browser tab">Restore last draft</button>
+  <button id="exportCsv" class="primary">Export CSV (paste into Excel)</button>
+</div>
+
+<div class="wrap">
+<table id="mapTable">
+  <thead>
+    <tr class="group">
+      <th colspan="3">Reference &amp; MDFS capture</th>
+      <th colspan="6">INT-21-CanonicalServiceOrderCreateUpdate</th>
+      <th colspan="4">INT-22-WBSCreateUpdate</th>
+    </tr>
+    <tr class="cols">
+      <th style="min-width:190px;">JAMS Field (confirmed reference)</th>
+      <th style="min-width:200px;">MDFS Field <span class="badge">live capture</span></th>
+      <th style="min-width:160px;">Sample value <span class="badge">from extract</span></th>
+      <th>Canonical Field</th>
+      <th>Type</th>
+      <th>Mandatory</th>
+      <th>Conditional Msg Type</th>
+      <th style="min-width:170px;">Coverage</th>
+      <th style="min-width:180px;">Notes / rule captured live</th>
+      <th>Canonical Field</th>
+      <th>Type</th>
+      <th>Mandatory</th>
+      <th>Conditional Msg Type</th>
+    </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+</table>
+</div>
+
+<div class="ws-section-title">INT-21 — Canonical Service Order (outbound: S4HC → Canonical → FSM callback)</div>
+<div class="ws-section-sub">Status callback fields returned to the FSM once the Service Order is created. Capture the confirmed transport per FSM (REST callback, Salesforce Platform Event, file drop).</div>
+<div class="wrap">
+<table id="soOutTable">
+  <thead>
+    <tr class="cols">
+      <th style="min-width:220px;">S4HC Field</th>
+      <th style="min-width:220px;">Canonical Field</th>
+      <th>Transformation</th>
+      <th style="min-width:260px;">Business Rule</th>
+      <th style="min-width:220px;">FSM transport <span class="badge">live capture</span></th>
+    </tr>
+  </thead>
+  <tbody id="soOutBody"></tbody>
+</table>
+</div>
+
+<div class="footer-note">
+  Data entered here is held only in this browser tab (nothing is sent anywhere) and autosaved to this device every
+  few seconds so an accidental reload doesn't lose the session. Use <strong>Export CSV</strong> at the end of the
+  session and paste the result straight into the matching FSM tab of the Excel workbook — column order matches the
+  "[FSM] to Canonical" tab layout used for JAMS, MDFS, PIMS and MARS.
+  <br><br><strong>MDFS status:</strong> Pre-loaded with the confirmed MDFS Future Integration Points from the working session already held. Field Mapping Capture tab starts blank — no field-level JAMS-style mapping has been captured for MDFS yet.
+</div>
+
+</div><!-- /tabMapping -->
+
+<div id="tabProc" class="tabpage">
+
+<div class="toolbar">
+  <div class="stats" id="procStats"></div>
+  <button id="procLoadDraftBtn" title="Reload the last autosaved draft for this browser tab">Restore last draft</button>
+  <button id="procExportCsv" class="primary">Export CSV (paste into Excel)</button>
+</div>
+
+<div class="ws-section-title">INT-23 — Canonical Procurement (inbound: FSM → Canonical → S4HC)</div>
+<div class="ws-section-sub">No JAMS or any other FSM mapping is confirmed yet for Procurement — there's no reference column here, unlike the Service Order/WBS tab. Capture live against the canonical field catalogue.</div>
+<div class="wrap">
+<table id="procTable">
+  <thead>
+    <tr class="cols">
+      <th style="min-width:200px;">MDFS Field <span class="badge">live capture</span></th>
+      <th style="min-width:150px;">Sample value <span class="badge">from extract</span></th>
+      <th style="min-width:200px;">Canonical Field</th>
+      <th>Type</th>
+      <th>Mandatory for Canonical</th>
+      <th>Required From FSM</th>
+      <th style="min-width:220px;">S4HC Field</th>
+      <th>Transformation</th>
+      <th style="min-width:170px;">Coverage</th>
+      <th style="min-width:260px;">Business Rule</th>
+    </tr>
+  </thead>
+  <tbody id="procBody"></tbody>
+</table>
+</div>
+
+<div class="ws-section-title">INT-23 — Canonical Procurement (outbound: S4HC → Canonical → FSM callback)</div>
+<div class="ws-section-sub">Status callback fields returned to the FSM once the document chain is created. Capture the confirmed transport per FSM (REST callback, Platform Event, file drop).</div>
+<div class="wrap">
+<table id="procOutTable">
+  <thead>
+    <tr class="cols">
+      <th style="min-width:220px;">S4HC Field</th>
+      <th style="min-width:220px;">Canonical Field</th>
+      <th>Transformation</th>
+      <th style="min-width:260px;">Business Rule</th>
+      <th style="min-width:220px;">FSM transport <span class="badge">live capture</span></th>
+    </tr>
+  </thead>
+  <tbody id="procOutBody"></tbody>
+</table>
+</div>
+
+<div class="footer-note">
+  Same autosave and CSV export behaviour as the Service Order Field Mapping tab. Column order matches the
+  "INT-23 Can-Procurement-INB" / "INT-23 Can-Procurement-OUT" tabs of the Excel workbook — paste straight in.
+</div>
+
+</div><!-- /tabProc -->
+
+<div id="tabWorksheet" class="tabpage">
+
+<div class="ws-toolbar">
+  <div class="stats" id="wsStats" style="margin-right:auto; font-size:12px; color:#555;"></div>
+  <button id="wsLoadDraftBtn" title="Reload the last autosaved worksheet draft for this browser tab">Restore last draft</button>
+  <button id="wsClearBtn">Clear worksheet</button>
+  <button id="wsExportCsv" class="primary">Export CSV (all sections)</button>
+</div>
+
+<div class="ws-section-title">Future Integration Points</div>
+<div class="ws-section-sub">One row per process step. Add rows for additional steps as they come up in the session.</div>
+<div class="wrap">
+<table class="ws-table" id="fipTable">
+  <thead>
+    <tr>
+      <th style="min-width:90px;">FSM System</th>
+      <th style="min-width:160px;">Process Step</th>
+      <th style="min-width:110px;">FSM Object</th>
+      <th style="min-width:170px;">Trigger Status / Action</th>
+      <th style="min-width:110px;">Process Type</th>
+      <th style="min-width:160px;">Canonical Model</th>
+      <th style="min-width:200px;">What it does in SAP</th>
+      <th style="min-width:130px;">Integration Pattern</th>
+      <th style="min-width:150px;">Technology Type</th>
+      <th style="min-width:200px;">Minimum Payload Required</th>
+      <th style="min-width:150px;">SAP Outcome</th>
+      <th style="min-width:120px;">Status</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody id="fipBody"></tbody>
+</table>
+<button id="fipAddRow" style="margin-top:8px;">+ Add row</button>
+</div>
+
+<div class="ws-section-title">Write-back from S/4 to FSM (if required)</div>
+<div class="ws-section-sub">What SAP needs to push back to the FSM to close the loop, and by what method.</div>
+<div class="wrap">
+<table class="ws-table" id="wbTable">
+  <thead>
+    <tr>
+      <th style="min-width:220px;">Process</th>
+      <th style="min-width:260px;">What is written back</th>
+      <th style="min-width:110px;">Method</th>
+      <th style="min-width:320px;">Write-back requirement / notes</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody id="wbBody"></tbody>
+</table>
+<button id="wbAddRow" style="margin-top:8px;">+ Add row</button>
+</div>
+
+<div class="ws-section-title">Approach</div>
+<div class="free-block"><textarea class="free-textarea" id="approachText"></textarea></div>
+
+<div class="ws-section-title">Key points from session</div>
+<div class="free-block"><textarea class="free-textarea" id="keypointsText"></textarea></div>
+
+<div class="ws-section-title">Next steps</div>
+<div class="free-block" style="padding-bottom:36px;"><textarea class="free-textarea" id="nextstepsText" style="min-height:100px;"></textarea></div>
+
+</div><!-- /tabWorksheet -->
+
+
+<script>
+const ROWS = [{"jams": "messageID", "c21": "`header.sourceMessageId`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": "`header.sourceMessageId`", "t22": "string", "m22": "Yes", "cm22": "All"}, {"jams": "fsmSystem", "c21": "`header.sourceSystem`", "t21": "string enum", "m21": "Yes", "cm21": "All", "c22": "`header.sourceSystemTag`", "t22": "string", "m22": "Yes", "cm22": "All"}, {"jams": "messageType", "c21": "`header.sourceMessageType`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": "All"}, {"jams": "jobID", "c21": "`header.fsmJobNumber`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "refNo", "c21": "`header.clientJobNumber`", "t21": "string", "m21": "Conditional", "cm21": "CREATE_SO", "c22": "`header.clientJobNumber`", "t22": "string", "m22": "Yes", "cm22": "PROJECT"}, {"jams": "contractID", "c21": "`header.clientContractId`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": "`header.clientContractId`", "t22": "string", "m22": "Yes", "cm22": "All"}, {"jams": "department", "c21": "`header.serviceHierarchy`", "t21": "string", "m21": "Conditional", "cm21": "CREATE_SO", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "jobType", "c21": "`item.serviceHierarchy2`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "rateCardCustomerID", "c21": "`header.customerRegion`", "t21": "string", "m21": "Conditional", "cm21": "CREATE_SO", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "rateCardSubbieID", "c21": "`item.subbieRegion`", "t21": "string", "m21": "Conditional", "cm21": "RCTI", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "costDetailID (for SORs)\nresID (for resources, plant,  stock and labor)", "c21": "`items[].lineNumber`", "t21": "int", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "stockNo if message type is MATERIALS_USAGE\nsorID if message type is RCTI; REQUEST_PO; CLAIM", "c21": "`items[].product`", "t21": "code", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "qty", "c21": "`items[].quantity`", "t21": "decimal", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "uom", "c21": "`items[]. quantityUnit`", "t21": "code", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TimeBooking = N/A JAMS will not send labor time booking.\nCustomerService = If the customer claim canonical is being used this value will be set\nEquipment = N/A JAMS will not send labor time booking.\nSubcontractorProcurement = Trajce will include messageType field in the payload if this this message type  value is RCTI and the procurement canonical is being used set this field to SubcontractorProcurement\nIndirectProcurement = Trajce will include messageType field in the payload if this this message type  value is REQUEST_PO and the procurement canonical is being used set this field to IndirectProcurement. If the sorID field in this payload is empy or is not there then use the generic material XXXX and overwrite the description, UOM, price etc.\nVanStockConsumption =  If the stock consumption canonical is being used(message type = MATERIALS_USAGE) set the value of this field to VanStockConsumption. The plant will be determined based on the remote plant assigned to the contract.\nWarehouseStockReservation = This scenario is not relevant for JAMS", "c21": "`items[].lineType`", "t21": "enum", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TBC", "c21": "`items[].isBillable`", "t21": "boolean", "m21": "Yes", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TBC\nCost Plus = Might not be relevant for JAMS pattern 1.1 or 1.3. Karan will confirm with the business if the contracts map to this scenarios is mapped correctly.\nBack to Back = Not something that JAMS does.\nNon-Back to Back = Will only come through at point of customer claim\nFixed Price = Will need to chekc with the business\nFixed Fee = Will need to chekc with the business", "c21": "`items[].pricingMode`", "t21": "enum", "m21": "Yes", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TimeBooking = N/A\nCustomerService = Based on the contract mapping table\nEquipment = Based on the contract mapping table\nSubcontractorProcurement = Based on the contract mapping table\nIndirectProcurement = Based on the contract mapping table\nVanStockConsumption = Based on the contract mapping table\nWarehouseStockReservation = N/A", "c21": "`items[].plant`", "t21": "string", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "warehouseId", "c21": "`items[].vanID`", "t21": "string", "m21": "Conditional", "cm21": "MATERIALS_USAGE", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "rctiId", "c21": "`items[].RCTIReference`", "t21": "string", "m21": "Conditional", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "supplierId", "c21": "`items[].supplier`", "t21": "code", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "woId", "c21": "`items[].activity`", "t21": "string", "m21": "Optional", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TBC", "c21": "`items[].pricingElements[]`", "t21": "array", "m21": "Conditional", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "PROJREF", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].parentProjectElement`", "t22": "string", "m22": "Yes", "cm22": null}, {"jams": "WBSREF/jobID", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].ProjectElement`", "t22": "string", "m22": "No", "cm22": null}, {"jams": "jobDesc", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].projectElementDescription`", "t22": "string(40)", "m22": "Yes", "cm22": null}, {"jams": "TBC", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].isBillingElement`", "t22": "boolean", "m22": "Yes", "cm22": null}, {"jams": "TBC", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].doaApproverLevel1`", "t22": "string", "m22": "No", "cm22": null}, {"jams": "TBC", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].doaApproverLevel2`", "t22": "string", "m22": "No", "cm22": null}]
+;
+
+const STATUS_OPTS = [
+  {v:"TBC", label:"TBC", cls:"tbc"},
+  {v:"Fit", label:"Fit", cls:"fit"},
+  {v:"Partial", label:"Partial", cls:"partial"},
+  {v:"Gap", label:"Gap", cls:"gap"},
+  {v:"N/A", label:"N/A", cls:"tbc"},
+];
+
+const tbody = document.getElementById('tbody');
+const STORAGE_KEY = 'apollo_fsm_capture_draft_mdfs_v1';
+
+function esc(s){
+  if(s===null || s===undefined) return "";
+  return String(s);
+}
+
+function renderCanonCell(val, type, mand, cond){
+  if(!val) return {c:'<td class="canon-col meta">—</td><td class="canon-col meta">—</td><td class="canon-col meta">—</td><td class="canon-col meta">—</td>'};
+  return null;
+}
+
+function buildRows(){
+  let html = "";
+  ROWS.forEach((r, i) => {
+    const rowId = "r"+i;
+    const has21 = !!r.c21;
+    const has22 = !!r.c22;
+    html += `<tr data-row="${i}">`;
+    html += `<td class="jams-col">${esc(r.jams).replace(/\\n/g,'<br>')}</td>`;
+    html += `<td><input class="field-input" id="ff_${rowId}" placeholder="MDFS field name..." /></td>`;
+    html += `<td><input class="field-input" id="sv_${rowId}" placeholder="Sample value..." /></td>`;
+    // INT-21 canonical block
+    if(has21){
+      html += `<td class="canon-col"><code>${esc(r.c21)}</code></td>`;
+      html += `<td class="meta">${esc(r.t21)||'—'}</td>`;
+      html += `<td class="meta">${esc(r.m21)||'—'}</td>`;
+      html += `<td class="meta">${esc(r.cm21)||'—'}</td>`;
+    } else {
+      html += `<td class="meta">—</td><td class="meta">—</td><td class="meta">—</td><td class="meta">—</td>`;
+    }
+    // Coverage + Notes
+    html += `<td><select class="status-select tbc" id="st_${rowId}">`;
+    STATUS_OPTS.forEach(o => html += `<option value="${o.v}">${o.label}</option>`);
+    html += `</select></td>`;
+    html += `<td><input class="notes-input" id="nt_${rowId}" placeholder="Rule / caveat..." /></td>`;
+    // INT-22 canonical block
+    if(has22){
+      html += `<td class="canon-col"><code>${esc(r.c22)}</code></td>`;
+      html += `<td class="meta">${esc(r.t22)||'—'}</td>`;
+      html += `<td class="meta">${esc(r.m22)||'—'}</td>`;
+      html += `<td class="meta">${esc(r.cm22)||'—'}</td>`;
+    } else {
+      html += `<td class="meta">—</td><td class="meta">—</td><td class="meta">—</td><td class="meta">—</td>`;
+    }
+    html += `</tr>`;
+  });
+  tbody.innerHTML = html;
+
+  // wire status select coloring + stats + autosave
+  ROWS.forEach((r,i) => {
+    const sel = document.getElementById('st_r'+i);
+    sel.addEventListener('change', () => {
+      STATUS_OPTS.forEach(o => sel.classList.remove(o.cls));
+      const opt = STATUS_OPTS.find(o => o.v === sel.value);
+      sel.classList.add(opt.cls);
+      updateStats();
+      autosave();
+    });
+    document.getElementById('ff_r'+i).addEventListener('input', autosave);
+    document.getElementById('sv_r'+i).addEventListener('input', autosave);
+    document.getElementById('nt_r'+i).addEventListener('input', autosave);
+  });
+}
+
+function updateStats(){
+  const counts = {Fit:0, Partial:0, Gap:0, TBC:0, 'N/A':0};
+  ROWS.forEach((r,i) => {
+    const v = document.getElementById('st_r'+i).value;
+    counts[v] = (counts[v]||0) + 1;
+  });
+  document.getElementById('stats').innerHTML = `
+    <span class="stat"><span class="dot fit"></span>Fit ${counts.Fit}</span>
+    <span class="stat"><span class="dot partial"></span>Partial ${counts.Partial}</span>
+    <span class="stat"><span class="dot gap"></span>Gap ${counts.Gap}</span>
+    <span class="stat"><span class="dot tbc"></span>TBC ${counts.TBC + counts['N/A']}</span>
+    <span class="stat">of ${ROWS.length} fields</span>
+  `;
+}
+
+const SO_OUT_ROWS = [
+  ["`A_ServiceOrder.ServiceOrder`", "`header.sapServiceOrder` (callback)", "None", "Returned to the FSM on success."],
+  ["`A_ServiceOrderItem.ServiceOrderItem`", "`items[].sapServiceOrderItem` (callback)", "None", "Optional in callback; per-FSM agreement on whether item-level keys are echoed."],
+  ["`A_ServiceOrder.ServiceOrderStatus`", "`header.sapStatus` (callback)", "None", ""],
+];
+const soOutBody = document.getElementById('soOutBody');
+
+function soOutRowHtml(row, idx, transport){
+  const [s4hc, canon, transform, rule] = row;
+  return `<tr data-soourow="${idx}">
+    <td class="canon-col">${s4hc}</td>
+    <td class="canon-col">${canon}</td>
+    <td class="meta">${transform}</td>
+    <td class="meta">${rule}</td>
+    <td><input class="field-input" id="sot_${idx}" placeholder="Capture transport..." value="${(transport||'').replace(/"/g,'&quot;')}"></td>
+  </tr>`;
+}
+function renderSoOut(transports){
+  soOutBody.innerHTML = SO_OUT_ROWS.map((r,i) => soOutRowHtml(r, i, transports ? transports[i] : "")).join("");
+  SO_OUT_ROWS.forEach((r,i) => {
+    document.getElementById('sot_'+i).addEventListener('input', autosave);
+  });
+}
+
+function collectState(){
+  const rows = ROWS.map((r,i) => ({
+    fsmField: document.getElementById('ff_r'+i).value,
+    sampleValue: document.getElementById('sv_r'+i).value,
+    status: document.getElementById('st_r'+i).value,
+    notes: document.getElementById('nt_r'+i).value,
+  }));
+  const outRows = SO_OUT_ROWS.map((r,i) => ({
+    transport: document.getElementById('sot_'+i) ? document.getElementById('sot_'+i).value : "",
+  }));
+  return {
+    fsmName: document.getElementById('fsmName').value,
+    wsDate: document.getElementById('wsDate').value,
+    facilitator: document.getElementById('facilitator').value,
+    attendees: document.getElementById('attendees').value,
+    rows,
+    outRows
+  };
+}
+
+function applyState(state){
+  if(!state) return;
+  document.getElementById('fsmName').value = state.fsmName || "";
+  document.getElementById('wsDate').value = state.wsDate || "";
+  document.getElementById('facilitator').value = state.facilitator || "";
+  document.getElementById('attendees').value = state.attendees || "";
+  (state.rows||[]).forEach((row,i) => {
+    const ff = document.getElementById('ff_r'+i);
+    const st = document.getElementById('st_r'+i);
+    const nt = document.getElementById('nt_r'+i);
+    if(!ff) return;
+    ff.value = row.fsmField || "";
+    const sv = document.getElementById('sv_r'+i);
+    if(sv) sv.value = row.sampleValue || "";
+    st.value = row.status || "TBC";
+    STATUS_OPTS.forEach(o => st.classList.remove(o.cls));
+    const opt = STATUS_OPTS.find(o => o.v === st.value) || STATUS_OPTS[0];
+    st.classList.add(opt.cls);
+    nt.value = row.notes || "";
+  });
+  (state.outRows||[]).forEach((row,i) => {
+    const t = document.getElementById('sot_'+i);
+    if(t) t.value = row.transport || "";
+  });
+  updateStats();
+}
+
+let autosaveTimer = null;
+function autosave(){
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(() => {
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState()));
+    }catch(e){ /* storage unavailable, ignore */ }
+  }, 600);
+}
+
+document.getElementById('loadDraftBtn').addEventListener('click', () => {
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw){ alert('No saved draft found on this device.'); return; }
+    applyState(JSON.parse(raw));
+  }catch(e){ alert('Could not restore draft.'); }
+});
+
+function csvEscape(v){
+  if(v === null || v === undefined) v = "";
+  v = String(v).replace(/"/g,'""');
+  return `"${v}"`;
+}
+
+document.getElementById('exportCsv').addEventListener('click', () => {
+  const state = collectState();
+  const header = [
+    "JAMS Field (Reference)", (state.fsmName||"FSM")+" Field", "Sample Value", "Coverage", "Notes",
+    "Canonical Field (INT-21)", "Type", "Mandatory from FSM", "Conditional Message Type",
+    "Canonical Field (INT-22)", "Type", "Mandatory from FSM", "Conditional Message Type"
+  ];
+  const lines = [header.map(csvEscape).join(",")];
+  ROWS.forEach((r,i) => {
+    const row = state.rows[i];
+    lines.push([
+      r.jams, row.fsmField, row.sampleValue, row.status, row.notes,
+      r.c21, r.t21, r.m21, r.cm21,
+      r.c22, r.t22, r.m22, r.cm22
+    ].map(csvEscape).join(","));
+  });
+  lines.push("");
+  lines.push("INT-21 Service Order — outbound (S4HC to FSM callback)");
+  lines.push(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport"].map(csvEscape).join(","));
+  SO_OUT_ROWS.forEach((r,i) => {
+    lines.push([r[0], r[1], r[2], r[3], state.outRows[i].transport].map(csvEscape).join(","));
+  });
+  const meta = `# FSM: ${state.fsmName||''} | Date: ${state.wsDate||''} | Facilitator: ${state.facilitator||''} | Attendees: ${state.attendees||''}\n`;
+  const csv = meta + lines.join("\n");
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const fname = (state.fsmName || "FSM").replace(/[^a-z0-9]+/gi,'_');
+  a.href = url;
+  a.download = `Apollo_${fname}_Mapping_Capture_${(state.wsDate||'draft')}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+buildRows();
+renderSoOut();
+updateStats();
+
+// auto-restore if a draft already exists for this browser
+try{
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw) applyState(JSON.parse(raw));
+}catch(e){}
+// ================= Tab switching =================
+const tabBtnMapping = document.getElementById('tabBtnMapping');
+const tabBtnProc = document.getElementById('tabBtnProc');
+const tabBtnWorksheet = document.getElementById('tabBtnWorksheet');
+const tabMapping = document.getElementById('tabMapping');
+const tabProc = document.getElementById('tabProc');
+const tabWorksheet = document.getElementById('tabWorksheet');
+const ALL_TAB_BTNS = [tabBtnMapping, tabBtnProc, tabBtnWorksheet];
+const ALL_TAB_PAGES = [tabMapping, tabProc, tabWorksheet];
+function activateTab(btn, page){
+  ALL_TAB_BTNS.forEach(b => b.classList.remove('active'));
+  ALL_TAB_PAGES.forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  page.classList.add('active');
+}
+tabBtnMapping.addEventListener('click', () => activateTab(tabBtnMapping, tabMapping));
+tabBtnProc.addEventListener('click', () => activateTab(tabBtnProc, tabProc));
+tabBtnWorksheet.addEventListener('click', () => activateTab(tabBtnWorksheet, tabWorksheet));
+
+
+
+// ================= Procurement Field Mapping (INT-23) =================
+const PROC_STORAGE_KEY = 'apollo_fsm_proc_draft_v1';
+
+const PROC_IN_ROWS = [
+  ["`header.sourceMessageId`","string","Yes","Yes","Not required in S4HC","Pass-through","FSM-supplied. Idempotency key together with sourceSystem; the pair (sourceSystem, sourceMessageId) is deduplicated by CPI for 90 days."],
+  ["`header.requestType`","string enum","Yes","Yes","Not required in S4HC (derives PO doc type)","Derived","SubcontractorClaim -> PO type ZFSM and an SES/invoice follow-on; ProcurementInitiation -> PO type NB, stop at PO. Drives the routing in section 4.6."],
+  ["`header.clientContractId`","string","Yes","Yes","`header.clientJobNumber`","Lookup","Drives the Contract Mapping lookup, which resolves contractPattern plus company code, purchasing org, purchasing group and plant."],
+  ["`header.clientJobNumber`","string","Yes","Yes","Not required in S4HC (resolves the Service Order)","Pass-through","FSM business key. For patterns 1.1/1.2 it resolves the SAP Service Order via INT-21."],
+  ["`header.wbsElement`","string","Conditional (3.1/3.2)","Yes (3.1/3.2)","`PurchaseOrder _PurOrdAccountAssignment.WBSElementExternalID`","Pass-through","Supplied for patterns 3.1/3.2 -> PO item account assignment (AccountAssignmentCategory='P')."],
+  ["`header.supplier`","code","Yes","Yes","`PurchaseOrder.Supplier` / `PurchaseReqnItem.FixedSupplier`","Lookup","BP lookup (query A_BuPaIdentification (API_BUSINESS_PARTNER) where IdentificationType = FSM-relevant type, matched on the FSM supplier reference, then main BP number) -> PO Supplier (3.1/3.2) or PR FixedSupplier (1.1/1.2). Mandatory PO header field."],
+  ["`items[].lineType`","string enum","Yes","Yes","Not required in S4HC (drives item category)","Derived","SubcontractorProcurement | IndirectProcurement. Both map to a service / lean-service PO item category required for the follow-on Service Entry Sheet (do not force a PO item category - ZFSM defaults the lean-service item the SES needs)."],
+  ["`items[].material`","code","Yes","Yes","`PurchaseOrderItem.Material`","Pass-through","Service Material (Product Type Group = 2) required for SES eligibility (section 4.5)."],
+  ["`items[].quantity`","decimal","Yes","Yes","`PurchaseOrderItem.OrderQuantity` (+ `PurchaseOrderQuantityUnit`)","Pass-through","Sent as a JSON number in V4, not a quoted string (/IWCOR/CX_OD_EP_PROPERTY_ERROR otherwise). quantityUnit maps to PurchaseOrderQuantityUnit."],
+  ["`items[].netPrice`","decimal","Yes","Yes","`PurchaseReqn.PurchaseRequisitionPrice` + `PurchaseOrderItem.NetPriceAmount`","Pass-through","PO item net price; also the PMP0 condition / PR price for patterns 1.1/1.2. Requires an item-level DocumentCurrency; sent as a JSON number in V4."],
+  ["`items[].glAccount`","code","Conditional (WBS-direct)","Yes (3.1/3.2)","`_PurOrdAccountAssignment.GLAccount`","Pass-through","G/L account for the PO account assignment on WBS-direct lines (patterns 3.1/3.2)."],
+];
+
+const PROC_OUT_ROWS = [
+  ["`PurchaseOrder.PurchaseOrder`","`header.sapPurchaseOrder` (callback)","ALL","The PO number issued by SAP. Present in every callback since a PO is created in both the SubcontractorClaim and ProcurementInitiation paths (contract patterns 1.1/1.2/3.1/3.2)."],
+  ["`ServiceEntrySheet.ServiceEntrySheet`","`header.sapServiceEntrySheet` (callback)","SCN-H-001..004","Present only when an SES is created — i.e. SubcontractorClaim requests, which follow the PO with a Service Entry Sheet. Not present for ProcurementInitiation requests, which stop at the PO."],
+  ["`A_SupplierInvoice.SupplierInvoice`","`header.sapSupplierInvoice` (callback)","SCN-H-001, SCN-H-003","Present only when an RCTI Supplier Invoice is created — i.e. when the inbound payload carried an RCTI reference. Absent when no RCTI reference was supplied (flow stops after the Service Entry Sheet)."],
+];
+
+const procBody = document.getElementById('procBody');
+const procOutBody = document.getElementById('procOutBody');
+
+function procInRowHtml(row, idx, fsmField, status, notes, sampleValue){
+  const [canon, type, mandCanon, reqFsm, s4hc, transform, rule] = row;
+  return `<tr data-procrow="${idx}">
+    <td><input class="field-input" id="pf_${idx}" placeholder="MDFS field name..." value="${(fsmField||'').replace(/"/g,'&quot;')}"></td>
+    <td><input class="field-input" id="psv_${idx}" placeholder="Sample value..." value="${(sampleValue||'').replace(/"/g,'&quot;')}"></td>
+    <td class="canon-col"><code>${canon}</code></td>
+    <td class="meta">${type}</td>
+    <td class="meta">${mandCanon}</td>
+    <td class="meta">${reqFsm}</td>
+    <td class="canon-col">${s4hc}</td>
+    <td class="meta">${transform}</td>
+    <td><select class="status-select ${status==='TBC'?'tbc':status.toLowerCase()}" id="ps_${idx}">
+      ${STATUS_OPTS.map(o=>`<option value="${o.v}" ${o.v===status?'selected':''}>${o.label}</option>`).join("")}
+    </select></td>
+    <td class="meta">${rule}</td>
+  </tr>`;
+}
+function procOutRowHtml(row, idx, transport){
+  const [s4hc, canon, transform, rule] = row;
+  return `<tr data-procoutrow="${idx}">
+    <td class="canon-col">${s4hc}</td>
+    <td class="canon-col">${canon}</td>
+    <td class="meta">${transform}</td>
+    <td class="meta">${rule}</td>
+    <td><input class="field-input" id="pot_${idx}" placeholder="Capture transport..." value="${(transport||'').replace(/"/g,'&quot;')}"></td>
+  </tr>`;
+}
+
+function renderProc(){
+  procBody.innerHTML = PROC_IN_ROWS.map((r,i) => procInRowHtml(r, i, "", "TBC", "")).join("");
+  procOutBody.innerHTML = PROC_OUT_ROWS.map((r,i) => procOutRowHtml(r, i, "")).join("");
+  PROC_IN_ROWS.forEach((r,i) => {
+    document.getElementById('pf_'+i).addEventListener('input', procAutosave);
+    document.getElementById('psv_'+i).addEventListener('input', procAutosave);
+    const sel = document.getElementById('ps_'+i);
+    sel.addEventListener('change', () => {
+      STATUS_OPTS.forEach(o => sel.classList.remove(o.cls));
+      sel.classList.add((STATUS_OPTS.find(o=>o.v===sel.value)||STATUS_OPTS[0]).cls);
+      updateProcStats();
+      procAutosave();
+    });
+  });
+  PROC_OUT_ROWS.forEach((r,i) => {
+    document.getElementById('pot_'+i).addEventListener('input', procAutosave);
+  });
+  updateProcStats();
+}
+
+function updateProcStats(){
+  const counts = {Fit:0, Partial:0, Gap:0, TBC:0, 'N/A':0};
+  PROC_IN_ROWS.forEach((r,i) => {
+    const v = document.getElementById('ps_'+i).value;
+    counts[v] = (counts[v]||0) + 1;
+  });
+  document.getElementById('procStats').innerHTML = `
+    <span class="stat"><span class="dot fit"></span>Fit ${counts.Fit}</span>
+    <span class="stat"><span class="dot partial"></span>Partial ${counts.Partial}</span>
+    <span class="stat"><span class="dot gap"></span>Gap ${counts.Gap}</span>
+    <span class="stat"><span class="dot tbc"></span>TBC ${counts.TBC + counts['N/A']}</span>
+    <span class="stat">of ${PROC_IN_ROWS.length} fields</span>
+  `;
+}
+
+function collectProcState(){
+  return {
+    inRows: PROC_IN_ROWS.map((r,i) => ({
+      fsmField: document.getElementById('pf_'+i).value,
+      sampleValue: document.getElementById('psv_'+i).value,
+      status: document.getElementById('ps_'+i).value,
+    })),
+    outRows: PROC_OUT_ROWS.map((r,i) => ({
+      transport: document.getElementById('pot_'+i).value,
+    })),
+  };
+}
+function applyProcState(state){
+  if(!state) return;
+  (state.inRows||[]).forEach((row,i) => {
+    const ff = document.getElementById('pf_'+i);
+    const st = document.getElementById('ps_'+i);
+    if(!ff) return;
+    ff.value = row.fsmField || "";
+    const psv = document.getElementById('psv_'+i);
+    if(psv) psv.value = row.sampleValue || "";
+    st.value = row.status || "TBC";
+    STATUS_OPTS.forEach(o => st.classList.remove(o.cls));
+    st.classList.add((STATUS_OPTS.find(o=>o.v===st.value)||STATUS_OPTS[0]).cls);
+  });
+  (state.outRows||[]).forEach((row,i) => {
+    const t = document.getElementById('pot_'+i);
+    if(t) t.value = row.transport || "";
+  });
+  updateProcStats();
+}
+
+let procAutosaveTimer = null;
+function procAutosave(){
+  clearTimeout(procAutosaveTimer);
+  procAutosaveTimer = setTimeout(() => {
+    try{ localStorage.setItem(PROC_STORAGE_KEY, JSON.stringify(collectProcState())); }catch(e){}
+  }, 600);
+}
+
+document.getElementById('procLoadDraftBtn').addEventListener('click', () => {
+  try{
+    const raw = localStorage.getItem(PROC_STORAGE_KEY);
+    if(!raw){ alert('No saved draft found on this device.'); return; }
+    applyProcState(JSON.parse(raw));
+  }catch(e){ alert('Could not restore draft.'); }
+});
+document.getElementById('procExportCsv').addEventListener('click', () => {
+  const state = collectProcState();
+  const fsmName = document.getElementById('fsmName').value || "FSM";
+  const lines = [];
+  lines.push(`# ${fsmName} — INT-23 Procurement Field Mapping | Date: ${document.getElementById('wsDate').value||''} | Facilitator: ${document.getElementById('facilitator').value||''}`);
+  lines.push("");
+  lines.push(["MDFS Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Business Rule"].map(csvEscape).join(","));
+  PROC_IN_ROWS.forEach((r,i) => {
+    lines.push([state.inRows[i].fsmField, state.inRows[i].sampleValue, r[0], r[1], r[2], r[3], r[4], r[5], state.inRows[i].status, r[6]].map(csvEscape).join(","));
+  });
+  lines.push("");
+  lines.push("INT-23 Procurement — outbound (S4HC to FSM callback)");
+  lines.push(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport"].map(csvEscape).join(","));
+  PROC_OUT_ROWS.forEach((r,i) => {
+    lines.push([r[0], r[1], r[2], r[3], state.outRows[i].transport].map(csvEscape).join(","));
+  });
+  const csv = lines.join("\n");
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const fname = fsmName.replace(/[^a-z0-9]+/gi,'_');
+  a.href = url;
+  a.download = `Apollo_${fname}_Procurement_Mapping_${(document.getElementById('wsDate').value||'draft')}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+renderProc();
+try{
+  const rawProc = localStorage.getItem(PROC_STORAGE_KEY);
+  if(rawProc) applyProcState(JSON.parse(rawProc));
+}catch(e){}
+
+
+
+// ================= Future Integration Points Worksheet =================
+const WS_STORAGE_KEY = 'apollo_fsm_worksheet_draft_mdfs_v1';
+
+const FIP_SEED = [
+  ["MDFS","Job / Work Creation","Work Order","SCC Approved","Integration","Service Order Creation","Creates Service Order","API/File – Cost TBC","File Export from MDFS","Work Order ID, Customer, Location","Create Service Order","Proposed"],
+  ["MDFS","Work Scheduling / SCC Approval","Work Order","SCC Approved / Status = Submitted in MDFS","Integration","Service Order Update","Updates Service Order","API/File – Cost TBC","File Export from MDFS","Work Order ID, Task Details, SCC Status","Update Service Order","Proposed"],
+  ["MDFS","Workforce Execution","Activity","Work Completed","Integration","Work Confirmation","Posts work confirmation against Service Order","Push","API","Activity ID, Quantity, Time, Completion Status","Post Work Confirmation","Proposed"],
+  ["MDFS","Equipment Usage","N/A","N/A","N/A","Work Confirmation","Optional equipment confirmation","N/A","N/A","N/A","Not in Scope","Out of Scope"],
+  ["MDFS","Material Consumption","N/A","N/A","N/A","Material Reservation / Consumption","Managed directly within ERP processes","N/A","N/A","N/A","Not in Scope","Out of Scope"],
+  ["MDFS","Subcontractor Claim Processing","Claim / SOR","SCC Approved","Integration","Procurement / SES Creation","Creates PO, SES and Supplier Invoice process","Push","File Export","Supplier, Quantity, Amount, Claim Reference","PO / SES / Supplier Invoice","Proposed"],
+  ["MDFS","Customer Billing","Claim","Client System Event","Manual / Integration","Billing","Creates customer billing process in SAP","Pull / Manual","Export File + Upload","Billing File / Claim Reference","Customer Invoice","Proposed"],
+];
+
+const WB_SEED = [
+  ["Supplier Invoice Processing","SAP Supplier Invoice Number / Reference","API","Write-back requirement — Supplier Invoice reference to be pushed from SAP into MDFS through API integration"],
+  ["SES Processing","Service Entry Sheet (SES) Reference and Status","API",""],
+  ["Payment Status Update","Payment / Settlement Status","API",""],
+  ["PO Processing","Purchase Order Number / Status","API",""],
+  ["Work Order Financial Status","Claim financial processing status","API",""],
+  ["Error / Rejection Handling","Rejection reason or processing exception","API / Batch Response File",""],
+];
+
+const APPROACH_SEED =
+`\u2022 MDFS remains the operational system
+\u2022 SAP S/4HANA manages service orders, procurement, billing, and finance
+\u2022 Trigger points aligned to business events (Schedule, SCC approved, Completion)
+\u2022 Bulk processing aligned to current Jobpac approach
+\u2022 Supplier invoice reference written back to MDFS via API`;
+
+const KEYPOINTS_SEED =
+`\u2022 No integration currently between MDFS and Jobpac; claims are extracted and uploaded manually
+\u2022 Work orders originate from Helix and are created in MDFS via file-based updates
+\u2022 Work order lifecycle managed through statuses such as unscheduled, scheduled, in progress and complete
+\u2022 Subcontractor claims are grouped and processed in bulk at SCC stage
+\u2022 SCC confirmed as the trigger point for SAP processing (approved, payment-ready claims)
+\u2022 File-based extraction is the current pattern, API also feasible
+\u2022 Supplier invoice reference required back in MDFS to complete claim processing
+\u2022 Internal labour tracked outside MDFS (Workday), with cost to be reflected in SAP
+\u2022 Material and equipment not managed in MDFS and remain outside scope`;
+
+const NEXTSTEPS_SEED =
+`\u2022 Confirm data fields and extract format
+\u2022 Validate API capability for write-back
+\u2022 Confirm trigger timing and batch approach
+\u2022 Schedule follow-up walkthrough session`;
+
+const STATUS_CLASS = {
+  "Proposed":"proposed", "Confirmed":"confirmed", "Out of Scope":"outofscope", "Rejected":"rejected"
+};
+const STATUS_LIST = ["Proposed","Confirmed","Out of Scope","Rejected"];
+
+const fipBody = document.getElementById('fipBody');
+const wbBody = document.getElementById('wbBody');
+
+function fipRowHtml(vals, idx){
+  vals = vals || ["","","","","","","","","","","",""];
+  const cells = vals.slice(0,12).map((v,c) =>
+    `<td><input class="ws-input" data-fip="${idx}" data-col="${c}" value="${(v||"").replace(/"/g,'&quot;')}"></td>`
+  ).join("");
+  const statusIdx = 11;
+  return `<tr data-fiprow="${idx}">
+    <td><input class="ws-input" data-fip="${idx}" data-col="0" value="${(vals[0]||"").replace(/"/g,'&quot;')}"></td>
+    <td><input class="ws-input" data-fip="${idx}" data-col="1" value="${(vals[1]||"").replace(/"/g,'&quot;')}"></td>
+    <td><input class="ws-input" data-fip="${idx}" data-col="2" value="${(vals[2]||"").replace(/"/g,'&quot;')}"></td>
+    <td><input class="ws-input" data-fip="${idx}" data-col="3" value="${(vals[3]||"").replace(/"/g,'&quot;')}"></td>
+    <td><input class="ws-input" data-fip="${idx}" data-col="4" value="${(vals[4]||"").replace(/"/g,'&quot;')}"></td>
+    <td><input class="ws-input" data-fip="${idx}" data-col="5" value="${(vals[5]||"").replace(/"/g,'&quot;')}"></td>
+    <td><input class="ws-input" data-fip="${idx}" data-col="6" value="${(vals[6]||"").replace(/"/g,'&quot;')}"></td>
+    <td><input class="ws-input" data-fip="${idx}" data-col="7" value="${(vals[7]||"").replace(/"/g,'&quot;')}"></td>
+    <td><input class="ws-input" data-fip="${idx}" data-col="8" value="${(vals[8]||"").replace(/"/g,'&quot;')}"></td>
+    <td><input class="ws-input" data-fip="${idx}" data-col="9" value="${(vals[9]||"").replace(/"/g,'&quot;')}"></td>
+    <td><input class="ws-input" data-fip="${idx}" data-col="10" value="${(vals[10]||"").replace(/"/g,'&quot;')}"></td>
+    <td><select class="ws-status ${STATUS_CLASS[vals[11]]||'proposed'}" data-fip="${idx}" data-col="11">
+      ${STATUS_LIST.map(s=>`<option value="${s}" ${s===vals[11]?'selected':''}>${s}</option>`).join("")}
+    </select></td>
+    <td><button class="row-del" data-fipdel="${idx}">Remove</button></td>
+  </tr>`;
+}
+
+function wbRowHtml(vals, idx){
+  vals = vals || ["","","",""];
+  return `<tr data-wbrow="${idx}">
+    <td><input class="ws-input" data-wb="${idx}" data-col="0" value="${(vals[0]||"").replace(/"/g,'&quot;')}"></td>
+    <td><input class="ws-input" data-wb="${idx}" data-col="1" value="${(vals[1]||"").replace(/"/g,'&quot;')}"></td>
+    <td><input class="ws-input" data-wb="${idx}" data-col="2" value="${(vals[2]||"").replace(/"/g,'&quot;')}"></td>
+    <td><input class="ws-input" data-wb="${idx}" data-col="3" value="${(vals[3]||"").replace(/"/g,'&quot;')}"></td>
+    <td><button class="row-del" data-wbdel="${idx}">Remove</button></td>
+  </tr>`;
+}
+
+let fipData = [];
+let wbData = [];
+
+function renderFip(){
+  fipBody.innerHTML = fipData.map((r,i) => fipRowHtml(r,i)).join("");
+  wireFipRows();
+  updateWsStats();
+}
+function renderWb(){
+  wbBody.innerHTML = wbData.map((r,i) => wbRowHtml(r,i)).join("");
+  wireWbRows();
+}
+
+function wireFipRows(){
+  fipBody.querySelectorAll('input[data-fip], select[data-fip]').forEach(el => {
+    el.addEventListener('input', () => {
+      const idx = +el.dataset.fip, col = +el.dataset.col;
+      fipData[idx][col] = el.value;
+      if(col===11 && el.tagName==='SELECT'){
+        el.className = 'ws-status ' + (STATUS_CLASS[el.value]||'proposed');
+        updateWsStats();
+      }
+      wsAutosave();
+    });
+  });
+  fipBody.querySelectorAll('[data-fipdel]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = +btn.dataset.fipdel;
+      fipData.splice(idx,1);
+      renderFip();
+      wsAutosave();
+    });
+  });
+}
+function wireWbRows(){
+  wbBody.querySelectorAll('input[data-wb]').forEach(el => {
+    el.addEventListener('input', () => {
+      const idx = +el.dataset.wb, col = +el.dataset.col;
+      wbData[idx][col] = el.value;
+      wsAutosave();
+    });
+  });
+  wbBody.querySelectorAll('[data-wbdel]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = +btn.dataset.wbdel;
+      wbData.splice(idx,1);
+      renderWb();
+      wsAutosave();
+    });
+  });
+}
+
+function updateWsStats(){
+  const counts = {Proposed:0, Confirmed:0, "Out of Scope":0, Rejected:0};
+  fipData.forEach(r => { counts[r[11]] = (counts[r[11]]||0)+1; });
+  document.getElementById('wsStats').innerHTML =
+    `${fipData.length} process steps &nbsp;·&nbsp; Proposed ${counts.Proposed} &nbsp;·&nbsp; Confirmed ${counts.Confirmed} &nbsp;·&nbsp; Out of Scope ${counts["Out of Scope"]} &nbsp;·&nbsp; Rejected ${counts.Rejected}`;
+}
+
+document.getElementById('fipAddRow').addEventListener('click', () => {
+  fipData.push(["","","","","","","","","","","","Proposed"]);
+  renderFip();
+  wsAutosave();
+});
+document.getElementById('wbAddRow').addEventListener('click', () => {
+  wbData.push(["","","",""]);
+  renderWb();
+  wsAutosave();
+});
+
+let wsAutosaveTimer = null;
+function wsAutosave(){
+  clearTimeout(wsAutosaveTimer);
+  wsAutosaveTimer = setTimeout(() => {
+    try{
+      localStorage.setItem(WS_STORAGE_KEY, JSON.stringify({
+        fipData, wbData,
+        approach: document.getElementById('approachText').value,
+        keypoints: document.getElementById('keypointsText').value,
+        nextsteps: document.getElementById('nextstepsText').value,
+      }));
+    }catch(e){}
+  }, 600);
+}
+['approachText','keypointsText','nextstepsText'].forEach(id => {
+  document.getElementById(id).addEventListener('input', wsAutosave);
+});
+
+function seedWorksheet(){
+  fipData = FIP_SEED.map(r => r.slice());
+  wbData = WB_SEED.map(r => r.slice());
+  document.getElementById('approachText').value = APPROACH_SEED;
+  document.getElementById('keypointsText').value = KEYPOINTS_SEED;
+  document.getElementById('nextstepsText').value = NEXTSTEPS_SEED;
+  renderFip();
+  renderWb();
+}
+
+document.getElementById('wsLoadDraftBtn').addEventListener('click', () => {
+  try{
+    const raw = localStorage.getItem(WS_STORAGE_KEY);
+    if(!raw){ alert('No saved worksheet draft found on this device.'); return; }
+    const state = JSON.parse(raw);
+    fipData = state.fipData || [];
+    wbData = state.wbData || [];
+    document.getElementById('approachText').value = state.approach || "";
+    document.getElementById('keypointsText').value = state.keypoints || "";
+    document.getElementById('nextstepsText').value = state.nextsteps || "";
+    renderFip(); renderWb();
+  }catch(e){ alert('Could not restore worksheet draft.'); }
+});
+
+document.getElementById('wsClearBtn').addEventListener('click', () => {
+  if(!confirm('Clear the entire Future Integration Points worksheet (rows and notes) on this screen?')) return;
+  fipData = []; wbData = [];
+  document.getElementById('approachText').value = "";
+  document.getElementById('keypointsText').value = "";
+  document.getElementById('nextstepsText').value = "";
+  renderFip(); renderWb();
+  wsAutosave();
+});
+
+document.getElementById('wsExportCsv').addEventListener('click', () => {
+  const lines = [];
+  const fsmName = document.getElementById('fsmName').value || "FSM";
+  lines.push(`# ${fsmName} — Future Integration Points Worksheet | Date: ${document.getElementById('wsDate').value||''} | Facilitator: ${document.getElementById('facilitator').value||''} | Attendees: ${document.getElementById('attendees').value||''}`);
+  lines.push("");
+  lines.push([
+    "FSM System","Process Step","FSM Object","Trigger Status / Action","Process Type","Canonical Model",
+    "What it does in SAP","Integration Pattern","Technology Type","Minimum Payload Required","SAP Outcome","Status"
+  ].map(csvEscape).join(","));
+  fipData.forEach(r => lines.push(r.map(csvEscape).join(",")));
+  lines.push("");
+  lines.push(`Write-back from S/4 to ${fsmName}`);
+  lines.push(["Process","What is written back","Method","Write-back requirement / notes"].map(csvEscape).join(","));
+  wbData.forEach(r => lines.push(r.map(csvEscape).join(",")));
+  lines.push("");
+  lines.push("Approach");
+  document.getElementById('approachText').value.split("\n").forEach(l => lines.push(csvEscape(l)));
+  lines.push("");
+  lines.push("Key points from session");
+  document.getElementById('keypointsText').value.split("\n").forEach(l => lines.push(csvEscape(l)));
+  lines.push("");
+  lines.push("Next steps");
+  document.getElementById('nextstepsText').value.split("\n").forEach(l => lines.push(csvEscape(l)));
+
+  const csv = lines.join("\n");
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const fname = fsmName.replace(/[^a-z0-9]+/gi,'_');
+  a.href = url;
+  a.download = `Apollo_${fname}_Future_Integration_Points_${(document.getElementById('wsDate').value||'draft')}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+// initial load: restore worksheet draft if present, else seed with MDFS example
+try{
+  const raw = localStorage.getItem(WS_STORAGE_KEY);
+  if(raw){
+    const state = JSON.parse(raw);
+    fipData = state.fipData || [];
+    wbData = state.wbData || [];
+    document.getElementById('approachText').value = state.approach || "";
+    document.getElementById('keypointsText').value = state.keypoints || "";
+    document.getElementById('nextstepsText').value = state.nextsteps || "";
+    renderFip(); renderWb();
+  } else {
+    seedWorksheet();
+  }
+}catch(e){ seedWorksheet(); }
+
+
+// ================= Whole-mapping export / import (round-trip) =================
+// One file that carries every tab plus the captured MDFS fields, sample values,
+// statuses and notes. Hand it to the MDFS team to validate; they (or you) load
+// it straight back with Import — nothing is lost.
+function _v(id){ const e=document.getElementById(id); return e?e.value:""; }
+function _sv(id,val){ const e=document.getElementById(id); if(e) e.value = val||""; }
+
+function collectAll(){
+  return {
+    tool:"mdfs-workshop-capture", version:1, fields:ROWS.length,
+    meta:{ fsmName:_v('fsmName'), wsDate:_v('wsDate'), facilitator:_v('facilitator'), attendees:_v('attendees') },
+    serviceOrder: collectState(),        // meta + rows (incl. sampleValue) + soOut transports
+    procurement: collectProcState(),     // inRows (incl. sampleValue) + outRows
+    worksheet:{ fipData, wbData, approach:_v('approachText'), keypoints:_v('keypointsText'), nextsteps:_v('nextstepsText') }
+  };
+}
+function applyAll(obj){
+  if(!obj || typeof obj!=='object') return false;
+  if(obj.serviceOrder) applyState(obj.serviceOrder);
+  else if(obj.meta){ _sv('fsmName',obj.meta.fsmName); _sv('wsDate',obj.meta.wsDate); _sv('facilitator',obj.meta.facilitator); _sv('attendees',obj.meta.attendees); }
+  if(obj.procurement) applyProcState(obj.procurement);
+  if(obj.worksheet){
+    if(Array.isArray(obj.worksheet.fipData)) fipData = obj.worksheet.fipData;
+    if(Array.isArray(obj.worksheet.wbData)) wbData = obj.worksheet.wbData;
+    _sv('approachText', obj.worksheet.approach);
+    _sv('keypointsText', obj.worksheet.keypoints);
+    _sv('nextstepsText', obj.worksheet.nextsteps);
+    renderFip(); renderWb();
+  }
+  // persist into the per-tab autosave slots so a later reload keeps the import
+  autosave(); procAutosave(); wsAutosave();
+  return true;
+}
+
+document.getElementById('exportAllJson').addEventListener('click', () => {
+  const data = collectAll();
+  const safe = (data.meta.fsmName||'FSM').replace(/[^a-z0-9]+/gi,'_');
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=`Apollo_${safe}_Field_Mapping_${(data.meta.wsDate||'draft')}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+});
+document.getElementById('importAllBtn').addEventListener('click', () => document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', (e) => {
+  const f = e.target.files[0]; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try{
+      const obj = JSON.parse(rd.result);
+      if(obj && (obj.serviceOrder || obj.procurement || obj.worksheet)){
+        applyAll(obj);
+        alert('Mapping imported — MDFS fields, sample values, statuses and notes are loaded across all tabs.');
+      } else {
+        alert('That file does not look like a mapping export from this tool.');
+      }
+    }catch(err){ alert('Could not read that file. Please choose a mapping .json exported by this tool.'); }
+  };
+  rd.readAsText(f); e.target.value='';
+});
+
+</script>
+</body>
+</html>
