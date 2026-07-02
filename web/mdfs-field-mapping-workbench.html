@@ -86,6 +86,7 @@
   .tab:hover{color:var(--ink)}
   .tab[aria-selected="true"]{color:var(--accent-ink);border-bottom-color:var(--accent)}
   .tab .count{font-size:11px;background:var(--grey-wash);color:var(--muted);border-radius:99px;padding:1px 7px;font-weight:650}
+  .badge{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.03em;padding:1px 6px;border-radius:5px;vertical-align:middle}
   .tab[aria-selected="true"] .count{background:var(--accent-wash);color:var(--accent-ink)}
   .panel{display:none;padding-top:18px}
   .panel.active{display:block;animation:fade .18s ease}
@@ -233,7 +234,7 @@
       <div class="mark">🔗</div>
       <div>
         <h1>MDFS → SAP Field Mapping Workbench</h1>
-        <div class="sub">Canonical Service Order · Optus Colossus · pattern 1.1</div>
+        <div class="sub">INT-21 Service Order · INT-22 WBS · INT-23 Procurement · inbound + outbound · Optus Colossus</div>
       </div>
     </div>
     <div class="spacer"></div>
@@ -273,19 +274,19 @@
 
 <div class="wrap">
   <div class="context">
-    Mapping the <b>MDFS REST API extract</b> (SCC-approved work orders) onto the <b>SAP S/4 canonical Service Order</b> so orders are created automatically instead of the current manual key-in (~30–50/week). One work&nbsp;order = one service order; products are <b>many-to-one</b> to a work order.
+    Mapping <b>MDFS</b> onto the three SAP&nbsp;S/4 canonical models — <b>Service Order (INT-21)</b>, <b>WBS (INT-22)</b> and <b>Procurement (INT-23)</b> — in both directions: <b>Inbound</b> (MDFS → Canonical → S4HC) and <b>Outbound</b> (S4HC → Canonical → FSM callback). Fields, types and mandatory flags are the real Apollo catalogue; <b>JAMS</b> is the confirmed reference. Capture the MDFS source live, or paste an extract and auto-suggest.
     <div class="row">
-      <div><span>Source</span>MDFS API — pull on SCC&nbsp;approved</div>
-      <div><span>Target</span>SAP S/4 Service Order (Header + Item)</div>
+      <div><span>Canonical models</span>INT-21 SO · INT-22 WBS · INT-23 Procurement</div>
+      <div><span>Directions</span>Inbound ↓ &amp; Outbound ↑ callback</div>
       <div><span>Golden rule</span>Map to <b>technical</b> names, not logical/screen names</div>
       <div><span>Trigger cadence</span>TBD — hourly vs daily</div>
     </div>
   </div>
 
   <div class="tabs" role="tablist" id="tabs">
-    <button class="tab" role="tab" data-tab="Service Order" aria-selected="true">Service&nbsp;Order <span class="count" id="cnt-so">0</span></button>
-    <button class="tab" role="tab" data-tab="Procurement" aria-selected="false">Procurement <span class="count" id="cnt-pr">0</span></button>
-    <button class="tab" role="tab" data-tab="Stock Confirmation" aria-selected="false">Stock&nbsp;Confirmation <span class="count" id="cnt-st">0</span></button>
+    <button class="tab" role="tab" data-tab="Service Order" aria-selected="true">Service&nbsp;Order <span class="badge" style="background:var(--accent-wash);color:var(--accent-ink)">INT-21</span> <span class="count" id="cnt-so">0</span></button>
+    <button class="tab" role="tab" data-tab="WBS" aria-selected="false">WBS <span class="badge" style="background:var(--accent-wash);color:var(--accent-ink)">INT-22</span> <span class="count" id="cnt-wbs">0</span></button>
+    <button class="tab" role="tab" data-tab="Procurement" aria-selected="false">Procurement <span class="badge" style="background:var(--accent-wash);color:var(--accent-ink)">INT-23</span> <span class="count" id="cnt-pr">0</span></button>
     <button class="tab" role="tab" data-tab="__sample" aria-selected="false">Sample&nbsp;Data ✦</button>
     <button class="tab" role="tab" data-tab="__open" aria-selected="false">Open&nbsp;Items <span class="count" id="cnt-open">0</span></button>
     <button class="tab" role="tab" data-tab="__guide" aria-selected="false">Guide</button>
@@ -294,6 +295,11 @@
   <!-- MAPPING PANELS -->
   <div class="panel active" id="panel-map" data-module="Service Order">
     <div class="controls">
+      <div class="seg" role="group" aria-label="Direction filter" id="segDir">
+        <button data-dir="all" aria-pressed="true">Both</button>
+        <button data-dir="Inbound" aria-pressed="false">Inbound ↓</button>
+        <button data-dir="Outbound" aria-pressed="false">Outbound ↑</button>
+      </div>
       <div class="seg" role="group" aria-label="Level filter">
         <button data-level="all" aria-pressed="true">All</button>
         <button data-level="Header" aria-pressed="false">Header</button>
@@ -313,15 +319,15 @@
         <table class="map">
           <thead>
             <tr>
-              <th style="min-width:210px">Canonical target field</th>
-              <th style="min-width:210px">MDFS source · technical name</th>
-              <th style="min-width:150px">Logical / screen name</th>
+              <th style="min-width:230px">Canonical field</th>
+              <th style="min-width:210px">MDFS source <span style="opacity:.6">/ S4HC (out)</span></th>
+              <th style="min-width:150px">Logical name <span style="opacity:.6">/ FSM transport</span></th>
               <th style="min-width:120px">Sample value</th>
               <th style="width:56px;text-align:center">Look&nbsp;up</th>
               <th style="min-width:130px">Confidence</th>
               <th style="min-width:130px">Status</th>
               <th style="min-width:110px">Owner</th>
-              <th style="min-width:220px">Notes / open question</th>
+              <th style="min-width:220px">Notes / rule</th>
               <th style="width:34px"></th>
             </tr>
           </thead>
@@ -392,10 +398,13 @@ EPD_Work_Order_Name,Product,Qty,Qty_Unit,Total_Amount
           <li>Your edits auto-save to <b>this browser</b>. To make the mapping the <b>shared source of truth</b>, click <b>Export JSON</b> and keep that <code>.json</code> next to the HTML in the SharePoint folder. Anyone can <b>Import</b> it to pick up where the team left off.</li>
         </ol>
         <p style="color:var(--faint)">Tip: keep one “master” JSON in SharePoint and version it there — that avoids the “which Excel is current?” problem from the workshop.</p>
+        <h4>Scope</h4>
+        <p>Three canonical models — <b>Service Order (INT-21)</b>, <b>WBS (INT-22)</b>, <b>Procurement (INT-23)</b> — each with an <b>Inbound</b> tab section (MDFS → Canonical → S4HC) and an <b>Outbound</b> section (S4HC → Canonical → FSM status callback). Use the <b>Inbound / Outbound</b> toggle on each model tab. Fields are the real Apollo catalogue; the <b>JAMS</b> reference is shown to guide the MDFS mapping.</p>
         <h4>Workflow that matches the workshop</h4>
         <ol>
-          <li><b>Sample Data</b> tab → paste Adrian’s MDFS extract → <b>Profile &amp; auto-suggest</b>.</li>
-          <li><b>Mapping</b> tab → turn on <b>Mandatory only</b>, confirm the self-explanatory auto-suggestions, and set the rest to <b>needs lookup</b> or <b>open question</b> with an owner.</li>
+          <li><b>Sample Data</b> tab → paste an MDFS extract → <b>Profile &amp; auto-suggest</b> (fills the Inbound canonical fields with a best-guess MDFS source + confidence).</li>
+          <li>On each model tab → turn on <b>Mandatory only</b>, confirm the self-explanatory suggestions, and set the rest to <b>needs lookup</b> or <b>open question</b> with an owner.</li>
+          <li>Switch to <b>Outbound ↑</b> to capture the FSM transport (REST callback / Platform Event / file) for each S4HC status field.</li>
           <li><b>Open Items</b> tab → hand that list to Adrian / Karan; close them as answers come back.</li>
         </ol>
         <h4>Golden rules captured from the session</h4>
@@ -409,7 +418,7 @@ EPD_Work_Order_Name,Product,Qty,Qty_Unit,Total_Amount
   </div>
 
   <div class="foot-note">
-    Self-contained workbench · data stays in your browser &amp; in the JSON you export · seeded from the 2&nbsp;Jul&nbsp;2026 field-mapping workshop
+    Self-contained workbench · data stays in your browser &amp; in the JSON you export · seeded from the Apollo MDFS canonical catalogue (INT-21 / INT-22 / INT-23, inbound + outbound)
   </div>
 </div>
 
@@ -420,56 +429,106 @@ EPD_Work_Order_Name,Product,Qty,Qty_Unit,Total_Amount
 /* ============================================================
    MDFS → SAP Field Mapping Workbench — single-file app
    ============================================================ */
-const LS_KEY = "mdfs-mapping-workbench-v1";
+const LS_KEY = "mdfs-mapping-workbench-v2";
 
-/* ---------- Seed canonical target schema (grounded in the workshop) ---------- */
+/* ---------- Seed from the real Apollo MDFS canonical catalogue ----------
+   Three canonical models — INT-21 Service Order, INT-22 WBS, INT-23
+   Procurement — each with an Inbound (FSM→Canonical→S4HC) and an Outbound
+   (S4HC→Canonical→FSM callback) direction. MDFS source fields start blank:
+   capture them live or auto-suggest from a pasted MDFS extract. */
 function seedFields(){
-  const F = (o)=>Object.assign({
-    id:uid(), module:"Service Order", level:"Header", target:"", hint:"",
-    mandatory:false, source:"", logical:"", lookup:false,
+  const out=[];
+  const push=(o)=>out.push(Object.assign({
+    id:uid(), module:"Service Order", direction:"Inbound", level:"Header",
+    target:"", canonType:"", mandatory:"No", condMsg:"", reference:"",
+    s4hc:"", transform:"", rule:"", hint:"",
+    source:"", logical:"", lookup:false, sample:null,
     status:"unmapped", confidence:null, owner:"", note:"", reason:""
-  }, o);
-  return [
-    // ---- Service Order · Header ----
-    F({module:"Service Order",level:"Header",target:"Source Message ID",hint:"unique id of the inbound message",mandatory:true}),
-    F({module:"Service Order",level:"Header",target:"Source System",hint:"constant — MDFS",mandatory:true,source:"",note:"Constant value = \"MDFS\". No source field needed.",status:"unmapped"}),
-    F({module:"Service Order",level:"Header",target:"Message Type",hint:"e.g. ServiceOrder.Create",mandatory:true}),
-    F({module:"Service Order",level:"Header",target:"SSMCNSW Job Number",hint:"work-order / job number",mandatory:true}),
-    F({module:"Service Order",level:"Header",target:"FSM Job Number",hint:"= EPD Work Order Name",mandatory:true}),
-    F({module:"Service Order",level:"Header",target:"Work Order Name",hint:"one WO = one service order",mandatory:true}),
-    F({module:"Service Order",level:"Header",target:"Client Reference Number",hint:"19-digit Helix task number quoted on claims",mandatory:true,lookup:true,status:"needs-lookup",owner:"Adrian Kello",note:"NEEDS LOOKUP — the 19-digit task number, not in the direct table. NOT the subcontractor claim ID and NOT the client contract ID (\"garbage\"). Adrian to resolve the join."}),
-    F({module:"Service Order",level:"Header",target:"Client Contract ID",hint:"customer PO ref — likely N/A",mandatory:false,status:"open",owner:"Karan Bhatia",note:"OPEN — Pradeep: PO numbers are not stored in MDFS. Confirm whether this maps at all or stays blank."}),
-    F({module:"Service Order",level:"Header",target:"SCC Number",hint:"consolidated claim number",mandatory:true}),
-    F({module:"Service Order",level:"Header",target:"Service Order Status",hint:"trigger = SCC Approved",mandatory:false,note:"API filtered to SCC = Approved only (Adrian building the control)."}),
-    F({module:"Service Order",level:"Header",target:"Created Date",hint:"",mandatory:false}),
-    // ---- Service Order · Item ----
-    F({module:"Service Order",level:"Item",target:"Line Number",hint:"line within the work order",mandatory:true}),
-    F({module:"Service Order",level:"Item",target:"Product / Material",hint:"many products per work order",mandatory:true}),
-    F({module:"Service Order",level:"Item",target:"Product Description",hint:"",mandatory:false}),
-    F({module:"Service Order",level:"Item",target:"Quantity",hint:"self-explanatory",mandatory:true}),
-    F({module:"Service Order",level:"Item",target:"Quantity Unit",hint:"UoM e.g. EA",mandatory:true}),
-    F({module:"Service Order",level:"Item",target:"Unit Price",hint:"= next price",mandatory:false}),
-    F({module:"Service Order",level:"Item",target:"Total Amount",hint:"per line item amount",mandatory:true}),
-    F({module:"Service Order",level:"Item",target:"Item Is Billable",hint:"true / false",mandatory:true,status:"open",owner:"Rajesh Sha",note:"OPEN — needs a rule to derive true/false. Not directly in MDFS."}),
-    F({module:"Service Order",level:"Item",target:"Work Order Reference",hint:"links item → header (many-to-one)",mandatory:true,lookup:true,status:"needs-lookup",note:"Need a multi-item example: one work order with several products."}),
-    // ---- Procurement ----
-    F({module:"Procurement",level:"Header",target:"Supplier",hint:"subcontractor / vendor",mandatory:true}),
-    F({module:"Procurement",level:"Header",target:"Purchase Order Reference",hint:"",mandatory:false}),
-    F({module:"Procurement",level:"Item",target:"Material",hint:"",mandatory:true}),
-    F({module:"Procurement",level:"Item",target:"Quantity",hint:"",mandatory:true}),
-    F({module:"Procurement",level:"Item",target:"Unit Price",hint:"next price",mandatory:true}),
-    F({module:"Procurement",level:"Item",target:"Delivery Date",hint:"",mandatory:false}),
-    // ---- Stock Confirmation ----
-    F({module:"Stock Confirmation",level:"Header",target:"Work Order Number",hint:"",mandatory:true}),
-    F({module:"Stock Confirmation",level:"Item",target:"Material",hint:"",mandatory:true}),
-    F({module:"Stock Confirmation",level:"Item",target:"Confirmed Quantity",hint:"",mandatory:true}),
-    F({module:"Stock Confirmation",level:"Item",target:"Movement Type",hint:"",mandatory:false}),
-  ];
+  }, o));
+  const lvl=(p)=> /items?\[\]|^item\./.test(p) ? "Item" : "Header";
+
+  // ===== INT-21 Service Order — Inbound (canonical field ← MDFS field) =====
+  [
+    ["header.sourceMessageId","string","Yes","All","messageID"],
+    ["header.sourceSystem","string enum","Yes","All","fsmSystem"],
+    ["header.sourceMessageType","string","Yes","All","messageType"],
+    ["header.fsmJobNumber","string","Yes","All","jobID"],
+    ["header.clientJobNumber","string","Conditional","CREATE_SO","refNo"],
+    ["header.clientContractId","string","Yes","All","contractID"],
+    ["header.serviceHierarchy","string","Conditional","CREATE_SO","department"],
+    ["item.serviceHierarchy2","string","Yes","All","jobType"],
+    ["header.customerRegion","string","Conditional","CREATE_SO","rateCardCustomerID"],
+    ["item.subbieRegion","string","Conditional","RCTI","rateCardSubbieID"],
+    ["items[].lineNumber","int","Yes","All","costDetailID / resID"],
+    ["items[].product","code","Conditional","RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM","stockNo / sorID"],
+    ["items[].quantity","decimal","Conditional","RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM","qty"],
+    ["items[].quantityUnit","code","Conditional","RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM","uom"],
+    ["items[].lineType","enum","Yes","All","(scenario rule — TimeBooking / CustomerService / …)"],
+    ["items[].isBillable","boolean","Yes","","TBC"],
+    ["items[].pricingMode","enum","Yes","","TBC — Cost Plus / Back-to-Back / Fixed Price (Karan to confirm)"],
+    ["items[].plant","string","Conditional","RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM","(contract mapping table)"],
+    ["items[].vanID","string","Conditional","MATERIALS_USAGE","warehouseId"],
+    ["items[].RCTIReference","string","Conditional","","rctiId"],
+    ["items[].supplier","code","Conditional","RCTI; REQUEST_PO","supplierId"],
+    ["items[].activity","string","Optional","","woId"],
+    ["items[].pricingElements[]","array","Conditional","","TBC"],
+  ].forEach(([t,ty,m,cm,ref])=>push({module:"Service Order",direction:"Inbound",level:lvl(t),
+    target:t,canonType:ty,mandatory:m,condMsg:cm,reference:ref,
+    lookup:/plant|supplier/.test(t)}));
+
+  // ===== INT-21 Service Order — Outbound (S4HC → canonical callback → FSM) =====
+  [
+    ["A_ServiceOrder.ServiceOrder","header.sapServiceOrder","None","Returned to the FSM on success."],
+    ["A_ServiceOrderItem.ServiceOrderItem","items[].sapServiceOrderItem","None","Optional in callback; per-FSM agreement on whether item-level keys are echoed."],
+    ["A_ServiceOrder.ServiceOrderStatus","header.sapStatus","None",""],
+  ].forEach(([s4,t,tr,rule])=>push({module:"Service Order",direction:"Outbound",level:lvl(t),
+    target:t,s4hc:s4,transform:tr,rule:rule,canonType:"callback",mandatory:"—"}));
+
+  // ===== INT-22 WBS — Inbound =====
+  [
+    ["header.sourceMessageId","string","Yes","All","messageID"],
+    ["header.sourceSystemTag","string","Yes","All","fsmSystem"],
+    ["header.clientJobNumber","string","Yes","PROJECT","refNo"],
+    ["header.clientContractId","string","Yes","All","contractID"],
+    ["items[].parentProjectElement","string","Yes","","PROJREF"],
+    ["items[].ProjectElement","string","No","","WBSREF / jobID"],
+    ["items[].projectElementDescription","string(40)","Yes","","jobDesc"],
+    ["items[].isBillingElement","boolean","Yes","","TBC"],
+    ["items[].doaApproverLevel1","string","No","","TBC"],
+    ["items[].doaApproverLevel2","string","No","","TBC"],
+  ].forEach(([t,ty,m,cm,ref])=>push({module:"WBS",direction:"Inbound",level:lvl(t),
+    target:t,canonType:ty,mandatory:m,condMsg:cm,reference:ref}));
+
+  // ===== INT-23 Procurement — Inbound =====
+  [
+    ["header.sourceMessageId","string","Yes","Pass-through","",false],
+    ["header.requestType","string enum","Yes","Derived","SubcontractorClaim → PO ZFSM + SES/invoice; ProcurementInitiation → PO NB, stop at PO.",false],
+    ["header.clientContractId","string","Yes","Lookup","Drives the Contract Mapping lookup (company code, purchasing org/group, plant).",true],
+    ["header.clientJobNumber","string","Yes","Pass-through","Resolves the SAP Service Order via INT-21.",false],
+    ["header.wbsElement","string","Conditional (3.1/3.2)","Pass-through","PO item account assignment (P) for patterns 3.1/3.2.",false],
+    ["header.supplier","code","Yes","Lookup","BP lookup → PO Supplier / PR FixedSupplier. Mandatory PO header field.",true],
+    ["items[].lineType","string enum","Yes","Derived","Subcontractor/Indirect → lean-service PO item for the follow-on SES.",false],
+    ["items[].material","code","Yes","Pass-through","Service Material (Product Type Group = 2) for SES eligibility.",false],
+    ["items[].quantity","decimal","Yes","Pass-through","Sent as a JSON number in V4 (not quoted).",false],
+    ["items[].netPrice","decimal","Yes","Pass-through","PO net price / PMP0 condition; needs an item DocumentCurrency.",false],
+    ["items[].glAccount","code","Conditional (WBS-direct)","Pass-through","G/L for WBS-direct lines (patterns 3.1/3.2).",false],
+  ].forEach(([t,ty,m,tr,rule,look])=>push({module:"Procurement",direction:"Inbound",level:lvl(t),
+    target:t,canonType:ty,mandatory:m,transform:tr,rule:rule||"",lookup:!!look}));
+
+  // ===== INT-23 Procurement — Outbound =====
+  [
+    ["PurchaseOrder.PurchaseOrder","header.sapPurchaseOrder","The PO number issued by SAP — present in every callback (all patterns)."],
+    ["ServiceEntrySheet.ServiceEntrySheet","header.sapServiceEntrySheet","Only when an SES is created (SubcontractorClaim); absent for ProcurementInitiation."],
+    ["A_SupplierInvoice.SupplierInvoice","header.sapSupplierInvoice","Only when an RCTI Supplier Invoice is created (RCTI reference supplied)."],
+  ].forEach(([s4,t,rule])=>push({module:"Procurement",direction:"Outbound",level:lvl(t),
+    target:t,s4hc:s4,transform:"None",rule:rule,canonType:"callback",mandatory:"—"}));
+
+  return out;
 }
 
 /* ---------- State ---------- */
 let state = { fields:[], sources:[] };  // sources: [{name, type, sample}]
-let ui = { module:"Service Order", level:"all", reqOnly:false, unmappedOnly:false, search:"" };
+let ui = { module:"Service Order", direction:"all", level:"all", reqOnly:false, unmappedOnly:false, search:"" };
 
 function uid(){ return "f"+Math.random().toString(36).slice(2,9); }
 
@@ -563,10 +622,16 @@ function typeAgreement(srcType, tgtName){
   return 0;
 }
 
+// Canonical targets are dotted paths (header.clientContractId, items[].qty);
+// match on the leaf name so the "header"/"items[]" prefix doesn't dilute or
+// break an otherwise-exact match against the MDFS field.
+function leafName(p){ return String(p).replace(/\[\]/g,"").split(".").pop(); }
+
 const W={value:0.22,exact:0.18,syn:0.18,monge:0.12,jac:0.1,jw:0.12,lev:0.08};
 function scorePair(target, src){
-  const nt=normalize(target), ns=normalize(src.name);
-  const tt=tokens(target), ts=tokens(src.name);
+  const leaf=leafName(target);
+  const nt=normalize(leaf), ns=normalize(src.name);
+  const tt=tokens(leaf), ts=tokens(src.name);
   const sig={};
   sig.exact = (nt===ns && nt!=="")?1:0;
   sig.jw = jaroWinkler(nt.replace(/ /g,""), ns.replace(/ /g,""));
@@ -603,28 +668,34 @@ function mongeSym(a,b){ if(!a.length||!b.length)return 0; return (monge(a,b)+mon
    Confirmed fields and any source already chosen are left untouched. */
 function autoSuggest(){
   if(!state.sources.length){ toast("Paste & profile a payload first (Sample Data tab)"); return; }
-  const usedSources=new Set(state.fields.filter(f=>f.source).map(f=>f.source));
-  const openFields=state.fields.filter(f=>f.status!=="confirmed" && !f.source);
-  // score the full open-field × free-source grid
-  const grid=[];
-  openFields.forEach(f=>{
-    state.sources.forEach(src=>{
-      if(usedSources.has(src.name)) return;
-      const r=scorePair(f.target,src);
-      if(r.score>=0.4) grid.push({f, src, score:r.score, reasons:r.reasons});
-    });
-  });
-  grid.sort((a,b)=>b.score-a.score);
-  const takenF=new Set(), takenS=new Set();
   let n=0;
-  grid.forEach(c=>{
-    if(takenF.has(c.f.id)||takenS.has(c.src.name)) return;
-    takenF.add(c.f.id); takenS.add(c.src.name);
-    c.f.source=c.src.name;
-    c.f.confidence=Math.round(c.score*100);
-    c.f.reason=c.reasons.join(", ");
-    if(c.f.status==="unmapped") c.f.status="suggested";
-    n++;
+  // Resolve a one-to-one assignment PER canonical model — the same MDFS field
+  // can legitimately feed the identically-named canonical field in INT-21,
+  // INT-22 and INT-23, so uniqueness is scoped within a module, not globally.
+  // Only inbound fields take an MDFS source; outbound rows are FSM callbacks.
+  ["Service Order","WBS","Procurement"].forEach(mod=>{
+    const modFields=state.fields.filter(f=>f.module===mod);
+    const usedSources=new Set(modFields.filter(f=>f.source).map(f=>f.source));
+    const openFields=modFields.filter(f=>f.direction==="Inbound" && f.status!=="confirmed" && !f.source);
+    const grid=[];
+    openFields.forEach(f=>{
+      state.sources.forEach(src=>{
+        if(usedSources.has(src.name)) return;
+        const r=scorePair(f.target,src);
+        if(r.score>=0.4) grid.push({f, src, score:r.score, reasons:r.reasons});
+      });
+    });
+    grid.sort((a,b)=>b.score-a.score);
+    const takenF=new Set(), takenS=new Set();
+    grid.forEach(c=>{
+      if(takenF.has(c.f.id)||takenS.has(c.src.name)) return;
+      takenF.add(c.f.id); takenS.add(c.src.name);
+      c.f.source=c.src.name;
+      c.f.confidence=Math.round(c.score*100);
+      c.f.reason=c.reasons.join(", ");
+      if(c.f.status==="unmapped") c.f.status="suggested";
+      n++;
+    });
   });
   save(); render();
   toast(n?`Auto-suggested ${n} field${n>1?"s":""} — review & confirm`:"No new confident matches found");
@@ -638,6 +709,12 @@ const $$=(s)=>document.querySelectorAll(s);
 const STATUSES=[["unmapped","Unmapped"],["suggested","Suggested"],["needs-lookup","Needs lookup"],["open","Open question"],["confirmed","Confirmed"]];
 
 function esc(s){ return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function mandBadge(m){
+  if(m==="Yes") return '<span class="req">MANDATORY</span>';
+  if(m && m.indexOf("Conditional")===0) return '<span class="opt" style="color:var(--warn)">CONDITIONAL</span>';
+  if(m==="Optional") return '<span class="opt">optional</span>';
+  return "";
+}
 
 function render(){
   renderKpis(); renderCounts();
@@ -647,29 +724,38 @@ function render(){
   renderTable();
 }
 
-function moduleFields(mod){ return state.fields.filter(f=>f.module===mod); }
+const DIR_ORDER={Inbound:0,Outbound:1};
+const LVL_ORDER={Header:0,Item:1};
+function moduleFields(mod){
+  return state.fields.filter(f=>f.module===mod).sort((a,b)=>
+    (DIR_ORDER[a.direction]-DIR_ORDER[b.direction]) ||
+    (LVL_ORDER[a.level]-LVL_ORDER[b.level]));
+}
+const isMapped=(f)=> !!f.source || f.status==="confirmed";
 
 function renderCounts(){
   $("#cnt-so").textContent=moduleFields("Service Order").length;
+  $("#cnt-wbs").textContent=moduleFields("WBS").length;
   $("#cnt-pr").textContent=moduleFields("Procurement").length;
-  $("#cnt-st").textContent=moduleFields("Stock Confirmation").length;
   const open=state.fields.filter(f=>f.status==="open"||f.status==="needs-lookup").length;
   $("#cnt-open").textContent=open;
 }
 
 function renderKpis(){
-  const all=state.fields;
-  const req=all.filter(f=>f.mandatory);
-  const reqDone=req.filter(f=>f.source||f.status==="confirmed").length;
-  const mapped=all.filter(f=>f.source||f.status==="confirmed").length;
-  const look=all.filter(f=>f.lookup).length;
-  const open=all.filter(f=>f.status==="open").length;
+  // Coverage/mandatory are measured over INBOUND canonical fields (the ones a
+  // source has to be found for); outbound rows are callback transports.
+  const inbound=state.fields.filter(f=>f.direction==="Inbound");
+  const req=inbound.filter(f=>f.mandatory==="Yes");
+  const reqDone=req.filter(isMapped).length;
+  const mapped=inbound.filter(isMapped).length;
+  const look=state.fields.filter(f=>f.lookup).length;
+  const open=state.fields.filter(f=>f.status==="open").length;
   $("#mReq").textContent=reqDone; $("#mReqTot").textContent="/"+req.length;
   $("#mReqBar").style.width=(req.length?reqDone/req.length*100:0)+"%";
-  const cov=all.length?Math.round(mapped/all.length*100):0;
+  const cov=inbound.length?Math.round(mapped/inbound.length*100):0;
   $("#mCov").textContent=cov; $("#mCovBar").style.width=cov+"%";
-  $("#mCovFoot").textContent=`${mapped} of ${all.length} canonical fields have a source`;
-  $("#mReqFoot").textContent = reqDone===req.length && req.length ? "✓ all mandatory fields mapped" : "the “yes” fields — map these first";
+  $("#mCovFoot").textContent=`${mapped} of ${inbound.length} inbound canonical fields have a source`;
+  $("#mReqFoot").textContent = reqDone===req.length && req.length ? "✓ all mandatory fields mapped" : "the “Yes” fields — map these first";
   $("#mLook").textContent=look;
   $("#mOpen").textContent=open;
   $("#mOpenFoot").textContent = open? "awaiting an owner’s answer" : "none outstanding 🎉";
@@ -690,24 +776,31 @@ function sampleFor(name){
   return s? s.sample : null;
 }
 
+function groupKey(f){
+  return f.direction==="Outbound"
+    ? "Outbound — status callback (S4HC → FSM)"
+    : `Inbound — ${f.level} level`;
+}
 function renderTable(){
   const body=$("#mapBody"); body.innerHTML="";
   let list=moduleFields(ui.module);
-  if(ui.level!=="all") list=list.filter(f=>f.level===ui.level);
-  if(ui.reqOnly) list=list.filter(f=>f.mandatory);
-  if(ui.unmappedOnly) list=list.filter(f=>!(f.source||f.status==="confirmed")||f.status==="open"||f.status==="needs-lookup");
+  if(ui.direction!=="all") list=list.filter(f=>f.direction===ui.direction);
+  if(ui.level!=="all") list=list.filter(f=>f.direction==="Outbound"||f.level===ui.level);
+  if(ui.reqOnly) list=list.filter(f=>f.mandatory==="Yes");
+  if(ui.unmappedOnly) list=list.filter(f=>!isMapped(f)||f.status==="open"||f.status==="needs-lookup");
   if(ui.search){ const q=ui.search.toLowerCase();
-    list=list.filter(f=>(f.target+f.source+f.note+f.owner+f.logical).toLowerCase().includes(q)); }
+    list=list.filter(f=>(f.target+f.source+f.note+f.owner+f.logical+f.reference+f.s4hc).toLowerCase().includes(q)); }
 
   if(!list.length){ body.innerHTML=`<tr><td colspan="10"><div class="emptxt">No fields match these filters.</div></td></tr>`; return; }
 
-  let lastLevel=null;
+  let lastGroup=null;
   list.forEach(f=>{
-    if(f.level!==lastLevel){
-      lastLevel=f.level;
-      const cnt=list.filter(x=>x.level===f.level).length;
+    const gk=groupKey(f);
+    if(gk!==lastGroup){
+      lastGroup=gk;
+      const cnt=list.filter(x=>groupKey(x)===gk).length;
       const tr=document.createElement("tr"); tr.className="grouprow";
-      tr.innerHTML=`<td colspan="10">${esc(f.level)} level <span class="gcount">${cnt} field${cnt>1?"s":""}</span></td>`;
+      tr.innerHTML=`<td colspan="10">${esc(gk)} <span class="gcount">${cnt} field${cnt>1?"s":""}</span></td>`;
       body.appendChild(tr);
     }
     body.appendChild(rowFor(f));
@@ -719,24 +812,44 @@ function rowFor(f){
   tr.dataset.status=f.status; tr.dataset.id=f.id; tr.id="row-"+f.id;
   const smp=sampleFor(f.source);
   const conf=f.confidence!=null?f.confidence:null;
+  const out=f.direction==="Outbound";
+
+  // metadata line under the canonical path
+  const parts=[];
+  if(f.canonType && f.canonType!=="callback") parts.push(esc(f.canonType));
+  if(f.condMsg) parts.push("msg: "+esc(f.condMsg));
+  if(f.reference) parts.push("JAMS: "+esc(f.reference));
+  const meta=parts.join(" · ");
+
+  // second/third columns differ by direction
+  const srcCol = out
+    ? `<td><span class="sample" title="${esc(f.s4hc)}" style="background:#eef1f5;color:var(--ink)">${esc(f.s4hc)||"—"}</span></td>`
+    : `<td><select class="cellselect ${f.source?"":"empty"}" data-k="source">${sourceOptions(f.source)}</select></td>`;
+  const logCol = out
+    ? `<td><input class="cellinput" data-k="logical" value="${esc(f.logical)}" placeholder="REST / Platform Event / file…"></td>`
+    : `<td><input class="cellinput" data-k="logical" value="${esc(f.logical)}" placeholder="screen name…"></td>`;
+  const smpCol = out
+    ? `<td><span class="thint">${esc(f.transform)||"—"}</span></td>`
+    : `<td>${smp!=null?`<span class="sample" title="${esc(smp)}">${esc(smp)}</span>`:`<span class="sample none">—</span>`}</td>`;
+  const lookCol = out
+    ? `<td></td>`
+    : `<td><div class="lookchk"><input type="checkbox" data-k="lookup" ${f.lookup?"checked":""} title="Linked object — needs a join"></div></td>`;
+  const confCol = out
+    ? `<td><span class="pct" style="color:var(--faint)">n/a</span></td>`
+    : `<td><div class="conf ${conf==null?"na":""}"><div class="bar"><i style="width:${conf==null?0:conf}%"></i></div><span class="pct">${conf==null?"—":conf+"%"}</span></div></td>`;
+
   tr.innerHTML=`
     <td class="stat-cell tgt">
-      <span class="tname">${esc(f.target)}${f.mandatory?'<span class="req">MANDATORY</span>':'<span class="opt">opt</span>'}</span>
-      ${f.hint?`<span class="thint">${esc(f.hint)}</span>`:""}
+      <span class="tname mono" style="font-size:12px">${esc(f.target)}${mandBadge(f.mandatory)}</span>
+      ${meta?`<span class="thint">${meta}</span>`:""}
+      ${f.rule?`<div class="rowreason" style="font-style:normal;color:var(--muted)">${esc(f.rule)}</div>`:""}
       ${f.reason&&f.status==="suggested"?`<div class="rowreason">↳ ${esc(f.reason)}</div>`:""}
     </td>
-    <td>
-      <select class="cellselect ${f.source?"":"empty"}" data-k="source">${sourceOptions(f.source)}</select>
-    </td>
-    <td><input class="cellinput" data-k="logical" value="${esc(f.logical)}" placeholder="screen name…"></td>
-    <td>${smp!=null?`<span class="sample" title="${esc(smp)}">${esc(smp)}</span>`:`<span class="sample none">—</span>`}</td>
-    <td><div class="lookchk"><input type="checkbox" data-k="lookup" ${f.lookup?"checked":""} title="Linked object — needs a join"></div></td>
-    <td>
-      <div class="conf ${conf==null?"na":""}">
-        <div class="bar"><i style="width:${conf==null?0:conf}%"></i></div>
-        <span class="pct">${conf==null?"—":conf+"%"}</span>
-      </div>
-    </td>
+    ${srcCol}
+    ${logCol}
+    ${smpCol}
+    ${lookCol}
+    ${confCol}
     <td>
       <span class="pill ${f.status}"><span class="dot"></span>
         <select class="statusselect" data-k="status">
@@ -745,7 +858,7 @@ function rowFor(f){
       </span>
     </td>
     <td><input class="owner" data-k="owner" value="${esc(f.owner)}" placeholder="owner…"></td>
-    <td><textarea class="noteinput" data-k="note" rows="1" placeholder="notes / open question…">${esc(f.note)}</textarea></td>
+    <td><textarea class="noteinput" data-k="note" rows="1" placeholder="${out?'transport / decision…':'notes / open question…'}">${esc(f.note)}</textarea></td>
     <td><button class="jump" data-del="${f.id}" title="Remove field" style="padding:4px 8px">✕</button></td>
   `;
   // wire inputs
@@ -782,7 +895,7 @@ function renderOpen(){
   list.innerHTML=items.map(f=>`
     <div class="oi ${f.status}">
       <div class="oi-main">
-        <div class="oi-field">${esc(f.target)}<span class="modtag">${esc(f.module)} · ${esc(f.level)}</span></div>
+        <div class="oi-field">${esc(f.target)}<span class="modtag">${esc(f.module)} · ${esc(f.direction)} · ${esc(f.level)}</span></div>
         <div class="oi-note">${esc(f.note||(f.status==="needs-lookup"?"Linked object — needs a lookup/join.":"Open question — needs a decision."))}</div>
         <div class="oi-meta">
           <span>Owner: <b>${esc(f.owner||"— unassigned —")}</b></span>
@@ -909,10 +1022,16 @@ function exportJson(){
   download(blob,"mdfs-service-order-mapping.json"); toast("Exported JSON — keep it in the SharePoint folder");
 }
 function exportCsv(){
-  const cols=["Module","Level","Canonical target","Mandatory","MDFS source (technical)","Logical name","Lookup","Sample value","Confidence %","Status","Owner","Notes / open question"];
-  const rows=state.fields.map(f=>[f.module,f.level,f.target,f.mandatory?"Yes":"No",f.source,f.logical,f.lookup?"Yes":"No",sampleFor(f.source)??"",f.confidence??"",labelFor(f.status),f.owner,f.note]);
+  const cols=["Module","Direction","Level","Canonical field","Type","Mandatory","Conditional msg type","JAMS reference",
+    "MDFS source / S4HC field","Logical name / FSM transport","Lookup","Sample value","Confidence %","Status","Owner","Notes / rule"];
+  const rows=state.fields.map(f=>[
+    f.module, f.direction, f.level, f.target, f.canonType, f.mandatory, f.condMsg, f.reference,
+    f.direction==="Outbound"?f.s4hc:f.source, f.logical, f.lookup?"Yes":"No",
+    f.direction==="Outbound"?f.transform:(sampleFor(f.source)??""),
+    f.confidence??"", labelFor(f.status), f.owner, f.note||f.rule
+  ]);
   const csv=[cols,...rows].map(r=>r.map(csvCell).join(",")).join("\r\n");
-  download(new Blob([csv],{type:"text/csv"}),"mdfs-service-order-mapping.csv"); toast("Exported CSV — opens in Excel");
+  download(new Blob([csv],{type:"text/csv"}),"mdfs-canonical-mapping.csv"); toast("Exported CSV — opens in Excel");
 }
 function labelFor(s){ return (STATUSES.find(x=>x[0]===s)||[,s])[1]; }
 function csvCell(v){ v=String(v??""); return /[",\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
@@ -933,12 +1052,16 @@ function importJson(file){
 function switchTab(tab){
   ui.module=tab;
   $$("#tabs .tab").forEach(t=>t.setAttribute("aria-selected", t.dataset.tab===tab?"true":"false"));
-  const mapTab=(tab==="Service Order"||tab==="Procurement"||tab==="Stock Confirmation");
+  const mapTab=(tab==="Service Order"||tab==="WBS"||tab==="Procurement");
   $("#panel-map").classList.toggle("active", mapTab);
   $("#panel-sample").classList.toggle("active", tab==="__sample");
   $("#panel-open").classList.toggle("active", tab==="__open");
   $("#panel-guide").classList.toggle("active", tab==="__guide");
-  if(mapTab){ ui.level="all"; $$('.seg [data-level]').forEach(b=>b.setAttribute("aria-pressed", b.dataset.level==="all"?"true":"false")); }
+  if(mapTab){
+    ui.level="all"; ui.direction="all";
+    $$('.seg [data-level]').forEach(b=>b.setAttribute("aria-pressed", b.dataset.level==="all"?"true":"false"));
+    $$('#segDir [data-dir]').forEach(b=>b.setAttribute("aria-pressed", b.dataset.dir==="all"?"true":"false"));
+  }
   render();
 }
 
@@ -950,13 +1073,18 @@ function wire(){
   $$('.seg [data-level]').forEach(b=>b.addEventListener("click",()=>{
     ui.level=b.dataset.level; $$('.seg [data-level]').forEach(x=>x.setAttribute("aria-pressed","false"));
     b.setAttribute("aria-pressed","true"); renderTable(); }));
+  $$('#segDir [data-dir]').forEach(b=>b.addEventListener("click",()=>{
+    ui.direction=b.dataset.dir; $$('#segDir [data-dir]').forEach(x=>x.setAttribute("aria-pressed","false"));
+    b.setAttribute("aria-pressed","true"); renderTable(); }));
   $("#fltReq").addEventListener("change",e=>{ ui.reqOnly=e.target.checked; renderTable(); });
   $("#fltUnmapped").addEventListener("change",e=>{ ui.unmappedOnly=e.target.checked; renderTable(); });
   $("#fltSearch").addEventListener("input",e=>{ ui.search=e.target.value; renderTable(); });
   $("#btnAdd").addEventListener("click",()=>{
-    const f={id:uid(),module:ui.module==="__sample"||ui.module==="__open"||ui.module==="__guide"?"Service Order":ui.module,
-      level:ui.level==="Item"?"Item":"Header",target:"New field",hint:"",mandatory:false,source:"",logical:"",
-      lookup:false,status:"unmapped",confidence:null,owner:"",note:"",reason:""};
+    const mod=(ui.module==="__sample"||ui.module==="__open"||ui.module==="__guide")?"Service Order":ui.module;
+    const f={id:uid(),module:mod,direction:ui.direction==="Outbound"?"Outbound":"Inbound",
+      level:ui.level==="Item"?"Item":"Header",target:"new.field",canonType:"",mandatory:"No",condMsg:"",
+      reference:"",s4hc:"",transform:"",rule:"",hint:"",source:"",logical:"",lookup:false,sample:null,
+      status:"unmapped",confidence:null,owner:"",note:"",reason:""};
     state.fields.push(f); save(); render();
     setTimeout(()=>{ const r=$("#row-"+f.id); if(r){ r.scrollIntoView({block:"center"}); r.querySelector(".tname").focus?.(); } },50);
   });
