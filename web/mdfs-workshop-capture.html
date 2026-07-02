@@ -57,7 +57,13 @@
   .canon-col{color:#333; max-width:200px;}
   .canon-col code{font-size:11.5px;}
   .meta{color:#777; font-size:11px;}
-  .rule-col{max-width:280px; white-space:normal; line-height:1.4;}
+  /* Mapping table fits the screen: fixed layout + wrapping stacked definitions */
+  #mapTable{min-width:0; table-layout:fixed;}
+  #mapTable td{word-break:break-word; overflow-wrap:anywhere;}
+  #mapTable thead th{white-space:normal;}
+  .cmeta{font-size:10.5px; color:#5a6472; margin-top:4px; font-weight:600;}
+  .crule{font-size:10.5px; color:#666; margin-top:3px; line-height:1.4;}
+  .canon-empty{color:#b6bdc7; text-align:center;}
   input.field-input{
     width:100%; min-width:160px; border:1px solid #cbd5e1; border-radius:4px; padding:5px 6px; font-size:12.5px; font-family:inherit;
   }
@@ -163,28 +169,18 @@
   <thead>
     <tr class="group">
       <th colspan="3">Reference &amp; MDFS capture</th>
-      <th colspan="6">INT-21 — Canonical Service Order (Create/Update)</th>
+      <th>INT-21 — Canonical Service Order</th>
       <th colspan="2">Mapping status</th>
-      <th colspan="6">INT-22 — WBS (Create/Update)</th>
+      <th>INT-22 — WBS</th>
     </tr>
     <tr class="cols">
-      <th style="min-width:180px;">JAMS Field (confirmed reference)</th>
-      <th style="min-width:190px;">MDFS Field <span class="badge">live capture</span></th>
-      <th style="min-width:150px;">Sample value <span class="badge">from extract</span></th>
-      <th style="min-width:190px;">Canonical Field</th>
-      <th>Type</th>
-      <th>Mandatory</th>
-      <th>Cond. Msg Type</th>
-      <th>Transformation</th>
-      <th style="min-width:240px;">Business Rule / definition</th>
-      <th style="min-width:150px;">Coverage</th>
-      <th style="min-width:170px;">Notes captured live</th>
-      <th style="min-width:190px;">Canonical Field</th>
-      <th>Type</th>
-      <th>Mandatory</th>
-      <th>Cond. Msg Type</th>
-      <th>Transformation</th>
-      <th style="min-width:240px;">Business Rule / definition</th>
+      <th style="width:11%;">JAMS Field <span class="badge">reference</span></th>
+      <th style="width:12%;">MDFS Field <span class="badge">capture</span></th>
+      <th style="width:10%;">Sample value <span class="badge">extract</span></th>
+      <th style="width:28%;">Canonical Field &amp; definition (INT-21)</th>
+      <th style="width:8%;">Coverage</th>
+      <th style="width:11%;">Notes captured live</th>
+      <th style="width:20%;">Canonical Field &amp; definition (INT-22)</th>
     </tr>
   </thead>
   <tbody id="tbody"></tbody>
@@ -384,6 +380,20 @@ const DEF22 = {
 function canonKey(c){ return String(c||"").replace(/`/g,"").replace(/\s+/g,"").trim(); }
 function defOf(map, canon){ return map[canonKey(canon)] || ["",""]; }
 
+// One compact cell: canonical field name with its definition stacked beneath —
+// Type · Mandatory · Conditional message type · Transformation, then the rule.
+function canonCell(canon, type, mand, cond, def){
+  if(!canon) return `<td class="canon-empty">—</td>`;
+  const transform = def[0], rule = def[1];
+  const meta = [type, mand, (cond?('msg: '+cond):''), (transform?('⟳ '+transform):'')]
+    .filter(Boolean).join('  ·  ');
+  return `<td class="canon-col">`
+    + `<code>${esc(canon)}</code>`
+    + (meta ? `<div class="cmeta">${esc(meta)}</div>` : '')
+    + (rule ? `<div class="crule">${esc(rule)}</div>` : '')
+    + `</td>`;
+}
+
 const STATUS_OPTS = [
   {v:"TBC", label:"TBC", cls:"tbc"},
   {v:"Fit", label:"Fit", cls:"fit"},
@@ -415,35 +425,15 @@ function buildRows(){
     html += `<td class="jams-col">${esc(r.jams).replace(/\\n/g,'<br>')}</td>`;
     html += `<td><input class="field-input" id="ff_${rowId}" placeholder="MDFS field name..." /></td>`;
     html += `<td><input class="field-input" id="sv_${rowId}" placeholder="Sample value..." /></td>`;
-    // INT-21 canonical block (Canonical, Type, Mandatory, Cond, Transformation, Business Rule)
-    if(has21){
-      const [x21,rule21] = defOf(DEF21, r.c21);
-      html += `<td class="canon-col"><code>${esc(r.c21)}</code></td>`;
-      html += `<td class="meta">${esc(r.t21)||'—'}</td>`;
-      html += `<td class="meta">${esc(r.m21)||'—'}</td>`;
-      html += `<td class="meta">${esc(r.cm21)||'—'}</td>`;
-      html += `<td class="meta">${esc(x21)||'—'}</td>`;
-      html += `<td class="meta rule-col">${esc(rule21)||'—'}</td>`;
-    } else {
-      html += `<td class="meta">—</td><td class="meta">—</td><td class="meta">—</td><td class="meta">—</td><td class="meta">—</td><td class="meta">—</td>`;
-    }
+    // INT-21 canonical field + stacked definition
+    html += canonCell(r.c21, r.t21, r.m21, r.cm21, defOf(DEF21, r.c21));
     // Coverage + Notes (mapping status)
     html += `<td><select class="status-select tbc" id="st_${rowId}">`;
     STATUS_OPTS.forEach(o => html += `<option value="${o.v}">${o.label}</option>`);
     html += `</select></td>`;
     html += `<td><input class="notes-input" id="nt_${rowId}" placeholder="Notes / caveat..." /></td>`;
-    // INT-22 canonical block
-    if(has22){
-      const [x22,rule22] = defOf(DEF22, r.c22);
-      html += `<td class="canon-col"><code>${esc(r.c22)}</code></td>`;
-      html += `<td class="meta">${esc(r.t22)||'—'}</td>`;
-      html += `<td class="meta">${esc(r.m22)||'—'}</td>`;
-      html += `<td class="meta">${esc(r.cm22)||'—'}</td>`;
-      html += `<td class="meta">${esc(x22)||'—'}</td>`;
-      html += `<td class="meta rule-col">${esc(rule22)||'—'}</td>`;
-    } else {
-      html += `<td class="meta">—</td><td class="meta">—</td><td class="meta">—</td><td class="meta">—</td><td class="meta">—</td><td class="meta">—</td>`;
-    }
+    // INT-22 canonical field + stacked definition
+    html += canonCell(r.c22, r.t22, r.m22, r.cm22, defOf(DEF22, r.c22));
     html += `</tr>`;
   });
   tbody.innerHTML = html;
