@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "smartmapper"
+version = "0.1.0"
+description = "A super-smart, zero-dependency field & schema mapper with value profiling and active learning."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+keywords = ["schema-matching", "field-mapping", "data-integration", "etl", "column-mapping"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Database",
+]
+dependencies = []
+
+[project.scripts]
+smartmapper = "smartmapper.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+include = ["smartmapper*"]

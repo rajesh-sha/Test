@@ -1,0 +1,4 @@
+CustEmail,fname,lname,DOB,Cell,ZipCode,SignupDate,Spend
+John@Acme.com,John,Smith,01/02/1990,555-123-4567,90210,03/15/2023,"$1,299.50"
+jane@beta.io,Jane,Doe,12/24/1985,555-987-6543,10001,06/01/2023,"$742.00"
+bob@gamma.net,Bob,Jones,07/09/1978,555-222-3333,60614,11/20/2022,"$3,050.75"

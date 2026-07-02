@@ -1,0 +1,3 @@
+email,first_name,last_name,date_of_birth,phone,postal_code,created_at,lifetime_value
+alice@example.com,Alice,Walker,1992-05-14,555-000-1111,94103,2023-01-10,850.00
+carol@example.com,Carol,King,1988-09-30,555-222-4444,30303,2023-02-22,1620.00
