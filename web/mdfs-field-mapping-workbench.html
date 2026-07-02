@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Self-contained workbench for mapping the MDFS REST API extract onto the SAP S/4 canonical Service Order. Runs offline from a SharePoint folder.">
+<title>MDFS → SAP Field Mapping Workbench</title>
+<style>
+  :root{
+    --paper:#f6f7f9; --surface:#ffffff; --surface-2:#fbfcfd;
+    --ink:#182230; --muted:#5b6675; --faint:#8a94a3;
+    --hair:#e4e8ee; --hair-strong:#d3d9e2;
+    --accent:#1f6f8b; --accent-ink:#14536a; --accent-wash:#e8f2f5;
+    --good:#2e7d5b; --good-wash:#e6f2ec;
+    --warn:#b7791f; --warn-wash:#f7efdd;
+    --stop:#c0532b; --stop-wash:#f7e7df;
+    --grey:#7a8593; --grey-wash:#eef0f3;
+    --shadow:0 1px 2px rgba(24,34,48,.06),0 3px 12px rgba(24,34,48,.05);
+    --radius:9px;
+    --mono:"Cascadia Code","Cascadia Mono","Consolas",ui-monospace,"SFMono-Regular",monospace;
+    --ui:"Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:var(--ui);font-size:14px;line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{margin:0;font-weight:650;text-wrap:balance;letter-spacing:-.01em}
+  button{font-family:inherit;font-size:inherit;cursor:pointer}
+  input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+  a{color:var(--accent-ink)}
+  ::selection{background:#cfe6ee}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+  .mono{font-family:var(--mono)}
+  .num{font-variant-numeric:tabular-nums}
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:40;background:var(--ink);color:#eef2f6;
+    border-bottom:1px solid #0c1521;
+  }
+  .topbar-inner{max-width:1500px;margin:0 auto;padding:13px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:11px;min-width:0}
+  .brand .mark{
+    width:30px;height:30px;border-radius:8px;flex:none;
+    background:linear-gradient(150deg,var(--accent),#2f9bbd);
+    display:grid;place-items:center;font-size:16px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)
+  }
+  .brand h1{font-size:16px;color:#fff;line-height:1.2}
+  .brand .sub{font-size:11.5px;color:#9fb0bf;letter-spacing:.02em}
+  .topbar .spacer{flex:1}
+  .toolbtn{
+    background:#243244;color:#dce4ec;border:1px solid #33465c;border-radius:7px;
+    padding:6px 11px;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:550;
+    transition:background .12s,border-color .12s
+  }
+  .toolbtn:hover{background:#2c3d52;border-color:#43596f}
+  .toolbtn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .toolbtn.primary:hover{background:#238aab}
+  .savehint{font-size:11px;color:#8ba0b1;min-width:96px;text-align:right}
+
+  /* ---------- KPI strip ---------- */
+  .kpis{max-width:1500px;margin:0 auto;padding:16px 22px 4px;display:grid;gap:12px;
+    grid-template-columns:repeat(4,1fr)}
+  .kpi{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius);padding:13px 15px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi .label{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .kpi .val{font-size:26px;font-weight:700;line-height:1.1;margin-top:3px}
+  .kpi .val small{font-size:14px;font-weight:600;color:var(--faint)}
+  .kpi .meter{height:6px;border-radius:99px;background:var(--grey-wash);margin-top:10px;overflow:hidden}
+  .kpi .meter > i{display:block;height:100%;border-radius:99px;transition:width .4s ease}
+  .kpi.accent .meter>i{background:var(--accent)}
+  .kpi.good .meter>i{background:var(--good)}
+  .kpi .foot{font-size:11.5px;color:var(--faint);margin-top:7px}
+  .kpi .badge-stop{color:var(--stop);font-weight:650}
+
+  /* ---------- Tabs ---------- */
+  .wrap{max-width:1500px;margin:0 auto;padding:14px 22px 60px}
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--hair-strong);margin:8px 0 0}
+  .tab{
+    appearance:none;background:transparent;border:0;padding:10px 15px 12px;color:var(--muted);
+    font-weight:600;font-size:13.5px;border-bottom:2.5px solid transparent;margin-bottom:-1px;
+    display:inline-flex;align-items:center;gap:8px
+  }
+  .tab:hover{color:var(--ink)}
+  .tab[aria-selected="true"]{color:var(--accent-ink);border-bottom-color:var(--accent)}
+  .tab .count{font-size:11px;background:var(--grey-wash);color:var(--muted);border-radius:99px;padding:1px 7px;font-weight:650}
+  .tab[aria-selected="true"] .count{background:var(--accent-wash);color:var(--accent-ink)}
+  .panel{display:none;padding-top:18px}
+  .panel.active{display:block;animation:fade .18s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.panel.active{animation:none}*{transition:none!important}}
+
+  /* ---------- Controls row ---------- */
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .seg{display:inline-flex;background:var(--surface);border:1px solid var(--hair-strong);border-radius:8px;overflow:hidden}
+  .seg button{background:transparent;border:0;padding:7px 12px;font-size:12.5px;font-weight:600;color:var(--muted);border-right:1px solid var(--hair)}
+  .seg button:last-child{border-right:0}
+  .seg button[aria-pressed="true"]{background:var(--accent-wash);color:var(--accent-ink)}
+  .search{position:relative;flex:1;min-width:180px;max-width:320px}
+  .search input{width:100%;padding:8px 11px 8px 32px;border:1px solid var(--hair-strong);border-radius:8px;background:var(--surface)}
+  .search svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);opacity:.5}
+  .chk{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--hair-strong);border-radius:8px;padding:7px 11px;font-size:12.5px;font-weight:600;color:var(--muted);user-select:none}
+  .chk input{accent-color:var(--accent);width:15px;height:15px}
+
+  /* ---------- Mapping table ---------- */
+  .tablecard{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .tablescroll{overflow-x:auto}
+  table.map{border-collapse:separate;border-spacing:0;width:100%;min-width:1120px;font-size:13px}
+  table.map thead th{
+    position:sticky;top:0;z-index:2;background:var(--surface-2);text-align:left;
+    font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:650;
+    padding:11px 12px;border-bottom:1px solid var(--hair-strong);white-space:nowrap
+  }
+  table.map tbody td{padding:9px 12px;border-bottom:1px solid var(--hair);vertical-align:middle}
+  table.map tbody tr{position:relative}
+  table.map tbody tr:hover{background:#f9fbfc}
+  .grouprow td{background:#eef1f5;font-weight:700;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:7px 12px;border-bottom:1px solid var(--hair-strong)}
+  .grouprow .gcount{font-weight:600;color:var(--faint);text-transform:none;letter-spacing:0;margin-left:8px}
+  td.stat-cell{border-left:4px solid transparent}
+  tr[data-status="confirmed"] td.stat-cell{border-left-color:var(--good)}
+  tr[data-status="suggested"] td.stat-cell{border-left-color:var(--accent)}
+  tr[data-status="needs-lookup"] td.stat-cell{border-left-color:var(--warn)}
+  tr[data-status="open"] td.stat-cell{border-left-color:var(--stop)}
+  tr[data-status="unmapped"] td.stat-cell{border-left-color:var(--hair-strong)}
+
+  .tgt{font-weight:600}
+  .tgt .tname{display:block}
+  .tgt .thint{font-size:11px;color:var(--faint);font-weight:400}
+  .req{display:inline-block;margin-left:6px;font-size:9.5px;font-weight:800;color:var(--stop);vertical-align:top;letter-spacing:.03em}
+  .opt{display:inline-block;margin-left:6px;font-size:9.5px;font-weight:700;color:var(--faint);vertical-align:top}
+
+  .cellinput,.cellselect{width:100%;padding:6px 8px;border:1px solid var(--hair-strong);border-radius:6px;background:var(--surface)}
+  .cellinput{font-family:var(--mono);font-size:12px}
+  .cellinput::placeholder{font-family:var(--ui);color:var(--faint)}
+  .cellselect{font-family:var(--mono);font-size:12px;background:var(--surface)}
+  .cellselect.empty{color:var(--faint);font-family:var(--ui)}
+  .sample{font-family:var(--mono);font-size:11.5px;color:var(--accent-ink);background:var(--accent-wash);border-radius:5px;padding:2px 6px;display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+  .sample.none{color:var(--faint);background:var(--grey-wash)}
+
+  .lookchk{display:flex;align-items:center;justify-content:center}
+  .lookchk input{accent-color:var(--warn);width:16px;height:16px}
+
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:650;padding:3px 9px;border-radius:99px;white-space:nowrap}
+  .pill .dot{width:6px;height:6px;border-radius:99px}
+  .pill.confirmed{background:var(--good-wash);color:var(--good)} .pill.confirmed .dot{background:var(--good)}
+  .pill.suggested{background:var(--accent-wash);color:var(--accent-ink)} .pill.suggested .dot{background:var(--accent)}
+  .pill.needs-lookup{background:var(--warn-wash);color:var(--warn)} .pill.needs-lookup .dot{background:var(--warn)}
+  .pill.open{background:var(--stop-wash);color:var(--stop)} .pill.open .dot{background:var(--stop)}
+  .pill.unmapped{background:var(--grey-wash);color:var(--grey)} .pill.unmapped .dot{background:var(--grey)}
+  select.statusselect{border:0;background:transparent;font-weight:650;font-size:11.5px;color:inherit;padding:2px 4px;border-radius:6px}
+
+  .conf{display:flex;align-items:center;gap:7px;min-width:74px}
+  .conf .bar{flex:1;height:5px;border-radius:99px;background:var(--grey-wash);overflow:hidden}
+  .conf .bar > i{display:block;height:100%;background:var(--accent)}
+  .conf .pct{font-size:11px;font-weight:650;color:var(--muted);font-variant-numeric:tabular-nums;min-width:26px;text-align:right}
+  .conf.na .pct{color:var(--faint)}
+
+  .noteinput{width:100%;padding:6px 8px;border:1px solid transparent;border-radius:6px;background:transparent;font-size:12px;color:var(--ink);resize:none;min-height:30px;line-height:1.35}
+  .noteinput:hover{background:var(--surface-2);border-color:var(--hair)}
+  .noteinput:focus{background:var(--surface);border-color:var(--accent)}
+  .owner{width:100%;max-width:120px;padding:5px 7px;border:1px solid var(--hair-strong);border-radius:6px;background:var(--surface);font-size:12px}
+
+  .rowreason{font-size:11px;color:var(--faint);margin-top:3px;font-style:italic}
+
+  /* ---------- Sample data panel ---------- */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .card{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+  .card h3{font-size:14.5px;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .card p.lead{color:var(--muted);font-size:12.5px;margin:0 0 12px}
+  textarea.payload{width:100%;min-height:230px;border:1px solid var(--hair-strong);border-radius:8px;padding:12px;font-family:var(--mono);font-size:12px;line-height:1.5;background:var(--surface-2);resize:vertical}
+  .rowbtns{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+  .btn{background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:8px;padding:9px 15px;font-weight:600;font-size:13px}
+  .btn:hover{background:#238aab}
+  .btn.ghost{background:var(--surface);color:var(--accent-ink);border-color:var(--hair-strong)}
+  .btn.ghost:hover{background:var(--accent-wash)}
+  .btn.warn{background:var(--surface);color:var(--stop);border-color:#eccfc3}
+  .btn.warn:hover{background:var(--stop-wash)}
+  .fieldlist{margin-top:14px;border-top:1px solid var(--hair);padding-top:12px;max-height:300px;overflow:auto}
+  .fieldlist .fl{display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:1px dashed var(--hair)}
+  .fieldlist .fl:last-child{border-bottom:0}
+  .fieldlist .fn{font-family:var(--mono);font-size:12px;font-weight:600;min-width:150px}
+  .fieldlist .ft{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--accent-ink);background:var(--accent-wash);padding:1px 7px;border-radius:99px}
+  .fieldlist .fv{font-family:var(--mono);font-size:11.5px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .emptxt{color:var(--faint);font-size:12.5px;padding:18px 0;text-align:center}
+
+  /* ---------- Open items ---------- */
+  .oi{display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--hair);border-left:4px solid var(--stop);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);margin-bottom:11px}
+  .oi.needs-lookup{border-left-color:var(--warn)}
+  .oi .oi-main{flex:1;min-width:0}
+  .oi .oi-field{font-weight:650;font-size:13.5px}
+  .oi .oi-field .modtag{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);background:var(--grey-wash);padding:1px 7px;border-radius:99px;margin-left:8px}
+  .oi .oi-note{color:var(--muted);font-size:12.5px;margin-top:4px}
+  .oi .oi-meta{display:flex;gap:14px;margin-top:8px;font-size:11.5px;color:var(--faint);flex-wrap:wrap}
+  .oi .oi-meta b{color:var(--ink);font-weight:600}
+  .jump{background:var(--surface);border:1px solid var(--hair-strong);border-radius:7px;padding:6px 11px;font-size:12px;font-weight:600;color:var(--accent-ink);white-space:nowrap}
+  .jump:hover{background:var(--accent-wash)}
+
+  .context{background:linear-gradient(180deg,#fbfcfd,#f6f8fa);border:1px solid var(--hair);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;font-size:12.5px;color:var(--muted)}
+  .context b{color:var(--ink)}
+  .context .row{display:flex;gap:26px;flex-wrap:wrap;margin-top:8px}
+  .context .row div span{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--faint);font-weight:600}
+  .context .row div{font-weight:600;color:var(--ink)}
+
+  details.guide{background:var(--surface);border:1px solid var(--hair);border-radius:var(--radius);box-shadow:var(--shadow);padding:0;overflow:hidden}
+  details.guide summary{padding:15px 18px;font-weight:650;cursor:pointer;list-style:none;display:flex;align-items:center;gap:9px}
+  details.guide summary::-webkit-details-marker{display:none}
+  details.guide[open] summary{border-bottom:1px solid var(--hair)}
+  .guidebody{padding:16px 20px;font-size:13px;color:var(--muted);line-height:1.65}
+  .guidebody h4{color:var(--ink);font-size:13px;margin:16px 0 5px}
+  .guidebody h4:first-child{margin-top:0}
+  .guidebody code{font-family:var(--mono);font-size:12px;background:var(--grey-wash);padding:1px 6px;border-radius:5px;color:var(--accent-ink)}
+  .guidebody ol,.guidebody ul{margin:6px 0;padding-left:20px}
+  .guidebody li{margin:3px 0}
+
+  .foot-note{text-align:center;color:var(--faint);font-size:11.5px;margin-top:28px;line-height:1.6}
+
+  @media (max-width:900px){
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .split{grid-template-columns:1fr}
+  }
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:550;box-shadow:0 8px 24px rgba(0,0,0,.22);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:80}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  input[type=file]{display:none}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="mark">🔗</div>
+      <div>
+        <h1>MDFS → SAP Field Mapping Workbench</h1>
+        <div class="sub">Canonical Service Order · Optus Colossus · pattern 1.1</div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <button class="toolbtn" id="btnImport" title="Load a saved mapping (.json)">⭑ Import</button>
+    <input type="file" id="fileInput" accept="application/json,.json">
+    <button class="toolbtn" id="btnExport" title="Save mapping as .json for the SharePoint folder">⬇ Export JSON</button>
+    <button class="toolbtn" id="btnCsv" title="Export the mapping as CSV / Excel">⬇ CSV</button>
+    <button class="toolbtn primary" id="btnReset" title="Reset to the seeded template">↻ Reset</button>
+    <div class="savehint" id="saveHint">saved locally</div>
+  </div>
+</div>
+
+<div class="kpis" id="kpis">
+  <div class="kpi accent">
+    <div class="label">Mandatory mapped</div>
+    <div class="val num"><span id="mReq">0</span><small id="mReqTot">/0</small></div>
+    <div class="meter"><i id="mReqBar" style="width:0%"></i></div>
+    <div class="foot" id="mReqFoot">the “yes” fields — map these first</div>
+  </div>
+  <div class="kpi good">
+    <div class="label">Overall coverage</div>
+    <div class="val num"><span id="mCov">0</span><small>%</small></div>
+    <div class="meter"><i id="mCovBar" style="width:0%"></i></div>
+    <div class="foot" id="mCovFoot">0 of 0 canonical fields have a source</div>
+  </div>
+  <div class="kpi">
+    <div class="label">Needs lookup / join</div>
+    <div class="val num" id="mLook">0</div>
+    <div class="foot">linked objects — not a direct field</div>
+  </div>
+  <div class="kpi">
+    <div class="label">Open questions</div>
+    <div class="val num"><span id="mOpen">0</span></div>
+    <div class="foot"><span class="badge-stop" id="mOpenFoot">awaiting an owner’s answer</span></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="context">
+    Mapping the <b>MDFS REST API extract</b> (SCC-approved work orders) onto the <b>SAP S/4 canonical Service Order</b> so orders are created automatically instead of the current manual key-in (~30–50/week). One work&nbsp;order = one service order; products are <b>many-to-one</b> to a work order.
+    <div class="row">
+      <div><span>Source</span>MDFS API — pull on SCC&nbsp;approved</div>
+      <div><span>Target</span>SAP S/4 Service Order (Header + Item)</div>
+      <div><span>Golden rule</span>Map to <b>technical</b> names, not logical/screen names</div>
+      <div><span>Trigger cadence</span>TBD — hourly vs daily</div>
+    </div>
+  </div>
+
+  <div class="tabs" role="tablist" id="tabs">
+    <button class="tab" role="tab" data-tab="Service Order" aria-selected="true">Service&nbsp;Order <span class="count" id="cnt-so">0</span></button>
+    <button class="tab" role="tab" data-tab="Procurement" aria-selected="false">Procurement <span class="count" id="cnt-pr">0</span></button>
+    <button class="tab" role="tab" data-tab="Stock Confirmation" aria-selected="false">Stock&nbsp;Confirmation <span class="count" id="cnt-st">0</span></button>
+    <button class="tab" role="tab" data-tab="__sample" aria-selected="false">Sample&nbsp;Data ✦</button>
+    <button class="tab" role="tab" data-tab="__open" aria-selected="false">Open&nbsp;Items <span class="count" id="cnt-open">0</span></button>
+    <button class="tab" role="tab" data-tab="__guide" aria-selected="false">Guide</button>
+  </div>
+
+  <!-- MAPPING PANELS -->
+  <div class="panel active" id="panel-map" data-module="Service Order">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Level filter">
+        <button data-level="all" aria-pressed="true">All</button>
+        <button data-level="Header" aria-pressed="false">Header</button>
+        <button data-level="Item" aria-pressed="false">Item</button>
+      </div>
+      <label class="chk"><input type="checkbox" id="fltReq"> Mandatory only</label>
+      <label class="chk"><input type="checkbox" id="fltUnmapped"> Unmapped / open only</label>
+      <div class="search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="search" id="fltSearch" placeholder="Search field, source, note…">
+      </div>
+      <div class="spacer" style="flex:1"></div>
+      <button class="btn ghost" id="btnAdd">+ Add field</button>
+    </div>
+    <div class="tablecard">
+      <div class="tablescroll">
+        <table class="map">
+          <thead>
+            <tr>
+              <th style="min-width:210px">Canonical target field</th>
+              <th style="min-width:210px">MDFS source · technical name</th>
+              <th style="min-width:150px">Logical / screen name</th>
+              <th style="min-width:120px">Sample value</th>
+              <th style="width:56px;text-align:center">Look&nbsp;up</th>
+              <th style="min-width:130px">Confidence</th>
+              <th style="min-width:130px">Status</th>
+              <th style="min-width:110px">Owner</th>
+              <th style="min-width:220px">Notes / open question</th>
+              <th style="width:34px"></th>
+            </tr>
+          </thead>
+          <tbody id="mapBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAMPLE DATA PANEL -->
+  <div class="panel" id="panel-sample">
+    <div class="split">
+      <div class="card">
+        <h3>✦ Paste an MDFS extract or API payload</h3>
+        <p class="lead">Drop a sample from Adrian’s export — JSON (object or array), or CSV with a header row. The workbench profiles every source field, then auto-suggests a mapping with a confidence score so you can confirm the self-explanatory ones instantly and spend the workshop on the hard ones.</p>
+        <textarea class="payload" id="payload" spellcheck="false" placeholder='Paste JSON, e.g.
+[
+  {
+    "EPD_Work_Order_Name": "4009898",
+    "Client_Contract_Id": "0000000000000000000",
+    "Subcontractor_Claim_Id_Name": "SCC-24815",
+    "Product": "Fibre Splice Kit",
+    "Qty": 3,
+    "Qty_Unit": "EA",
+    "Total_Amount": "$1,299.50",
+    "Is_Billable": "Yes",
+    "SCC_Status": "Approved"
+  }
+]
+
+…or CSV:
+EPD_Work_Order_Name,Product,Qty,Qty_Unit,Total_Amount
+4009898,Fibre Splice Kit,3,EA,1299.50'></textarea>
+        <div class="rowbtns">
+          <button class="btn" id="btnProfile">Profile &amp; auto-suggest →</button>
+          <button class="btn ghost" id="btnSampleDemo">Load example payload</button>
+          <button class="btn warn" id="btnClearSample">Clear source data</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Detected source fields <span class="count" id="srcCount" style="font-size:11px;background:var(--accent-wash);color:var(--accent-ink);border-radius:99px;padding:1px 8px">0</span></h3>
+        <p class="lead">These become the options in every <b>source</b> dropdown on the Mapping tab. Type shown is inferred from the values.</p>
+        <div class="fieldlist" id="srcList"><div class="emptxt">No source data yet — paste a payload and profile it.</div></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:18px">
+      <h3>How auto-suggest scores a match</h3>
+      <p class="lead" style="margin-bottom:0">Every candidate blends five signals into one confidence — no single one is trusted alone. This is the same ensemble idea used in automated schema matching: normalized-name equality, Jaro-Winkler / token overlap for abbreviations (<code>Qty</code>→<code>quantity</code>), a domain synonym book (<code>EPD work order name</code>→<code>FSM job number</code>, <code>amt</code>→<code>total amount</code>), and value profiling (a column of dates → a date field). Suggestions never overwrite a field you’ve already <b>confirmed</b>.</p>
+    </div>
+  </div>
+
+  <!-- OPEN ITEMS PANEL -->
+  <div class="panel" id="panel-open">
+    <p class="lead" style="color:var(--muted);margin:0 0 16px;max-width:70ch">Everything flagged <b>open question</b> or <b>needs lookup</b> across all three modules, with the owner who has to close it. This is the follow-up list the workshop kept losing in the transcript — Adrian’s lookups, the 19-digit client reference, N2P vs PIMS, and so on.</p>
+    <div id="openList"></div>
+  </div>
+
+  <!-- GUIDE PANEL -->
+  <div class="panel" id="panel-guide">
+    <details class="guide" open>
+      <summary>📄 Running this from a SharePoint folder</summary>
+      <div class="guidebody">
+        <p>This is a single, fully self-contained <code>.html</code> file — no server, no internet, no libraries. Everything (styles, logic, seed data) lives inside it, so it works from anywhere.</p>
+        <h4>To use it</h4>
+        <ol>
+          <li>Upload <code>mdfs-field-mapping-workbench.html</code> to your SharePoint document library.</li>
+          <li>Because modern SharePoint may not render HTML pages inline (a tenant security setting), the reliable path is: select the file → <b>Download</b> → open it in <b>Edge or Chrome</b>. It opens instantly and works offline.</li>
+          <li>Your edits auto-save to <b>this browser</b>. To make the mapping the <b>shared source of truth</b>, click <b>Export JSON</b> and keep that <code>.json</code> next to the HTML in the SharePoint folder. Anyone can <b>Import</b> it to pick up where the team left off.</li>
+        </ol>
+        <p style="color:var(--faint)">Tip: keep one “master” JSON in SharePoint and version it there — that avoids the “which Excel is current?” problem from the workshop.</p>
+        <h4>Workflow that matches the workshop</h4>
+        <ol>
+          <li><b>Sample Data</b> tab → paste Adrian’s MDFS extract → <b>Profile &amp; auto-suggest</b>.</li>
+          <li><b>Mapping</b> tab → turn on <b>Mandatory only</b>, confirm the self-explanatory auto-suggestions, and set the rest to <b>needs lookup</b> or <b>open question</b> with an owner.</li>
+          <li><b>Open Items</b> tab → hand that list to Adrian / Karan; close them as answers come back.</li>
+        </ol>
+        <h4>Golden rules captured from the session</h4>
+        <ul>
+          <li>Always record the <b>technical / back-end</b> name — logical screen names differ and cause rework.</li>
+          <li>Flag <b>lookups</b> (linked objects like EPD name, the 19-digit Helix task number) — they need a join, not a direct map.</li>
+          <li>Client reference = the <b>19-digit task number</b> quoted on claims — <i>not</i> the subcontractor claim ID, and <i>not</i> the “garbage” client contract ID.</li>
+        </ul>
+      </div>
+    </details>
+  </div>
+
+  <div class="foot-note">
+    Self-contained workbench · data stays in your browser &amp; in the JSON you export · seeded from the 2&nbsp;Jul&nbsp;2026 field-mapping workshop
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   MDFS → SAP Field Mapping Workbench — single-file app
+   ============================================================ */
+const LS_KEY = "mdfs-mapping-workbench-v1";
+
+/* ---------- Seed canonical target schema (grounded in the workshop) ---------- */
+function seedFields(){
+  const F = (o)=>Object.assign({
+    id:uid(), module:"Service Order", level:"Header", target:"", hint:"",
+    mandatory:false, source:"", logical:"", lookup:false,
+    status:"unmapped", confidence:null, owner:"", note:"", reason:""
+  }, o);
+  return [
+    // ---- Service Order · Header ----
+    F({module:"Service Order",level:"Header",target:"Source Message ID",hint:"unique id of the inbound message",mandatory:true}),
+    F({module:"Service Order",level:"Header",target:"Source System",hint:"constant — MDFS",mandatory:true,source:"",note:"Constant value = \"MDFS\". No source field needed.",status:"unmapped"}),
+    F({module:"Service Order",level:"Header",target:"Message Type",hint:"e.g. ServiceOrder.Create",mandatory:true}),
+    F({module:"Service Order",level:"Header",target:"SSMCNSW Job Number",hint:"work-order / job number",mandatory:true}),
+    F({module:"Service Order",level:"Header",target:"FSM Job Number",hint:"= EPD Work Order Name",mandatory:true}),
+    F({module:"Service Order",level:"Header",target:"Work Order Name",hint:"one WO = one service order",mandatory:true}),
+    F({module:"Service Order",level:"Header",target:"Client Reference Number",hint:"19-digit Helix task number quoted on claims",mandatory:true,lookup:true,status:"needs-lookup",owner:"Adrian Kello",note:"NEEDS LOOKUP — the 19-digit task number, not in the direct table. NOT the subcontractor claim ID and NOT the client contract ID (\"garbage\"). Adrian to resolve the join."}),
+    F({module:"Service Order",level:"Header",target:"Client Contract ID",hint:"customer PO ref — likely N/A",mandatory:false,status:"open",owner:"Karan Bhatia",note:"OPEN — Pradeep: PO numbers are not stored in MDFS. Confirm whether this maps at all or stays blank."}),
+    F({module:"Service Order",level:"Header",target:"SCC Number",hint:"consolidated claim number",mandatory:true}),
+    F({module:"Service Order",level:"Header",target:"Service Order Status",hint:"trigger = SCC Approved",mandatory:false,note:"API filtered to SCC = Approved only (Adrian building the control)."}),
+    F({module:"Service Order",level:"Header",target:"Created Date",hint:"",mandatory:false}),
+    // ---- Service Order · Item ----
+    F({module:"Service Order",level:"Item",target:"Line Number",hint:"line within the work order",mandatory:true}),
+    F({module:"Service Order",level:"Item",target:"Product / Material",hint:"many products per work order",mandatory:true}),
+    F({module:"Service Order",level:"Item",target:"Product Description",hint:"",mandatory:false}),
+    F({module:"Service Order",level:"Item",target:"Quantity",hint:"self-explanatory",mandatory:true}),
+    F({module:"Service Order",level:"Item",target:"Quantity Unit",hint:"UoM e.g. EA",mandatory:true}),
+    F({module:"Service Order",level:"Item",target:"Unit Price",hint:"= next price",mandatory:false}),
+    F({module:"Service Order",level:"Item",target:"Total Amount",hint:"per line item amount",mandatory:true}),
+    F({module:"Service Order",level:"Item",target:"Item Is Billable",hint:"true / false",mandatory:true,status:"open",owner:"Rajesh Sha",note:"OPEN — needs a rule to derive true/false. Not directly in MDFS."}),
+    F({module:"Service Order",level:"Item",target:"Work Order Reference",hint:"links item → header (many-to-one)",mandatory:true,lookup:true,status:"needs-lookup",note:"Need a multi-item example: one work order with several products."}),
+    // ---- Procurement ----
+    F({module:"Procurement",level:"Header",target:"Supplier",hint:"subcontractor / vendor",mandatory:true}),
+    F({module:"Procurement",level:"Header",target:"Purchase Order Reference",hint:"",mandatory:false}),
+    F({module:"Procurement",level:"Item",target:"Material",hint:"",mandatory:true}),
+    F({module:"Procurement",level:"Item",target:"Quantity",hint:"",mandatory:true}),
+    F({module:"Procurement",level:"Item",target:"Unit Price",hint:"next price",mandatory:true}),
+    F({module:"Procurement",level:"Item",target:"Delivery Date",hint:"",mandatory:false}),
+    // ---- Stock Confirmation ----
+    F({module:"Stock Confirmation",level:"Header",target:"Work Order Number",hint:"",mandatory:true}),
+    F({module:"Stock Confirmation",level:"Item",target:"Material",hint:"",mandatory:true}),
+    F({module:"Stock Confirmation",level:"Item",target:"Confirmed Quantity",hint:"",mandatory:true}),
+    F({module:"Stock Confirmation",level:"Item",target:"Movement Type",hint:"",mandatory:false}),
+  ];
+}
+
+/* ---------- State ---------- */
+let state = { fields:[], sources:[] };  // sources: [{name, type, sample}]
+let ui = { module:"Service Order", level:"all", reqOnly:false, unmappedOnly:false, search:"" };
+
+function uid(){ return "f"+Math.random().toString(36).slice(2,9); }
+
+/* ============================================================
+   Smart matching (ensemble, JS port of smartmapper)
+   ============================================================ */
+// Filler/generic words are dropped before name comparison so matches key on
+// meaningful concepts (job, quantity, price) — not on "number"/"id"/"name",
+// which otherwise make everything look related and cause wrong mappings.
+const STOP = new Set(["the","a","of","for","to","in","on","at","by",
+  "id","name","field","value","number","no","num","code"]);
+function normalize(s){
+  if(s==null) return "";
+  return String(s)
+    .replace(/([a-z0-9])([A-Z])/g,"$1 $2")
+    .replace(/([A-Za-z])(\d)/g,"$1 $2").replace(/(\d)([A-Za-z])/g,"$1 $2")
+    .replace(/[^0-9a-zA-Z]+/g," ").replace(/\s+/g," ").trim().toLowerCase();
+}
+function tokens(s,drop=true){ return normalize(s).split(" ").filter(t=>t && (!drop||!STOP.has(t))); }
+
+const SYN = [
+  // NB: no generic "id/number/ref" group — that made every field with a
+  // number look synonymous. Concepts here are all domain-meaningful.
+  ["job","work order","workorder","service order","serviceorder","wo","so","epd work order"],
+  ["job number","fsm job number","ssmcnsw job number","work order name","epd work order name"],
+  ["scc","claim","subcontractor claim","sec"],
+  ["product","material","item","sku","article"],
+  ["quantity","qty","units","count"],
+  ["quantity unit","qty unit","uom","unit of measure"],
+  ["price","rate","unit price","next price"],
+  ["amount","amt","total","total amount","sum","value","line amount"],
+  ["supplier","vendor","subcontractor","subbie","subcon"],
+  ["billable","is billable","chargeable"],
+  ["client","customer","contract","po","purchase order"],
+  ["client reference","client reference number","task number","helix task"],
+  ["date","created","created date","timestamp","approved date"],
+  ["status","state","stage","scc status"],
+  ["description","desc","details","comment","remark"],
+  ["message id","source message id"],
+  ["message type","type"],
+  ["source system","system"],
+  ["line","line number","line no","position"],
+];
+const CONCEPT = (()=>{ const m=new Map(); SYN.forEach((g,i)=>g.forEach(t=>m.set(t,i))); return m; })();
+function conceptsIn(norm){
+  const s=new Set(); const t=norm.split(" ");
+  if(CONCEPT.has(norm)) s.add(CONCEPT.get(norm));
+  t.forEach(w=>{ if(CONCEPT.has(w)) s.add(CONCEPT.get(w)); });
+  for(let i=0;i<t.length-1;i++){ const bg=t[i]+" "+t[i+1]; if(CONCEPT.has(bg)) s.add(CONCEPT.get(bg)); }
+  return s;
+}
+function synScore(a,b){ const A=conceptsIn(a),B=conceptsIn(b); for(const x of A) if(B.has(x)) return 1; return 0; }
+function jaccard(a,b){ const A=new Set(a),B=new Set(b); if(!A.size&&!B.size)return 1; if(!A.size||!B.size)return 0;
+  let inter=0; A.forEach(x=>{ if(B.has(x)) inter++; }); return inter/(A.size+B.size-inter); }
+function jaro(a,b){ if(a===b)return 1; if(!a.length||!b.length)return 0;
+  const md=Math.max(0,Math.floor(Math.max(a.length,b.length)/2)-1);
+  const am=new Array(a.length).fill(false), bm=new Array(b.length).fill(false); let m=0;
+  for(let i=0;i<a.length;i++){ const lo=Math.max(0,i-md),hi=Math.min(i+md+1,b.length);
+    for(let j=lo;j<hi;j++){ if(!bm[j]&&a[i]===b[j]){am[i]=bm[j]=true;m++;break;} } }
+  if(!m)return 0; let t=0,k=0;
+  for(let i=0;i<a.length;i++){ if(am[i]){ while(!bm[k])k++; if(a[i]!==b[k])t++; k++; } } t/=2;
+  return (m/a.length + m/b.length + (m-t)/m)/3;
+}
+function jaroWinkler(a,b){ const j=jaro(a,b); let p=0; for(let i=0;i<Math.min(4,a.length,b.length);i++){ if(a[i]===b[i])p++; else break; } return j + p*0.1*(1-j); }
+
+/* value profiling */
+const PAT=[
+  ["email",/^[^@\s]+@[^@\s]+\.[^@\s]+$/],
+  ["date",/^(\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}[-/]\d{1,2}[-/]\d{2,4})$/],
+  ["currency",/^[$€£]\s?-?\d[\d,]*(\.\d+)?$|^-?\d[\d,]*\.\d{2}$/],
+  ["integer",/^-?\d{1,15}$/],
+  ["float",/^-?\d+\.\d+$/],
+  ["bool",/^(true|false|yes|no|y|n)$/i],
+];
+function inferType(values){
+  const v=values.filter(x=>x!=null&&String(x).trim()!=="").map(x=>String(x).trim());
+  if(!v.length) return "unknown";
+  for(const [name,re] of PAT){ if(v.filter(x=>re.test(x)).length >= 0.8*v.length) return name; }
+  const distinct=new Set(v.map(x=>x.toLowerCase()));
+  if(distinct.size<=Math.max(2,v.length*0.15)&&distinct.size<=20) return "categorical";
+  return "text";
+}
+const TYPE_HINT=[["email","email"],["phone","phone"],["date","date"],["created","date"],["approved","date"],
+  ["qty","integer"],["quantity","integer"],["amount","currency"],["price","currency"],["total","currency"],
+  ["billable","bool"],["number","integer"],["line","integer"]];
+function typeHint(name){ const n=normalize(name); for(const [k,t] of TYPE_HINT){ if(n.includes(k)) return t; } return "unknown"; }
+function typeAgreement(srcType, tgtName){
+  if(srcType==="unknown") return 0;
+  const th=typeHint(tgtName);
+  if(th!=="unknown" && th===srcType) return (srcType==="text"||srcType==="categorical")?0.25:0.8;
+  return 0;
+}
+
+const W={value:0.22,exact:0.18,syn:0.18,monge:0.12,jac:0.1,jw:0.12,lev:0.08};
+function scorePair(target, src){
+  const nt=normalize(target), ns=normalize(src.name);
+  const tt=tokens(target), ts=tokens(src.name);
+  const sig={};
+  sig.exact = (nt===ns && nt!=="")?1:0;
+  sig.jw = jaroWinkler(nt.replace(/ /g,""), ns.replace(/ /g,""));
+  sig.lev = 1 - lev(nt,ns)/Math.max(1,nt.length,ns.length);
+  sig.jac = jaccard(tt,ts);
+  sig.monge = mongeSym(tt,ts);
+  sig.syn = synScore(nt,ns);
+  sig.value = typeAgreement(src.type, target);
+  let score = W.exact*sig.exact + W.syn*sig.syn + W.value*sig.value +
+              W.monge*sig.monge + W.jac*sig.jac + W.jw*sig.jw + W.lev*sig.lev;
+  // floors: a lone strong signal is still trustworthy
+  if(sig.exact) score=Math.max(score,0.97);
+  if(sig.syn>=1 && sig.value>=0.75) score=Math.max(score,0.9);
+  else if(sig.syn>=1) score=Math.max(score,0.6);
+  else if(sig.value>=0.75) score=Math.max(score,0.58);
+  const reasons=[];
+  if(sig.exact) reasons.push("identical name");
+  if(sig.syn) reasons.push("known synonym / abbreviation");
+  if(sig.jac>=0.5||sig.monge>=0.85) reasons.push("overlapping name tokens");
+  if(sig.value>=0.5) reasons.push("value type = "+src.type);
+  return {score:Math.min(1,score), reasons};
+}
+function lev(a,b){ if(a===b)return 0; if(!a.length)return b.length; if(!b.length)return a.length;
+  let prev=[...Array(b.length+1).keys()];
+  for(let i=1;i<=a.length;i++){ let cur=[i];
+    for(let j=1;j<=b.length;j++){ cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1)); }
+    prev=cur; } return prev[b.length]; }
+function monge(a,b){ if(!a.length||!b.length)return 0; let tot=0;
+  for(const x of a){ let best=0; for(const y of b){ best=Math.max(best,jaroWinkler(x,y)); } tot+=best; } return tot/a.length; }
+function mongeSym(a,b){ if(!a.length||!b.length)return 0; return (monge(a,b)+monge(b,a))/2; }
+
+/* run auto-suggest — resolve a one-to-one assignment (a source feeds at most
+   one target) so e.g. "Qty" and "Qty_Unit" don't both grab the same column.
+   Confirmed fields and any source already chosen are left untouched. */
+function autoSuggest(){
+  if(!state.sources.length){ toast("Paste & profile a payload first (Sample Data tab)"); return; }
+  const usedSources=new Set(state.fields.filter(f=>f.source).map(f=>f.source));
+  const openFields=state.fields.filter(f=>f.status!=="confirmed" && !f.source);
+  // score the full open-field × free-source grid
+  const grid=[];
+  openFields.forEach(f=>{
+    state.sources.forEach(src=>{
+      if(usedSources.has(src.name)) return;
+      const r=scorePair(f.target,src);
+      if(r.score>=0.4) grid.push({f, src, score:r.score, reasons:r.reasons});
+    });
+  });
+  grid.sort((a,b)=>b.score-a.score);
+  const takenF=new Set(), takenS=new Set();
+  let n=0;
+  grid.forEach(c=>{
+    if(takenF.has(c.f.id)||takenS.has(c.src.name)) return;
+    takenF.add(c.f.id); takenS.add(c.src.name);
+    c.f.source=c.src.name;
+    c.f.confidence=Math.round(c.score*100);
+    c.f.reason=c.reasons.join(", ");
+    if(c.f.status==="unmapped") c.f.status="suggested";
+    n++;
+  });
+  save(); render();
+  toast(n?`Auto-suggested ${n} field${n>1?"s":""} — review & confirm`:"No new confident matches found");
+}
+
+/* ============================================================
+   Rendering
+   ============================================================ */
+const $=(s)=>document.querySelector(s);
+const $$=(s)=>document.querySelectorAll(s);
+const STATUSES=[["unmapped","Unmapped"],["suggested","Suggested"],["needs-lookup","Needs lookup"],["open","Open question"],["confirmed","Confirmed"]];
+
+function esc(s){ return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function render(){
+  renderKpis(); renderCounts();
+  if(ui.module==="__sample"){ return; }
+  if(ui.module==="__open"){ renderOpen(); return; }
+  if(ui.module==="__guide"){ return; }
+  renderTable();
+}
+
+function moduleFields(mod){ return state.fields.filter(f=>f.module===mod); }
+
+function renderCounts(){
+  $("#cnt-so").textContent=moduleFields("Service Order").length;
+  $("#cnt-pr").textContent=moduleFields("Procurement").length;
+  $("#cnt-st").textContent=moduleFields("Stock Confirmation").length;
+  const open=state.fields.filter(f=>f.status==="open"||f.status==="needs-lookup").length;
+  $("#cnt-open").textContent=open;
+}
+
+function renderKpis(){
+  const all=state.fields;
+  const req=all.filter(f=>f.mandatory);
+  const reqDone=req.filter(f=>f.source||f.status==="confirmed").length;
+  const mapped=all.filter(f=>f.source||f.status==="confirmed").length;
+  const look=all.filter(f=>f.lookup).length;
+  const open=all.filter(f=>f.status==="open").length;
+  $("#mReq").textContent=reqDone; $("#mReqTot").textContent="/"+req.length;
+  $("#mReqBar").style.width=(req.length?reqDone/req.length*100:0)+"%";
+  const cov=all.length?Math.round(mapped/all.length*100):0;
+  $("#mCov").textContent=cov; $("#mCovBar").style.width=cov+"%";
+  $("#mCovFoot").textContent=`${mapped} of ${all.length} canonical fields have a source`;
+  $("#mReqFoot").textContent = reqDone===req.length && req.length ? "✓ all mandatory fields mapped" : "the “yes” fields — map these first";
+  $("#mLook").textContent=look;
+  $("#mOpen").textContent=open;
+  $("#mOpenFoot").textContent = open? "awaiting an owner’s answer" : "none outstanding 🎉";
+  $("#mOpenFoot").classList.toggle("badge-stop", open>0);
+}
+
+function sourceOptions(selected){
+  let html=`<option value="">— none —</option>`;
+  const names=state.sources.map(s=>s.name);
+  if(selected && !names.includes(selected)) html+=`<option value="${esc(selected)}" selected>${esc(selected)}</option>`;
+  state.sources.forEach(s=>{
+    html+=`<option value="${esc(s.name)}" ${s.name===selected?"selected":""}>${esc(s.name)}</option>`;
+  });
+  return html;
+}
+function sampleFor(name){
+  const s=state.sources.find(x=>x.name===name);
+  return s? s.sample : null;
+}
+
+function renderTable(){
+  const body=$("#mapBody"); body.innerHTML="";
+  let list=moduleFields(ui.module);
+  if(ui.level!=="all") list=list.filter(f=>f.level===ui.level);
+  if(ui.reqOnly) list=list.filter(f=>f.mandatory);
+  if(ui.unmappedOnly) list=list.filter(f=>!(f.source||f.status==="confirmed")||f.status==="open"||f.status==="needs-lookup");
+  if(ui.search){ const q=ui.search.toLowerCase();
+    list=list.filter(f=>(f.target+f.source+f.note+f.owner+f.logical).toLowerCase().includes(q)); }
+
+  if(!list.length){ body.innerHTML=`<tr><td colspan="10"><div class="emptxt">No fields match these filters.</div></td></tr>`; return; }
+
+  let lastLevel=null;
+  list.forEach(f=>{
+    if(f.level!==lastLevel){
+      lastLevel=f.level;
+      const cnt=list.filter(x=>x.level===f.level).length;
+      const tr=document.createElement("tr"); tr.className="grouprow";
+      tr.innerHTML=`<td colspan="10">${esc(f.level)} level <span class="gcount">${cnt} field${cnt>1?"s":""}</span></td>`;
+      body.appendChild(tr);
+    }
+    body.appendChild(rowFor(f));
+  });
+}
+
+function rowFor(f){
+  const tr=document.createElement("tr");
+  tr.dataset.status=f.status; tr.dataset.id=f.id; tr.id="row-"+f.id;
+  const smp=sampleFor(f.source);
+  const conf=f.confidence!=null?f.confidence:null;
+  tr.innerHTML=`
+    <td class="stat-cell tgt">
+      <span class="tname">${esc(f.target)}${f.mandatory?'<span class="req">MANDATORY</span>':'<span class="opt">opt</span>'}</span>
+      ${f.hint?`<span class="thint">${esc(f.hint)}</span>`:""}
+      ${f.reason&&f.status==="suggested"?`<div class="rowreason">↳ ${esc(f.reason)}</div>`:""}
+    </td>
+    <td>
+      <select class="cellselect ${f.source?"":"empty"}" data-k="source">${sourceOptions(f.source)}</select>
+    </td>
+    <td><input class="cellinput" data-k="logical" value="${esc(f.logical)}" placeholder="screen name…"></td>
+    <td>${smp!=null?`<span class="sample" title="${esc(smp)}">${esc(smp)}</span>`:`<span class="sample none">—</span>`}</td>
+    <td><div class="lookchk"><input type="checkbox" data-k="lookup" ${f.lookup?"checked":""} title="Linked object — needs a join"></div></td>
+    <td>
+      <div class="conf ${conf==null?"na":""}">
+        <div class="bar"><i style="width:${conf==null?0:conf}%"></i></div>
+        <span class="pct">${conf==null?"—":conf+"%"}</span>
+      </div>
+    </td>
+    <td>
+      <span class="pill ${f.status}"><span class="dot"></span>
+        <select class="statusselect" data-k="status">
+          ${STATUSES.map(([v,l])=>`<option value="${v}" ${v===f.status?"selected":""}>${l}</option>`).join("")}
+        </select>
+      </span>
+    </td>
+    <td><input class="owner" data-k="owner" value="${esc(f.owner)}" placeholder="owner…"></td>
+    <td><textarea class="noteinput" data-k="note" rows="1" placeholder="notes / open question…">${esc(f.note)}</textarea></td>
+    <td><button class="jump" data-del="${f.id}" title="Remove field" style="padding:4px 8px">✕</button></td>
+  `;
+  // wire inputs
+  tr.querySelectorAll("[data-k]").forEach(el=>{
+    const k=el.dataset.k;
+    const evt=(el.tagName==="SELECT"||el.type==="checkbox")?"change":"input";
+    el.addEventListener(evt,()=>{
+      if(el.type==="checkbox") f[k]=el.checked;
+      else f[k]=el.value;
+      if(k==="source"){
+        if(f.source){ if(f.status==="unmapped") f.status="suggested"; }
+        else { f.confidence=null; f.reason=""; if(f.status==="suggested") f.status="unmapped"; }
+        // update sample + status styling live
+        save(); renderTable(); renderKpis(); return;
+      }
+      if(k==="status"){ tr.dataset.status=f.status;
+        tr.querySelector(".pill").className="pill "+f.status;
+        save(); renderKpis(); renderCounts(); return; }
+      if(k==="lookup"){ save(); renderKpis(); return; }
+      save();
+    });
+  });
+  tr.querySelector("[data-del]").addEventListener("click",()=>{
+    if(confirm(`Remove “${f.target}”?`)){ state.fields=state.fields.filter(x=>x.id!==f.id); save(); render(); }
+  });
+  return tr;
+}
+
+function renderOpen(){
+  const list=$("#openList");
+  const items=state.fields.filter(f=>f.status==="open"||f.status==="needs-lookup")
+    .sort((a,b)=> (a.status==="open"?0:1)-(b.status==="open"?0:1));
+  if(!items.length){ list.innerHTML=`<div class="emptxt">🎉 No open questions or lookups outstanding. Every field is mapped or confirmed.</div>`; return; }
+  list.innerHTML=items.map(f=>`
+    <div class="oi ${f.status}">
+      <div class="oi-main">
+        <div class="oi-field">${esc(f.target)}<span class="modtag">${esc(f.module)} · ${esc(f.level)}</span></div>
+        <div class="oi-note">${esc(f.note||(f.status==="needs-lookup"?"Linked object — needs a lookup/join.":"Open question — needs a decision."))}</div>
+        <div class="oi-meta">
+          <span>Owner: <b>${esc(f.owner||"— unassigned —")}</b></span>
+          <span>Status: <b>${f.status==="open"?"Open question":"Needs lookup"}</b></span>
+          ${f.mandatory?`<span class="badge-stop">Mandatory</span>`:""}
+          ${f.source?`<span>Current source: <b class="mono">${esc(f.source)}</b></span>`:""}
+        </div>
+      </div>
+      <button class="jump" data-goto="${f.id}" data-mod="${esc(f.module)}">Open in grid →</button>
+    </div>
+  `).join("");
+  list.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>{
+    switchTab(b.dataset.mod);
+    setTimeout(()=>{ const r=$("#row-"+b.dataset.goto);
+      if(r){ r.scrollIntoView({behavior:"smooth",block:"center"}); r.style.transition="background .3s";
+        r.style.background="#fff6d9"; setTimeout(()=>r.style.background="",1200); } },60);
+  }));
+}
+
+/* ============================================================
+   Sample-data ingestion
+   ============================================================ */
+function profilePayload(text){
+  text=text.trim();
+  if(!text) return {ok:false,msg:"Nothing to profile — paste a payload first."};
+  let rows=null;
+  // Try JSON
+  try{
+    const j=JSON.parse(text);
+    rows=Array.isArray(j)?j:(typeof j==="object"?[j]:null);
+  }catch(e){ /* fall through to CSV */ }
+  if(!rows){
+    // CSV
+    const lines=text.split(/\r?\n/).filter(l=>l.trim()!=="");
+    if(lines.length<1) return {ok:false,msg:"Could not read that as JSON or CSV."};
+    const headers=splitCsv(lines[0]);
+    rows=lines.slice(1).map(l=>{ const c=splitCsv(l); const o={}; headers.forEach((h,i)=>o[h]=c[i]); return o; });
+    if(!rows.length) rows=[Object.fromEntries(headers.map(h=>[h,""]))]; // headers only
+  }
+  // collect fields
+  const names=[];
+  rows.forEach(r=>Object.keys(r||{}).forEach(k=>{ if(!names.includes(k)) names.push(k); }));
+  if(!names.length) return {ok:false,msg:"No fields found in that payload."};
+  const sources=names.map(name=>{
+    const vals=rows.map(r=>r?r[name]:null);
+    const sample=vals.find(v=>v!=null&&String(v).trim()!=="");
+    return {name, type:inferType(vals), sample: sample!=null?String(sample):null};
+  });
+  return {ok:true, sources};
+}
+function splitCsv(line){
+  const out=[]; let cur="",q=false;
+  for(let i=0;i<line.length;i++){ const c=line[i];
+    if(q){ if(c==='"'){ if(line[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+    else { if(c==='"') q=true; else if(c===","){ out.push(cur); cur=""; } else cur+=c; } }
+  out.push(cur); return out.map(s=>s.trim());
+}
+function renderSources(){
+  $("#srcCount").textContent=state.sources.length;
+  const list=$("#srcList");
+  if(!state.sources.length){ list.innerHTML=`<div class="emptxt">No source data yet — paste a payload and profile it.</div>`; return; }
+  list.innerHTML=state.sources.map(s=>`
+    <div class="fl">
+      <span class="fn">${esc(s.name)}</span>
+      <span class="ft">${esc(s.type)}</span>
+      <span class="fv" title="${esc(s.sample||"")}">${s.sample!=null?esc(s.sample):"—"}</span>
+    </div>`).join("");
+}
+
+const DEMO_PAYLOAD=`[
+  {
+    "EPD_Work_Order_Name": "4009898",
+    "Client_Contract_Id": "0000000000000000000",
+    "Subcontractor_Claim_Id_Name": "SCC-24815",
+    "SCC_Number": "SCC-24815",
+    "Product": "Fibre Splice Kit",
+    "Qty": 3,
+    "Qty_Unit": "EA",
+    "Unit_Price": "433.17",
+    "Total_Amount": "$1,299.51",
+    "Is_Billable": "Yes",
+    "SCC_Status": "Approved",
+    "Line_No": 1,
+    "Created_Date": "2026-06-14"
+  },
+  {
+    "EPD_Work_Order_Name": "4009898",
+    "Client_Contract_Id": "0000000000000000000",
+    "Subcontractor_Claim_Id_Name": "SCC-24815",
+    "SCC_Number": "SCC-24815",
+    "Product": "Splice Enclosure",
+    "Qty": 1,
+    "Qty_Unit": "EA",
+    "Unit_Price": "212.00",
+    "Total_Amount": "$212.00",
+    "Is_Billable": "Yes",
+    "SCC_Status": "Approved",
+    "Line_No": 2,
+    "Created_Date": "2026-06-14"
+  }
+]`;
+
+/* ============================================================
+   Persistence & IO
+   ============================================================ */
+let saveTimer=null;
+function save(){
+  clearTimeout(saveTimer);
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
+  $("#saveHint").textContent="saving…";
+  saveTimer=setTimeout(()=>{ $("#saveHint").textContent="saved locally · "+new Date().toLocaleTimeString(); },400);
+}
+function load(){
+  try{ const raw=localStorage.getItem(LS_KEY); if(raw){ const s=JSON.parse(raw);
+    if(s&&s.fields){ state=s; if(!state.sources) state.sources=[]; return true; } } }catch(e){}
+  return false;
+}
+function resetAll(){
+  if(!confirm("Reset everything to the seeded template? Your current mapping and source data will be cleared.")) return;
+  state={fields:seedFields(), sources:[]}; save(); render(); renderSources(); toast("Reset to seeded template");
+}
+function exportJson(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  download(blob,"mdfs-service-order-mapping.json"); toast("Exported JSON — keep it in the SharePoint folder");
+}
+function exportCsv(){
+  const cols=["Module","Level","Canonical target","Mandatory","MDFS source (technical)","Logical name","Lookup","Sample value","Confidence %","Status","Owner","Notes / open question"];
+  const rows=state.fields.map(f=>[f.module,f.level,f.target,f.mandatory?"Yes":"No",f.source,f.logical,f.lookup?"Yes":"No",sampleFor(f.source)??"",f.confidence??"",labelFor(f.status),f.owner,f.note]);
+  const csv=[cols,...rows].map(r=>r.map(csvCell).join(",")).join("\r\n");
+  download(new Blob([csv],{type:"text/csv"}),"mdfs-service-order-mapping.csv"); toast("Exported CSV — opens in Excel");
+}
+function labelFor(s){ return (STATUSES.find(x=>x[0]===s)||[,s])[1]; }
+function csvCell(v){ v=String(v??""); return /[",\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+function download(blob,name){ const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
+function importJson(file){
+  const rd=new FileReader();
+  rd.onload=()=>{ try{ const s=JSON.parse(rd.result);
+    if(!s.fields) throw 0; state={fields:s.fields, sources:s.sources||[]}; save(); render(); renderSources();
+    toast("Imported "+state.fields.length+" fields"); }
+    catch(e){ toast("That file isn’t a valid mapping export"); } };
+  rd.readAsText(file);
+}
+
+/* ============================================================
+   Tabs & events
+   ============================================================ */
+function switchTab(tab){
+  ui.module=tab;
+  $$("#tabs .tab").forEach(t=>t.setAttribute("aria-selected", t.dataset.tab===tab?"true":"false"));
+  const mapTab=(tab==="Service Order"||tab==="Procurement"||tab==="Stock Confirmation");
+  $("#panel-map").classList.toggle("active", mapTab);
+  $("#panel-sample").classList.toggle("active", tab==="__sample");
+  $("#panel-open").classList.toggle("active", tab==="__open");
+  $("#panel-guide").classList.toggle("active", tab==="__guide");
+  if(mapTab){ ui.level="all"; $$('.seg [data-level]').forEach(b=>b.setAttribute("aria-pressed", b.dataset.level==="all"?"true":"false")); }
+  render();
+}
+
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),2600); }
+
+function wire(){
+  $("#tabs").addEventListener("click",e=>{ const b=e.target.closest(".tab"); if(b) switchTab(b.dataset.tab); });
+  $$('.seg [data-level]').forEach(b=>b.addEventListener("click",()=>{
+    ui.level=b.dataset.level; $$('.seg [data-level]').forEach(x=>x.setAttribute("aria-pressed","false"));
+    b.setAttribute("aria-pressed","true"); renderTable(); }));
+  $("#fltReq").addEventListener("change",e=>{ ui.reqOnly=e.target.checked; renderTable(); });
+  $("#fltUnmapped").addEventListener("change",e=>{ ui.unmappedOnly=e.target.checked; renderTable(); });
+  $("#fltSearch").addEventListener("input",e=>{ ui.search=e.target.value; renderTable(); });
+  $("#btnAdd").addEventListener("click",()=>{
+    const f={id:uid(),module:ui.module==="__sample"||ui.module==="__open"||ui.module==="__guide"?"Service Order":ui.module,
+      level:ui.level==="Item"?"Item":"Header",target:"New field",hint:"",mandatory:false,source:"",logical:"",
+      lookup:false,status:"unmapped",confidence:null,owner:"",note:"",reason:""};
+    state.fields.push(f); save(); render();
+    setTimeout(()=>{ const r=$("#row-"+f.id); if(r){ r.scrollIntoView({block:"center"}); r.querySelector(".tname").focus?.(); } },50);
+  });
+  $("#btnExport").addEventListener("click",exportJson);
+  $("#btnCsv").addEventListener("click",exportCsv);
+  $("#btnReset").addEventListener("click",resetAll);
+  $("#btnImport").addEventListener("click",()=>$("#fileInput").click());
+  $("#fileInput").addEventListener("change",e=>{ if(e.target.files[0]) importJson(e.target.files[0]); e.target.value=""; });
+
+  $("#btnProfile").addEventListener("click",()=>{
+    const res=profilePayload($("#payload").value);
+    if(!res.ok){ toast(res.msg); return; }
+    state.sources=res.sources; save(); renderSources();
+    autoSuggest();
+  });
+  $("#btnSampleDemo").addEventListener("click",()=>{ $("#payload").value=DEMO_PAYLOAD; toast("Example loaded — click Profile & auto-suggest"); });
+  $("#btnClearSample").addEventListener("click",()=>{ state.sources=[]; save(); renderSources(); renderTable(); toast("Source data cleared"); });
+
+  window.addEventListener("keydown",e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key==="s"){ e.preventDefault(); exportJson(); }
+  });
+}
+
+/* ---------- boot ---------- */
+(function init(){
+  if(!load()){ state={fields:seedFields(), sources:[]}; }
+  wire(); renderSources(); switchTab("Service Order");
+  $("#saveHint").textContent="saved locally";
+})();
+</script>
+</body>
+</html>
