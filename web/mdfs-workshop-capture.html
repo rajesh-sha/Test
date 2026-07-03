@@ -191,6 +191,28 @@
   #procTable, #procOutTable, #stockTable, #stockOutTable{ table-layout:fixed; width:100%; min-width:0; }
   #procTable td, #procOutTable td, #stockTable td, #stockOutTable td{ word-break:break-word; overflow-wrap:anywhere; }
   #procTable thead th, #procOutTable thead th, #stockTable thead th, #stockOutTable thead th{ position:sticky; top:var(--headH); z-index:6; }
+
+  /* ---------- FSM Integration Pattern Matrix ---------- */
+  #matrixTable{ border-collapse:collapse; width:100%; min-width:1040px; background:#fff; font-size:12px; }
+  #matrixTable thead th{ background:var(--navy2); color:#fff; padding:8px 8px; text-align:center; font-weight:600; font-size:11px; border-right:1px solid #2c5a8c; }
+  #matrixTable thead th.fsmcol{ text-align:left; min-width:170px; }
+  #matrixTable thead th .etf{ display:block; font-weight:400; opacity:.75; font-size:10px; margin-top:2px; }
+  #matrixTable td{ border:1px solid var(--line); padding:6px 7px; vertical-align:middle; }
+  #matrixTable td.fsmname{ font-weight:600; color:#1a2230; white-space:nowrap; }
+  #matrixTable td.fsmname .code{ color:#8a94a3; font-size:10px; font-weight:600; margin-right:5px; }
+  #matrixTable tr.mdfs-row td{ background:#eef4fb; }
+  #matrixTable tr.mdfs-row td.fsmname{ color:#1F4E79; }
+  .mcell{ text-align:center; }
+  .m-sel{ width:100%; border:1px solid #cbd5e1; border-radius:14px; padding:4px 6px; font-size:11.5px; font-weight:600; text-align:center; cursor:pointer; -webkit-appearance:none; appearance:none; }
+  .m-sel.m-api{ background:#dbeafe; color:#1e56a0; border-color:#bcd4f5; }
+  .m-sel.m-pull{ background:#dcfce7; color:#16794a; border-color:#b6ecc9; }
+  .m-sel.m-file{ background:#ede9fe; color:#6d43c8; border-color:#d6ccf7; }
+  .m-sel.m-upload{ background:#d1fae5; color:#0f766e; border-color:#a7e8d2; }
+  .m-sel.m-db{ background:#fce7f3; color:#be2f6b; border-color:#f5c6de; }
+  .m-sel.m-manual{ background:#fef9c3; color:#a37a12; border-color:#efe08f; }
+  .m-sel.m-na{ background:#f1f3f6; color:#9aa3af; border-color:#e2e6ec; }
+  .m-sel.m-none{ background:#fff; color:#c2c8d0; }
+  .mann{ font-size:9.5px; color:#9aa3af; text-align:center; margin-top:3px; min-height:11px; }
 </style>
 </head>
 <body>
@@ -224,6 +246,7 @@
   <button id="tabBtnMapping" class="active">Service Order Field Mapping</button>
   <button id="tabBtnProc">Procurement Field Mapping</button>
   <button id="tabBtnStock">Stock Consumption Field Mapping</button>
+  <button id="tabBtnMatrix">Integration Matrix</button>
   <button id="tabBtnWorksheet">Future Integration Points Worksheet</button>
 </div>
 
@@ -396,6 +419,28 @@
 </div>
 
 </div><!-- /tabStock -->
+
+<div id="tabMatrix" class="tabpage">
+
+<div class="toolbar">
+  <div class="stats" id="matrixStats"></div>
+  <button id="matrixExportCsv" class="primary">&#11015; Export Matrix CSV</button>
+</div>
+
+<div class="ws-section-title">FSM Integration Pattern Matrix</div>
+<div class="ws-section-sub">Push (FSM &rarr; CPI) or Pull (CPI &rarr; FSM) per FSM per canonical model. Pick the integration pattern for each cell &mdash; each change is stamped with the date and your name (set &ldquo;Your name&rdquo; in the header). The <b>MDFS</b> row is highlighted.</div>
+<div class="wrap scrollx">
+<table id="matrixTable">
+  <thead id="matrixHead"></thead>
+  <tbody id="matrixBody"></tbody>
+</table>
+</div>
+
+<div class="footer-note">
+  Cross-FSM reference — included in the whole-mapping Save/Import and the all-tabs Excel export. Set patterns with the dropdowns; N/A = not applicable, &mdash; = to be decided.
+</div>
+
+</div><!-- /tabMatrix -->
 
 <div id="tabWorksheet" class="tabpage">
 
@@ -859,13 +904,15 @@ try{
 const tabBtnMapping = document.getElementById('tabBtnMapping');
 const tabBtnProc = document.getElementById('tabBtnProc');
 const tabBtnStock = document.getElementById('tabBtnStock');
+const tabBtnMatrix = document.getElementById('tabBtnMatrix');
 const tabBtnWorksheet = document.getElementById('tabBtnWorksheet');
 const tabMapping = document.getElementById('tabMapping');
 const tabProc = document.getElementById('tabProc');
 const tabStock = document.getElementById('tabStock');
+const tabMatrix = document.getElementById('tabMatrix');
 const tabWorksheet = document.getElementById('tabWorksheet');
-const ALL_TAB_BTNS = [tabBtnMapping, tabBtnProc, tabBtnStock, tabBtnWorksheet];
-const ALL_TAB_PAGES = [tabMapping, tabProc, tabStock, tabWorksheet];
+const ALL_TAB_BTNS = [tabBtnMapping, tabBtnProc, tabBtnStock, tabBtnMatrix, tabBtnWorksheet];
+const ALL_TAB_PAGES = [tabMapping, tabProc, tabStock, tabMatrix, tabWorksheet];
 function activateTab(btn, page){
   ALL_TAB_BTNS.forEach(b => b.classList.remove('active'));
   ALL_TAB_PAGES.forEach(p => p.classList.remove('active'));
@@ -875,6 +922,7 @@ function activateTab(btn, page){
 tabBtnMapping.addEventListener('click', () => activateTab(tabBtnMapping, tabMapping));
 tabBtnProc.addEventListener('click', () => activateTab(tabBtnProc, tabProc));
 tabBtnStock.addEventListener('click', () => activateTab(tabBtnStock, tabStock));
+tabBtnMatrix.addEventListener('click', () => activateTab(tabBtnMatrix, tabMatrix));
 tabBtnWorksheet.addEventListener('click', () => activateTab(tabBtnWorksheet, tabWorksheet));
 
 
@@ -1188,6 +1236,101 @@ try{ const rawStock=localStorage.getItem(STOCK_STORAGE_KEY); if(rawStock) applyS
 
 
 
+// ================= FSM Integration Pattern Matrix =================
+const MATRIX_STORAGE_KEY = 'apollo_fsm_matrix_v1';
+const MATRIX_FSMS = [
+  ["6.A","JAMS"],["6.B","ServiceNow FSM (Defence)"],["6.C","ServiceNow ITSM (Telco)"],
+  ["6.D","SiteTracker (ODM)"],["6.E","SiteTracker (Wireless)"],["6.F","MDFS"],
+  ["6.G","PIMS"],["6.H","MARS"],["6.I","Konect-Excled (PIM Optus-N2P)"],
+  ["6.J","MEX"],["6.K","InEight D4C (Maintenance)"],["6.K","InEight D4C (Construction)"],
+  ["6.L","Billing Plus"],
+];
+const MATRIX_COLS = [
+  ["Work Creation/Update – Service Order","ETF-889"],
+  ["Work Creation – Enterprise Project","ETF-893"],
+  ["Stock Confirmation – Service Order","ETF-905"],
+  ["Stock Consumption – WBS","ETF-865"],
+  ["Procurement – Services","ETF-901"],
+  ["Billing – Service Orders","ETF-876"],
+  ["Billing – Sales Order","ETF-872"],
+];
+const MATRIX_OPTS = [
+  {v:"", label:"—", cls:"m-none"},
+  {v:"N/A", label:"N/A", cls:"m-na"},
+  {v:"↑ API", label:"↑ API", cls:"m-api"},
+  {v:"↓ Pull", label:"↓ Pull", cls:"m-pull"},
+  {v:"↑ File", label:"↑ File", cls:"m-file"},
+  {v:"↑ Upload", label:"↑ Upload", cls:"m-upload"},
+  {v:"DB Query", label:"DB Query", cls:"m-db"},
+  {v:"Manual", label:"Manual", cls:"m-manual"},
+];
+const MATRIX_SEED = [
+  ["↑ API","↑ API","↑ API","N/A","↑ API","↑ API","N/A"],       // JAMS
+  ["↓ Pull","N/A","↑ API","N/A","N/A","↓ Pull","N/A"],          // ServiceNow FSM (Defence)
+  ["↓ Pull","N/A","↓ Pull","N/A","↓ Pull","↓ Pull","N/A"],      // ServiceNow ITSM (Telco)
+  ["↓ Pull","↓ Pull","Manual","N/A","↓ Pull","↓ Pull","N/A"],   // SiteTracker (ODM)
+  ["↓ Pull","N/A","N/A","N/A","N/A","N/A","N/A"],                // SiteTracker (Wireless)
+  ["↑ File","N/A","↑ API","N/A","↑ File","Manual","N/A"],        // MDFS
+  ["N/A","Manual","N/A","N/A","DB Query","N/A","↑ Upload"],      // PIMS
+  ["↑ API","N/A","N/A","N/A","N/A","Manual","N/A"],              // MARS
+  ["","","","","","",""],                                        // Konect-Excled
+  ["N/A","Manual","N/A","N/A","Manual","Manual","N/A"],          // MEX
+  ["N/A","N/A","↑ API","N/A","N/A","N/A","N/A"],                 // InEight D4C (Maintenance)
+  ["N/A","↑ API","↑ API","N/A","↑ API","↑ API","N/A"],           // InEight D4C (Construction)
+  ["N/A","N/A","N/A","N/A","N/A","N/A","N/A"],                   // Billing Plus
+];
+function matrixLoad(){
+  try{ const r=localStorage.getItem(MATRIX_STORAGE_KEY); if(r) return JSON.parse(r); }catch(e){}
+  const s={}; MATRIX_SEED.forEach((row,r)=>row.forEach((v,c)=>{ s[r+'|'+c]={v:v,ts:'',by:''}; })); return s;
+}
+let matrixStore = matrixLoad();
+function matrixClsOf(v){ const o=MATRIX_OPTS.find(o=>o.v===v); return o?o.cls:'m-none'; }
+function matrixSaveNow(){ try{ localStorage.setItem(MATRIX_STORAGE_KEY, JSON.stringify(matrixStore)); }catch(e){} }
+function matrixFmt(ts){ if(!ts) return ''; try{ return new Date(ts).toLocaleDateString([], {day:'2-digit',month:'short'}); }catch(e){ return ''; } }
+function matrixVal(r,c){ return (matrixStore[r+'|'+c]||{}).v || ''; }
+function renderMatrix(){
+  const head=document.getElementById('matrixHead');
+  head.innerHTML = '<tr><th class="fsmcol">FSM SYSTEM</th>'
+    + MATRIX_COLS.map(c=>`<th>${escHtml(c[0])}<span class="etf">${escHtml(c[1])}</span></th>`).join('') + '</tr>';
+  const body=document.getElementById('matrixBody');
+  body.innerHTML = MATRIX_FSMS.map((f,r)=>{
+    const isMdfs=/^mdfs$/i.test(f[1]);
+    const cells = MATRIX_COLS.map((c,ci)=>{
+      const cell=matrixStore[r+'|'+ci]||{v:'',ts:'',by:''};
+      return `<td class="mcell"><select class="m-sel ${matrixClsOf(cell.v)}" data-r="${r}" data-c="${ci}">`
+        + MATRIX_OPTS.map(o=>`<option value="${o.v}" ${o.v===cell.v?'selected':''}>${o.label}</option>`).join('')
+        + `</select><div class="mann">${cell.ts?escHtml(matrixFmt(cell.ts)+' · '+(cell.by||'')):''}</div></td>`;
+    }).join('');
+    return `<tr class="${isMdfs?'mdfs-row':''}"><td class="fsmname"><span class="code">${escHtml(f[0])}</span>${escHtml(f[1])}</td>${cells}</tr>`;
+  }).join('');
+  updateMatrixStats();
+}
+function updateMatrixStats(){
+  let set=0,total=0;
+  MATRIX_FSMS.forEach((f,r)=>MATRIX_COLS.forEach((c,ci)=>{ total++; const v=matrixVal(r,ci); if(v && v!=='N/A') set++; }));
+  document.getElementById('matrixStats').innerHTML = `<span class="stat">${set} patterns set</span><span class="stat">of ${total} cells</span>`;
+}
+document.getElementById('matrixBody').addEventListener('change', e=>{
+  const sel=e.target.closest('.m-sel'); if(!sel) return;
+  const r=+sel.dataset.r, c=+sel.dataset.c;
+  const by=(document.getElementById('commenter')||{}).value || 'You';
+  matrixStore[r+'|'+c]={ v:sel.value, ts:new Date().toISOString(), by:by };
+  sel.className='m-sel '+matrixClsOf(sel.value);
+  const ann=sel.parentNode.querySelector('.mann'); if(ann) ann.textContent = matrixFmt(matrixStore[r+'|'+c].ts)+' · '+by;
+  matrixSaveNow(); updateMatrixStats();
+});
+document.getElementById('matrixExportCsv').addEventListener('click', ()=>{
+  const lines=[];
+  lines.push(['FSM System', ...MATRIX_COLS.map(c=>c[0]+' ('+c[1]+')')].map(csvEscape).join(','));
+  MATRIX_FSMS.forEach((f,r)=>{ lines.push([f[0]+' '+f[1], ...MATRIX_COLS.map((c,ci)=>matrixVal(r,ci))].map(csvEscape).join(',')); });
+  const blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8;"}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='Apollo_FSM_Integration_Matrix.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+});
+renderMatrix();
+
+
+
 // ================= Future Integration Points Worksheet =================
 const WS_STORAGE_KEY = 'apollo_fsm_worksheet_draft_mdfs_v1';
 
@@ -1468,6 +1611,7 @@ function collectAll(){
     serviceOrder: collectState(),        // meta + rows (incl. sampleValue) + soOut transports
     procurement: collectProcState(),     // inRows (incl. sampleValue) + outRows
     stock: collectStockState(),          // inRows (incl. sampleValue)
+    matrix: matrixStore,                 // FSM integration pattern matrix
     comments: commentsStore,             // per-field discussion threads
     worksheet:{ fipData, wbData, approach:_v('approachText'), keypoints:_v('keypointsText'), nextsteps:_v('nextstepsText') }
   };
@@ -1478,6 +1622,7 @@ function applyAll(obj){
   else if(obj.meta){ _sv('fsmName',obj.meta.fsmName); _sv('wsDate',obj.meta.wsDate); _sv('facilitator',obj.meta.facilitator); _sv('attendees',obj.meta.attendees); }
   if(obj.procurement) applyProcState(obj.procurement);
   if(obj.stock) applyStockState(obj.stock);
+  if(obj.matrix){ matrixStore = obj.matrix || {}; matrixSaveNow(); renderMatrix(); }
   if(obj.comments){ commentsStore = obj.comments || {}; saveComments(); refreshAllBtns(); }
   if(obj.worksheet){
     if(Array.isArray(obj.worksheet.fipData)) fipData = obj.worksheet.fipData;
@@ -1587,6 +1732,14 @@ function exportAllExcel(){
   [["FSM being mapped",fsm],["Workshop date",date],["Facilitator",_v('facilitator')],["Attendees",_v('attendees')]]
     .forEach(r=>infoBody += xlData(r,['lbl','cell']));
 
+  // --- FSM Integration Pattern Matrix ---
+  const mtxW = [180].concat(MATRIX_COLS.map(()=>110));
+  let mtxBody = xlHdr(['FSM System'].concat(MATRIX_COLS.map(c=>c[0]+' ('+c[1]+')')));
+  MATRIX_FSMS.forEach((f,r)=>{
+    mtxBody += xlData([f[0]+' '+f[1]].concat(MATRIX_COLS.map((c,ci)=>matrixVal(r,ci))),
+      ['lbl'].concat(MATRIX_COLS.map(()=>'cov')));
+  });
+
   // --- Comments / discussion (one row per comment) ---
   const cmtW = [150,210,110,120,340,80];
   let cmtBody = xlHdr(["Module","Canonical / Field","Author","When","Comment","Status"]);
@@ -1608,6 +1761,7 @@ function exportAllExcel(){
     + xlSheet("Procurement INT-23", ioW, prBody) + '\n'
     + xlSheet("Stock Consumption", ioW, stkBody) + '\n'
     + xlSheet("Future Integration", fipW, fipBodyX) + '\n'
+    + xlSheet("Integration Matrix", mtxW, mtxBody) + '\n'
     + xlSheet("Comments", cmtW, cmtBody) + '\n'
     + xlSheet("Workshop Info", [170,340], infoBody) + '\n'
     + '</Workbook>';
