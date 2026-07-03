@@ -143,8 +143,9 @@
     <div><label>Facilitator</label><input id="facilitator" placeholder="Name" style="width:120px;"></div>
     <div><label>Attendees</label><input id="attendees" placeholder="Names, comma-sep" style="width:200px;"></div>
     <div style="display:flex; gap:8px; align-items:flex-end;">
-      <button id="exportAllJson" class="primary" title="Export the whole mapping (all tabs + captured values + sample values) as one file to share with the MDFS team">&#11015; Export mapping</button>
-      <button id="importAllBtn" title="Import a mapping file to load captured values back in">&#11014; Import</button>
+      <button id="exportAllExcel" class="primary" title="Export all three mapping tabs + worksheet as one Excel file — a sheet per canonical (Service Order, Procurement, Stock Consumption, Future Integration)">&#11015; Excel (all tabs)</button>
+      <button id="exportAllJson" title="Export the whole mapping (all tabs + captured MDFS fields + sample values) as one file to re-import later">&#11015; Save file</button>
+      <button id="importAllBtn" title="Import a saved mapping file to load captured values back in">&#11014; Import</button>
       <input type="file" id="importFile" accept=".json,application/json" style="display:none">
     </div>
   </div>
@@ -1336,6 +1337,66 @@ document.getElementById('exportAllJson').addEventListener('click', () => {
   a.href=url; a.download=`Apollo_${safe}_Field_Mapping_${(data.meta.wsDate||'draft')}.json`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 });
+// ---- Export ALL tabs to one Excel workbook (a sheet per canonical) ----
+function xmlEsc(s){ return String(s==null?'':s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\r?\n/g,'&#10;'); }
+function xlRow(arr){ return '<Row>'+arr.map(v=>`<Cell><Data ss:Type="String">${xmlEsc(v)}</Data></Cell>`).join('')+'</Row>'; }
+function xlSheet(name, rows){
+  const safe = String(name).replace(/[:\\\/?*\[\]]/g,' ').slice(0,31);
+  return `<Worksheet ss:Name="${xmlEsc(safe)}"><Table>${rows.map(xlRow).join('')}</Table></Worksheet>`;
+}
+function exportAllExcel(){
+  const so = collectState(), pr = collectProcState(), stk = collectStockState();
+  const fsm = _v('fsmName')||'MDFS', date = _v('wsDate')||'';
+
+  // Sheet 1 — Service Order (INT-21 + INT-22, side by side, with definitions)
+  const soRows = [["JAMS Field", fsm+" Field", "Sample Value", "Coverage", "Notes",
+    "INT-21 Canonical", "Type", "Mandatory", "Cond Msg Type", "Transformation", "Business Rule",
+    "INT-22 Canonical", "Type", "Mandatory", "Cond Msg Type", "Transformation", "Business Rule"]];
+  ROWS.forEach((r,i)=>{
+    const row = so.rows[i]; const d21 = defOf(DEF21,r.c21); const d22 = defOf(DEF22,r.c22);
+    soRows.push([r.jams, row.fsmField, row.sampleValue, row.status, row.notes,
+      r.c21, r.t21, r.m21, r.cm21, (r.c21?d21[0]:''), (r.c21?d21[1]:''),
+      r.c22, r.t22, r.m22, r.cm22, (r.c22?d22[0]:''), (r.c22?d22[1]:'')]);
+  });
+
+  // Sheet 2 — Procurement (inbound + outbound)
+  const prRows = [[fsm+" Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Business Rule"]];
+  PROC_IN_ROWS.forEach((r,i)=>prRows.push([pr.inRows[i].fsmField, pr.inRows[i].sampleValue, r[0],r[1],r[2],r[3],r[4],r[5], pr.inRows[i].status, r[6]]));
+  prRows.push([]); prRows.push(["OUTBOUND — S4HC to FSM callback"]);
+  prRows.push(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport"]);
+  PROC_OUT_ROWS.forEach((r,i)=>prRows.push([r[0],r[1],r[2],r[3], pr.outRows[i].transport]));
+
+  // Sheet 3 — Stock Consumption (inbound + outbound)
+  const stkRows = [[fsm+" Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Business Rule"]];
+  STOCK_IN_ROWS.forEach((r,i)=>stkRows.push([stk.inRows[i].fsmField, stk.inRows[i].sampleValue, r[0],r[1],r[2],r[3],r[4],r[5], stk.inRows[i].status, r[6]]));
+  stkRows.push([]); stkRows.push(["OUTBOUND — S4HC to FSM callback"]);
+  stkRows.push(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport"]);
+  STOCK_OUT_ROWS.forEach((r,i)=>stkRows.push([r[0],r[1],r[2],r[3], stk.outRows[i].transport]));
+
+  // Sheet 4 — Future Integration Points
+  const fipRows = [["FSM System","Process Step","FSM Object","Trigger Status / Action","Process Type","Canonical Model","What it does in SAP","Integration Pattern","Technology Type","Minimum Payload Required","SAP Outcome","Status"]];
+  fipData.forEach(r=>fipRows.push(r.slice()));
+
+  const metaRows = [["FSM being mapped", fsm],["Workshop date", date],["Facilitator", _v('facilitator')],["Attendees", _v('attendees')]];
+
+  const xml = '<?xml version="1.0"?>\n<?mso-application progid="Excel.Sheet"?>\n'
+    + '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n'
+    + [ xlSheet("Service Order INT-21+22", soRows),
+        xlSheet("Procurement INT-23", prRows),
+        xlSheet("Stock Consumption", stkRows),
+        xlSheet("Future Integration", fipRows),
+        xlSheet("Workshop Info", metaRows) ].join('\n')
+    + '\n</Workbook>';
+
+  const blob = new Blob([xml], {type:"application/vnd.ms-excel"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=`Apollo_${fsm.replace(/[^a-z0-9]+/gi,'_')}_All_Mappings_${date||'draft'}.xls`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+document.getElementById('exportAllExcel').addEventListener('click', exportAllExcel);
+
 document.getElementById('importAllBtn').addEventListener('click', () => document.getElementById('importFile').click());
 document.getElementById('importFile').addEventListener('change', (e) => {
   const f = e.target.files[0]; if(!f) return;
