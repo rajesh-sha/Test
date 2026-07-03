@@ -326,7 +326,7 @@
   few seconds so an accidental reload doesn't lose the session. Use <strong>Export CSV</strong> at the end of the
   session and paste the result straight into the matching FSM tab of the Excel workbook — column order matches the
   "[FSM] to Canonical" tab layout used for JAMS, MDFS, PIMS and MARS.
-  <br><br><strong>MDFS status:</strong> Pre-loaded with the confirmed MDFS Future Integration Points from the working session already held. Field Mapping Capture tab starts blank — no field-level JAMS-style mapping has been captured for MDFS yet.
+  <br><br><strong><span class="fsmLabel">MDFS</span> status:</strong> Pre-loaded with the confirmed <span class="fsmLabel">MDFS</span> Future Integration Points from the working session already held. Field Mapping Capture tab starts blank — no field-level JAMS-style mapping has been captured for <span class="fsmLabel">MDFS</span> yet.
 </div>
 
 </div><!-- /tabMapping -->
@@ -467,7 +467,7 @@
   <button id="wsExportCsv" class="primary">Export CSV (all sections)</button>
 </div>
 
-<div class="ws-section-title">Future Integration Points</div>
+<div class="ws-section-title"><span class="fsmLabel">MDFS</span> — Future Integration Points</div>
 <div class="ws-section-sub">One row per process step. Add rows for additional steps as they come up in the session.</div>
 <div class="wrap scrollx">
 <table class="ws-table" id="fipTable">
@@ -2207,11 +2207,21 @@ function applyFsmBranding(raw){
   document.querySelectorAll('.fsmLabel').forEach(el=>el.textContent = nm);
   document.querySelectorAll('.fsm-field').forEach(el=>el.placeholder = nm + ' field name...');
 }
+// The worksheet's "FSM System" column repeats the FSM name on every row — keep
+// it in step when the FSM being mapped is changed (this file = one FSM).
+function syncFipFsmSystem(raw){
+  const nm = (raw && String(raw).trim()) || 'FSM';
+  if(typeof fipData!=='undefined' && Array.isArray(fipData)){
+    fipData.forEach(r=>{ if(r) r[0]=nm; });
+    document.querySelectorAll('input[data-fip][data-col="0"]').forEach(el=>{ el.value=nm; });
+    if(typeof wsAutosave==='function') wsAutosave();
+  }
+}
 (function(){
   const inp = document.getElementById('fsmName');
   if(inp){
     applyFsmBranding(inp.value);
-    inp.addEventListener('input', ()=>{ applyFsmBranding(inp.value); autosave(); });
+    inp.addEventListener('input', ()=>{ applyFsmBranding(inp.value); syncFipFsmSystem(inp.value); autosave(); });
   } else { applyFsmBranding('MDFS'); }
 })();
 
