@@ -313,10 +313,11 @@
 <table id="procTable">
   <thead>
     <tr class="cols">
-      <th style="width:18%;">MDFS Field <span class="badge">capture</span></th>
-      <th style="width:15%;">Sample value <span class="badge">extract</span></th>
-      <th style="width:52%;">Canonical Field &amp; definition (INT-23)</th>
-      <th style="width:15%;">Coverage</th>
+      <th style="width:15%;">MDFS Field <span class="badge">capture</span></th>
+      <th style="width:13%;">Sample value <span class="badge">extract</span></th>
+      <th style="width:43%;">Canonical Field &amp; definition (INT-23)</th>
+      <th style="width:13%;">Coverage</th>
+      <th style="width:16%;">Notes &amp; comments</th>
     </tr>
   </thead>
   <tbody id="procBody"></tbody>
@@ -365,10 +366,11 @@
 <table id="stockTable">
   <thead>
     <tr class="cols">
-      <th style="width:18%;">MDFS Field <span class="badge">capture</span></th>
-      <th style="width:15%;">Sample value <span class="badge">extract</span></th>
-      <th style="width:52%;">Canonical Field &amp; definition</th>
-      <th style="width:15%;">Coverage</th>
+      <th style="width:15%;">MDFS Field <span class="badge">capture</span></th>
+      <th style="width:13%;">Sample value <span class="badge">extract</span></th>
+      <th style="width:43%;">Canonical Field &amp; definition</th>
+      <th style="width:13%;">Coverage</th>
+      <th style="width:16%;">Notes &amp; comments</th>
     </tr>
   </thead>
   <tbody id="stockBody"></tbody>
@@ -911,7 +913,8 @@ function procInRowHtml(row, idx, fsmField, status, notes, sampleValue){
     ${ioCanonCell(canon, type, mandCanon, reqFsm, s4hc, transform, rule)}
     <td><select class="status-select ${status==='TBC'?'tbc':status.toLowerCase()}" id="ps_${idx}">
       ${STATUS_OPTS.map(o=>`<option value="${o.v}" ${o.v===status?'selected':''}>${o.label}</option>`).join("")}
-    </select>${commentBtn('prin:'+idx,'Procurement · INT-23', canon)}</td>
+    </select></td>
+    <td><input class="notes-input" id="pn_${idx}" placeholder="Notes / caveat..." value="${(notes||'').replace(/"/g,'&quot;')}">${commentBtn('prin:'+idx,'Procurement · INT-23', canon)}</td>
   </tr>`;
 }
 function procOutRowHtml(row, idx, transport){
@@ -928,6 +931,7 @@ function renderProc(){
   PROC_IN_ROWS.forEach((r,i) => {
     document.getElementById('pf_'+i).addEventListener('input', procAutosave);
     document.getElementById('psv_'+i).addEventListener('input', procAutosave);
+    document.getElementById('pn_'+i).addEventListener('input', procAutosave);
     const sel = document.getElementById('ps_'+i);
     sel.addEventListener('change', () => {
       STATUS_OPTS.forEach(o => sel.classList.remove(o.cls));
@@ -963,6 +967,7 @@ function collectProcState(){
       fsmField: document.getElementById('pf_'+i).value,
       sampleValue: document.getElementById('psv_'+i).value,
       status: document.getElementById('ps_'+i).value,
+      notes: document.getElementById('pn_'+i).value,
     })),
     outRows: PROC_OUT_ROWS.map((r,i) => ({
       transport: document.getElementById('pot_'+i).value,
@@ -978,6 +983,8 @@ function applyProcState(state){
     ff.value = row.fsmField || "";
     const psv = document.getElementById('psv_'+i);
     if(psv) psv.value = row.sampleValue || "";
+    const pn = document.getElementById('pn_'+i);
+    if(pn) pn.value = row.notes || "";
     st.value = row.status || "TBC";
     STATUS_OPTS.forEach(o => st.classList.remove(o.cls));
     st.classList.add((STATUS_OPTS.find(o=>o.v===st.value)||STATUS_OPTS[0]).cls);
@@ -1007,10 +1014,10 @@ document.getElementById('procLoadDraftBtn').addEventListener('click', () => {
 document.getElementById('procExportCsv').addEventListener('click', () => {
   const state = collectProcState();
   const fsm = document.getElementById('fsmName').value || "MDFS";
-  const W = [110,90,175,58,120,120,200,82,58,170,290];
-  const inSt = ['cap','cap','mono','cell','cell','cell','mono','cell','cov','rule','rule'];
-  let body = xlHdr([fsm+" Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Comments / discussion","Business Rule"]);
-  PROC_IN_ROWS.forEach((r,i)=>body += xlData([state.inRows[i].fsmField,state.inRows[i].sampleValue,r[0],r[1],r[2],r[3],r[4],r[5],state.inRows[i].status,commentsText('prin:'+i),r[6]], inSt));
+  const W = [110,90,175,58,120,120,200,82,58,150,170,290];
+  const inSt = ['cap','cap','mono','cell','cell','cell','mono','cell','cov','cell','rule','rule'];
+  let body = xlHdr([fsm+" Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Notes","Comments / discussion","Business Rule"]);
+  PROC_IN_ROWS.forEach((r,i)=>body += xlData([state.inRows[i].fsmField,state.inRows[i].sampleValue,r[0],r[1],r[2],r[3],r[4],r[5],state.inRows[i].status,state.inRows[i].notes||'',commentsText('prin:'+i),r[6]], inSt));
   body += '<Row></Row>' + xlTitle("OUTBOUND — S4HC → Canonical → FSM callback",6)
         + xlHdr(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport","Comments"]);
   PROC_OUT_ROWS.forEach((r,i)=>body += xlData([r[0],r[1],r[2],r[3],state.outRows[i].transport,commentsText('prout:'+i)], ['mono','mono','cell','rule','cap','rule']));
@@ -1085,7 +1092,7 @@ function stockOutRowHtml(row, idx, transport){
   </tr>`;
 }
 
-function stockRowHtml(row, idx, fsmField, status, sampleValue){
+function stockRowHtml(row, idx, fsmField, status, sampleValue, notes){
   const [canon, type, mandCanon, reqFsm, s4hc, transform, rule] = row;
   const cls = status==='TBC' ? 'tbc' : (STATUS_OPTS.find(o=>o.v===status)||STATUS_OPTS[0]).cls;
   return `<tr data-level="${lvlOf(canon)}" data-mand="${mandCanon==='Yes'?'1':'0'}">
@@ -1094,14 +1101,16 @@ function stockRowHtml(row, idx, fsmField, status, sampleValue){
     ${ioCanonCell(canon, type, mandCanon, reqFsm, s4hc, transform, rule)}
     <td><select class="status-select ${cls}" id="ks_${idx}">
       ${STATUS_OPTS.map(o=>`<option value="${o.v}" ${o.v===status?'selected':''}>${o.label}</option>`).join("")}
-    </select>${commentBtn('stin:'+idx,'Stock Consumption', canon)}</td>
+    </select></td>
+    <td><input class="notes-input" id="kn_${idx}" placeholder="Notes / caveat..." value="${(notes||'').replace(/"/g,'&quot;')}">${commentBtn('stin:'+idx,'Stock Consumption', canon)}</td>
   </tr>`;
 }
 function renderStock(){
-  stockBody.innerHTML = STOCK_IN_ROWS.map((r,i)=>stockRowHtml(r,i,"","TBC","")).join("");
+  stockBody.innerHTML = STOCK_IN_ROWS.map((r,i)=>stockRowHtml(r,i,"","TBC","","")).join("");
   STOCK_IN_ROWS.forEach((r,i)=>{
     document.getElementById('kf_'+i).addEventListener('input', stockAutosave);
     document.getElementById('ksv_'+i).addEventListener('input', stockAutosave);
+    document.getElementById('kn_'+i).addEventListener('input', stockAutosave);
     const sel = document.getElementById('ks_'+i);
     sel.addEventListener('change', ()=>{
       STATUS_OPTS.forEach(o=>sel.classList.remove(o.cls));
@@ -1129,6 +1138,7 @@ function collectStockState(){
       fsmField: document.getElementById('kf_'+i).value,
       sampleValue: document.getElementById('ksv_'+i).value,
       status: document.getElementById('ks_'+i).value,
+      notes: document.getElementById('kn_'+i).value,
     })),
     outRows: STOCK_OUT_ROWS.map((r,i)=>({
       transport: document.getElementById('kot_'+i).value,
@@ -1141,6 +1151,7 @@ function applyStockState(state){
     const ff=document.getElementById('kf_'+i); if(!ff) return;
     ff.value=row.fsmField||"";
     const sv=document.getElementById('ksv_'+i); if(sv) sv.value=row.sampleValue||"";
+    const kn=document.getElementById('kn_'+i); if(kn) kn.value=row.notes||"";
     const st=document.getElementById('ks_'+i); st.value=row.status||"TBC";
     STATUS_OPTS.forEach(o=>st.classList.remove(o.cls));
     st.classList.add((STATUS_OPTS.find(o=>o.v===st.value)||STATUS_OPTS[0]).cls);
@@ -1162,10 +1173,10 @@ document.getElementById('stockLoadDraftBtn').addEventListener('click', ()=>{
 document.getElementById('stockExportCsv').addEventListener('click', ()=>{
   const state=collectStockState();
   const fsm=document.getElementById('fsmName').value||"MDFS";
-  const W = [110,90,175,58,120,120,200,82,58,170,290];
-  const inSt = ['cap','cap','mono','cell','cell','cell','mono','cell','cov','rule','rule'];
-  let body = xlHdr([fsm+" Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Comments / discussion","Business Rule"]);
-  STOCK_IN_ROWS.forEach((r,i)=>body += xlData([state.inRows[i].fsmField,state.inRows[i].sampleValue,r[0],r[1],r[2],r[3],r[4],r[5],state.inRows[i].status,commentsText('stin:'+i),r[6]], inSt));
+  const W = [110,90,175,58,120,120,200,82,58,150,170,290];
+  const inSt = ['cap','cap','mono','cell','cell','cell','mono','cell','cov','cell','rule','rule'];
+  let body = xlHdr([fsm+" Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Notes","Comments / discussion","Business Rule"]);
+  STOCK_IN_ROWS.forEach((r,i)=>body += xlData([state.inRows[i].fsmField,state.inRows[i].sampleValue,r[0],r[1],r[2],r[3],r[4],r[5],state.inRows[i].status,state.inRows[i].notes||'',commentsText('stin:'+i),r[6]], inSt));
   body += '<Row></Row>' + xlTitle("OUTBOUND — S4HC → Canonical → FSM callback",6)
         + xlHdr(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport","Comments"]);
   STOCK_OUT_ROWS.forEach((r,i)=>body += xlData([r[0],r[1],r[2],r[3],state.outRows[i].transport,commentsText('stout:'+i)], ['mono','mono','cell','rule','cap','rule']));
@@ -1550,19 +1561,19 @@ function exportAllExcel(){
       r.c22,r.t22,r.m22,r.cm22,(r.c22?d22[0]:''),(r.c22?d22[1]:'')], soStyle); });
 
   // --- Procurement / Stock share the same shape ---
-  const ioW = [110,90,175,58,120,120,200,82,58,290];
-  const inStyle  = ['cap','cap','mono','cell','cell','cell','mono','cell','cov','rule'];
+  const ioW = [110,90,175,58,120,120,200,82,58,150,290];
+  const inStyle  = ['cap','cap','mono','cell','cell','cell','mono','cell','cov','cell','rule'];
   const outStyle = ['mono','mono','cell','rule','cap'];
-  const inHdr  = [fsm+" Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Business Rule"];
+  const inHdr  = [fsm+" Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Notes","Business Rule"];
   const outHdr = ["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport"];
 
   let prBody = xlHdr(inHdr);
-  PROC_IN_ROWS.forEach((r,i)=>prBody += xlData([pr.inRows[i].fsmField,pr.inRows[i].sampleValue,r[0],r[1],r[2],r[3],r[4],r[5],pr.inRows[i].status,r[6]], inStyle));
+  PROC_IN_ROWS.forEach((r,i)=>prBody += xlData([pr.inRows[i].fsmField,pr.inRows[i].sampleValue,r[0],r[1],r[2],r[3],r[4],r[5],pr.inRows[i].status,pr.inRows[i].notes||'',r[6]], inStyle));
   prBody += '<Row></Row>' + xlTitle("OUTBOUND — S4HC → Canonical → FSM callback",5) + xlHdr(outHdr);
   PROC_OUT_ROWS.forEach((r,i)=>prBody += xlData([r[0],r[1],r[2],r[3],pr.outRows[i].transport], outStyle));
 
   let stkBody = xlHdr(inHdr);
-  STOCK_IN_ROWS.forEach((r,i)=>stkBody += xlData([stk.inRows[i].fsmField,stk.inRows[i].sampleValue,r[0],r[1],r[2],r[3],r[4],r[5],stk.inRows[i].status,r[6]], inStyle));
+  STOCK_IN_ROWS.forEach((r,i)=>stkBody += xlData([stk.inRows[i].fsmField,stk.inRows[i].sampleValue,r[0],r[1],r[2],r[3],r[4],r[5],stk.inRows[i].status,stk.inRows[i].notes||'',r[6]], inStyle));
   stkBody += '<Row></Row>' + xlTitle("OUTBOUND — S4HC → Canonical → FSM callback",5) + xlHdr(outHdr);
   STOCK_OUT_ROWS.forEach((r,i)=>stkBody += xlData([r[0],r[1],r[2],r[3],stk.outRows[i].transport], outStyle));
 
