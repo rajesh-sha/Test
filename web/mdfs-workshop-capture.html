@@ -75,7 +75,10 @@
   select.status-select.partial{background:var(--amber); color:var(--amberText);}
   select.status-select.gap{background:var(--red); color:var(--redText);}
   select.status-select.tbc{background:var(--grey); color:var(--greyText);}
-  input.notes-input{width:100%; border:1px solid #cbd5e1; border-radius:4px; padding:5px 6px; font-size:12px; font-family:inherit;}
+  .notes-input{width:100%; border:1px solid #cbd5e1; border-radius:5px; padding:6px 8px; font-size:12px; font-family:inherit;
+    line-height:1.45; resize:vertical; min-height:48px; white-space:pre-wrap; word-break:break-word; overflow:hidden; field-sizing:content;}
+  textarea.notes-input{display:block;}
+  .notes-input:focus{outline:2px solid var(--navy2); border-color:var(--navy2);}
   .section-row td{background:var(--navy); color:#fff; font-weight:700; font-size:12.5px; padding:8px 10px;}
   .footer-note{padding:14px 24px 30px; font-size:11.5px; color:#666; max-width:900px;}
   .badge{display:inline-block; font-size:10px; padding:1px 6px; border-radius:9px; background:#eef2f7; color:#555; margin-left:6px;}
@@ -739,7 +742,7 @@ function buildRows(){
     html += `<td><select class="status-select tbc" id="st_${rowId}">`;
     STATUS_OPTS.forEach(o => html += `<option value="${o.v}">${o.label}</option>`);
     html += `</select></td>`;
-    html += `<td><input class="notes-input" id="nt_${rowId}" placeholder="Notes / caveat..." />${commentBtn('so:'+i,'Service Order · INT-21/22', r.c21||r.c22||r.jams)}</td>`;
+    html += `<td><textarea class="notes-input" id="nt_${rowId}" rows="2" placeholder="Notes / caveat..."></textarea>${commentBtn('so:'+i,'Service Order · INT-21/22', r.c21||r.c22||r.jams)}</td>`;
     // INT-22 canonical field + stacked definition
     html += canonCell(r.c22, r.t22, r.m22, r.cm22, defOf(DEF22, r.c22));
     html += `</tr>`;
@@ -913,12 +916,18 @@ const tabMatrix = document.getElementById('tabMatrix');
 const tabWorksheet = document.getElementById('tabWorksheet');
 const ALL_TAB_BTNS = [tabBtnMapping, tabBtnProc, tabBtnStock, tabBtnMatrix, tabBtnWorksheet];
 const ALL_TAB_PAGES = [tabMapping, tabProc, tabStock, tabMatrix, tabWorksheet];
+function fitNotesIn(scope){ (scope||document).querySelectorAll('textarea.notes-input').forEach(t=>{ t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; }); }
 function activateTab(btn, page){
   ALL_TAB_BTNS.forEach(b => b.classList.remove('active'));
   ALL_TAB_PAGES.forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   page.classList.add('active');
+  fitNotesIn(page);   // size restored notes now that the tab is visible
 }
+document.addEventListener('input', e=>{
+  const t=e.target;
+  if(t && t.tagName==='TEXTAREA' && t.classList.contains('notes-input')){ t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; }
+});
 tabBtnMapping.addEventListener('click', () => activateTab(tabBtnMapping, tabMapping));
 tabBtnProc.addEventListener('click', () => activateTab(tabBtnProc, tabProc));
 tabBtnStock.addEventListener('click', () => activateTab(tabBtnStock, tabStock));
@@ -962,7 +971,7 @@ function procInRowHtml(row, idx, fsmField, status, notes, sampleValue){
     <td><select class="status-select ${status==='TBC'?'tbc':status.toLowerCase()}" id="ps_${idx}">
       ${STATUS_OPTS.map(o=>`<option value="${o.v}" ${o.v===status?'selected':''}>${o.label}</option>`).join("")}
     </select></td>
-    <td><input class="notes-input" id="pn_${idx}" placeholder="Notes / caveat..." value="${(notes||'').replace(/"/g,'&quot;')}">${commentBtn('prin:'+idx,'Procurement · INT-23', canon)}</td>
+    <td><textarea class="notes-input" id="pn_${idx}" rows="2" placeholder="Notes / caveat...">${escHtml(notes||'')}</textarea>${commentBtn('prin:'+idx,'Procurement · INT-23', canon)}</td>
   </tr>`;
 }
 function procOutRowHtml(row, idx, transport){
@@ -1150,7 +1159,7 @@ function stockRowHtml(row, idx, fsmField, status, sampleValue, notes){
     <td><select class="status-select ${cls}" id="ks_${idx}">
       ${STATUS_OPTS.map(o=>`<option value="${o.v}" ${o.v===status?'selected':''}>${o.label}</option>`).join("")}
     </select></td>
-    <td><input class="notes-input" id="kn_${idx}" placeholder="Notes / caveat..." value="${(notes||'').replace(/"/g,'&quot;')}">${commentBtn('stin:'+idx,'Stock Consumption', canon)}</td>
+    <td><textarea class="notes-input" id="kn_${idx}" rows="2" placeholder="Notes / caveat...">${escHtml(notes||'')}</textarea>${commentBtn('stin:'+idx,'Stock Consumption', canon)}</td>
   </tr>`;
 }
 function renderStock(){
@@ -1845,6 +1854,10 @@ function setStickyOffsets(){
 setStickyOffsets();
 window.addEventListener('resize', setStickyOffsets);
 window.addEventListener('load', setStickyOffsets);
+
+// size any restored notes on the initially-visible tab
+fitNotesIn(document.querySelector('.tabpage.active'));
+window.addEventListener('load', ()=>fitNotesIn(document.querySelector('.tabpage.active')));
 
 </script>
 </body>
