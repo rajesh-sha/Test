@@ -9,12 +9,12 @@ the missing employee-delete path).
 
 | File | What it is |
 |------|------------|
-| `ellipse-refresh-cockpit.html` | Standalone, zero-dependency web tool. Paste EC and Ellipse current-state extracts → it diffs, classifies drift (Missing / Stale / Orphaned / Event-history), routes each record to the correct Ellipse verb with guardrails, computes phase gates + effort/lock-window, and emits the per-verb interface payloads. |
-| `ACUTE_Ellipse_Refresh_Runsheet_v0.2.xlsx` | Governance workbook: scope & assumptions, per-file capability assessment, the sequenced gated runsheet, and the risk register. |
+| `ellipse-refresh-cockpit.html` | Standalone, zero-dependency web tool. Paste EC and Ellipse current-state extracts → it diffs, classifies drift (Missing / Stale / Orphaned / Event-history), routes each record to the correct Ellipse verb with guardrails, computes phase gates + effort/lock-window, emits the per-verb interface payloads, and resolves a dependency-ordered execution plan with a dry-run. |
+| `ACUTE_Ellipse_Refresh_Runsheet_v0.3.xlsx` | Governance workbook: scope & assumptions, per-file capability assessment, the sequenced gated runsheet, the risk register, and the Sequencing & Dependencies map. |
 
 ## Cockpit — how it works
 
-`diff → classify → route → gate → estimate → emit`
+`diff → classify → route → gate → estimate → emit → sequence`
 
 1. **Diff** — join EC vs Ellipse current-state on the natural key (per object).
 2. **Classify** — Missing · Stale · Orphaned · Event-history (positionId drift is caught
@@ -27,6 +27,16 @@ the missing employee-delete path).
    per environment (Dev / SIT / UAT / Production).
 6. **Emit** — generates the messages SAP IS posts to the Ellipse web services, sequenced
    and throttled; exportable as JSON.
+7. **Sequence** — resolves a dependency-ordered execution plan (intra-interface Ellipse
+   table order + cross-object dependencies + hierarchy top-down) and dry-runs it,
+   flagging any dependency violations before hand-off to SAP IS.
+
+### Execution sequence
+Canonical order (also documented in the workbook's *Sequencing & Dependencies* tab):
+Org `#01`→`#02` (PRC top-down) → **gate** → Position `#03`→`#04`→`#05`→`#06`→`#07`→`#08`
+(hierarchy insert, parent before child)→`#09` → **gate** → Employee `#11` (+`#21` CW)→`#12`
+→`#13/#14`→`#18-20` HD. Cross-object: PRC → position → employee; parent → child; HD
+position → HD. Intra-file order pending Hitachi confirmation (CI-12).
 
 ### Connection
 Set the EC base URL, SAP IS endpoint and delta `since` at the **top of Section 1**

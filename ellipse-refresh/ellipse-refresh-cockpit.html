@@ -143,7 +143,7 @@
   <header class="top">
     <div>
       <h1>Ellipse Refresh Cockpit</h1>
-      <p class="sub">SF EC → Ellipse pre-flight · ACUTE-014 (Org) / 015 (Position) / 001 (Employee) · diff → classify → route → gate</p>
+      <p class="sub">SF EC → Ellipse pre-flight · ACUTE-014 (Org) / 015 (Position) / 001 (Employee) · diff → classify → route → gate → estimate → emit → sequence</p>
     </div>
     <div style="display:flex;gap:8px;align-items:center">
       <span class="ver">PROTOTYPE v1 · zero-dependency</span>
@@ -219,6 +219,12 @@
     <div class="sec-b" id="emitBody"></div>
   </section>
 
+  <!-- SEQUENCE -->
+  <section id="seqSec" class="hidden">
+    <div class="sec-h" data-toggle><h2>6 · Execution plan &amp; sequenced run</h2><span class="hint">Dependency-ordered · dry-runnable · exportable</span></div>
+    <div class="sec-b" id="seqBody"></div>
+  </section>
+
   <!-- CAPABILITY REFERENCE -->
   <section>
     <div class="sec-h" data-toggle><h2>Capability &amp; verb-routing reference</h2><span class="hint">21 Ellipse files · from the mapping workbook</span></div>
@@ -229,7 +235,7 @@
   </section>
 
   <footer class="small muted" style="text-align:center;margin-top:24px">
-    Standalone HTML · no network, no dependencies · grounded in Ellipse–SF Mapping Specification (File Mechanisms, Index) &amp; Refresh Runsheet v0.2
+    Standalone HTML · no network, no dependencies · grounded in Ellipse–SF Mapping Specification (File Mechanisms, Index, Sequencing) &amp; Refresh Runsheet v0.3
   </footer>
 </div>
 
@@ -463,6 +469,83 @@ function exportPayloads(kind){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(kind==='grouped'?'interface-payloads-by-interface':'interface-payloads-batch')+'.json';a.click();URL.revokeObjectURL(a.href);
 }
 
+/* ---------------- Sequencing & dependency-ordered execution plan ---------------- */
+// Canonical intra-interface Ellipse table order per object+class (File Mechanisms / Index / per-file tabs).
+const SEQ={
+ org:{ Missing:[{f:'#01',s:'MSM010B',op:'sendTable'},{f:'#02',s:'MSM80PB',op:'sendPRC'}],
+       Stale:[{f:'#02',s:'MSM80PB',op:'sendPRC'}],
+       Orphaned:[{f:'—',s:'—',op:'manual'}] },
+ pos:{ Missing:[{f:'#03',s:'MSM870B',op:'createPosition'},{f:'#04',s:'MSM870B',op:'attributes'},{f:'#05',s:'MSM8PAA',op:'details'},{f:'#06',s:'MSM8PCA',op:'evaluation'},{f:'#07',s:'MSM8PUA',op:'costing'},{f:'#08',s:'MSE875.insertPosition',op:'insertHierarchy',dep:'parent'}],
+       Stale:[{f:'#04-07',s:'MSM870B/MSM8Pxx',op:'modifyAttributes'},{f:'#09',s:'MSE875.modPosition',op:'modHierarchy',dep:'parent'}],
+       Orphaned:[{f:'#09',s:'MSE875.modPosition',op:'delimit'},{f:'#04',s:'MSM870B',op:'occupancyD'}] },
+ emp:{ Missing:[{f:'#11',s:'MSE81S.create',op:'createEmployee',dep:'position'},{f:'#21',s:'MSE81S_RC',op:'referenceCodes',cwOnly:true}],
+       Stale:[{f:'#12',s:'MSE81S.modify',op:'modifyEmployee'}],
+       Event:[{f:'#13',s:'MSE81S.transferPosition',op:'transferPosition',dep:'position'}],
+       Orphaned:[{f:'—',s:'—',op:'manual'}] }
+};
+// approximate Ellipse calls per step (for run-timeline / lock window)
+const CALLW={sendTable:4,sendPRC:4,createPosition:4,attributes:3,details:3,evaluation:2,costing:2,insertHierarchy:4,modifyAttributes:8,modHierarchy:4,delimit:4,occupancyD:2,createEmployee:40,referenceCodes:6,modifyEmployee:8,transferPosition:12,manual:0};
+function buildPlan(){
+  const posSet=new Set(), posParent={};
+  (LAST.pos||[]).forEach(r=>{ if(r.cls!=='Orphaned'){ posSet.add(r.key); posParent[r.key]=(r.rec||{}).reportsTo; } });
+  const depth=(k,seen)=>{ seen=seen||new Set(); const p=posParent[k]; if(!p||!posSet.has(p)||seen.has(k)) return 0; seen.add(k); return 1+depth(p,seen); };
+  const steps=[];
+  const push=(ph,stage,tiebreak,o)=>steps.push(Object.assign({ph,stage,order:[ph,stage,tiebreak]},o));
+  (LAST.org||[]).forEach(r=>{ if(r.cls==='Aligned')return; (SEQ.org[r.cls]||[]).forEach((st,i)=>push(1,(st.f==='#01'?0:1),i,{iface:'ACUTE-014',obj:'Org',key:r.key,cls:r.cls,file:st.f,screen:st.s,op:st.op,dep:null})); });
+  (LAST.pos||[]).forEach(r=>{ if(r.cls==='Aligned')return; (SEQ.pos[r.cls]||[]).forEach((st,i)=>{
+     const stage = r.cls==='Missing'?(st.op==='insertHierarchy'?1:0) : r.cls==='Stale'?2:3;
+     const tb = st.op==='insertHierarchy'?depth(r.key):i;
+     const dep = st.dep==='parent'?{type:'parent',need:(r.rec||{}).reportsTo}:null;
+     push(2,stage,tb,{iface:'ACUTE-015',obj:'Position',key:r.key,cls:r.cls,file:st.f,screen:st.s,op:st.op,dep});
+  }); });
+  (LAST.emp||[]).forEach(r=>{ if(r.cls==='Aligned')return; (SEQ.emp[r.cls]||[]).forEach((st,i)=>{
+     if(st.cwOnly && !r._cw) return;
+     const stage = r.cls==='Missing'?0 : r.cls==='Stale'?1 : r.cls==='Event'?2:3;
+     const dep = st.dep==='position'?{type:'position',need:(r.rec||{}).positionId}:null;
+     push(3,stage,i,{iface:'ACUTE-001',obj:'Employee',key:r.key,cls:r.cls,file:st.f,screen:st.s,op:st.op,dep});
+  }); });
+  steps.sort((a,b)=>{for(let i=0;i<3;i++){if(a.order[i]!==b.order[i])return a.order[i]-b.order[i];}return a.key<b.key?-1:1;});
+  steps.forEach((s,i)=>s.seq=i+1);
+  return {steps,posSet};
+}
+function renderSequence(){
+  if(!Object.keys(LAST).length) return;
+  const {steps}=buildPlan();
+  const rows=steps.map(s=>`<tr><td>${s.seq}</td><td>${s.iface}</td><td><code>${s.file}</code></td><td class="muted">${s.screen}</td><td><span class="pill ${classNamePill(s.cls)}">${s.cls}</span></td><td><code>${esc(s.key)}</code></td><td>${s.op}</td><td class="muted">${s.dep?esc(s.dep.type+' → '+(s.dep.need||'?')):'—'}</td></tr>`).join('');
+  document.getElementById('seqBody').innerHTML=`
+    <div class="note"><b>Canonical Ellipse sequence (gated).</b> <b>Org</b> #01 tables → #02 PRC (8 levels, top-down) → <i>gate</i> → <b>Position</b> #03 create → #04 attributes → #05 details → #06 eval → #07 costing → #08 hierarchy insert (top-down, parent before child) → #09 re-point → <i>gate</i> → <b>Employee</b> #11 create (+#21 CW) → #12 modify → #13/#14 event → #18-20 HD (delete-then-create on position/start change). Cross-object dependencies: PRC → position → employee; parent → child; HD position → HD. Intra-file order pending Hitachi (CI-12).</div>
+    <p class="small muted" style="margin:6px 0 4px"><b>${steps.length} ordered step(s)</b> resolved from the classified drift &amp; dependency graph:</p>
+    <div class="tw"><table><thead><tr><th>#</th><th>Interface</th><th>File</th><th>Ellipse screen/service</th><th>Class</th><th>Key</th><th>Operation</th><th>Depends on</th></tr></thead><tbody>${rows||'<tr><td colspan="8" class="muted">No steps.</td></tr>'}</tbody></table></div>
+    <div class="actions"><button class="run" id="runBtn">▶ Run in sequence (dry-run)</button><button class="ghost" id="expPlan">⤓ Export execution plan (JSON)</button></div>
+    <div id="runlog"></div>`;
+  document.getElementById('runBtn').onclick=runPlan;
+  document.getElementById('expPlan').onclick=exportPlan;
+  document.getElementById('seqSec').classList.remove('hidden');
+}
+function runPlan(){
+  const {steps,posSet}=buildPlan(), secPerCall=60/(ASSUME.callsPerMin||75);
+  let calls=0, viol=[], log=[];
+  steps.forEach(s=>{
+    let status='OK', pc='p-ok';
+    if(s.op==='manual'){ status='MANUAL — no interface path'; pc='p-hold'; }
+    else if(s.dep&&s.dep.type==='position'){ if(!posSet.has(s.dep.need)){ status='BLOCKED — position '+(s.dep.need||'?')+' not in scope'; pc='p-missing'; viol.push(s); } }
+    else if(s.dep&&s.dep.type==='parent'){ if(!s.dep.need||!posSet.has(s.dep.need)){ status='WARN — parent '+(s.dep.need||'?')+' not in scope'; pc='p-stale'; viol.push(s); } }
+    calls+=(CALLW[s.op]||0);
+    log.push({s,status,pc,elapsed:calls*secPerCall});
+  });
+  const rows=log.map(l=>`<tr><td>${l.s.seq}</td><td>${l.s.iface}</td><td><code>${l.s.file}</code></td><td><code>${esc(l.s.key)}</code></td><td>${l.s.op}</td><td><span class="pill ${l.pc}">${l.status}</span></td><td class="muted">${(l.elapsed/3600).toFixed(2)}h</td></tr>`).join('');
+  const verdict = viol.length? `<b style="color:var(--missing)">${viol.length} dependency issue(s)</b> — resolve before executing` : `<b style="color:var(--ok)">clean — dependencies satisfied in order</b>`;
+  document.getElementById('runlog').innerHTML=`
+    <div class="note" style="margin-top:14px"><b>Dry-run result:</b> ${verdict}. ${steps.length} steps · cumulative lock window ${(calls*secPerCall/3600).toFixed(2)}h. Validates ordering &amp; dependencies only — no data is written; hand the exported plan to SAP IS to execute.</div>
+    <div class="tw"><table><thead><tr><th>#</th><th>Interface</th><th>File</th><th>Key</th><th>Op</th><th>Status</th><th>Elapsed</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function exportPlan(){
+  const {steps}=buildPlan();
+  const data=steps.map(s=>({seq:s.seq,interface:s.iface,file:s.file,screen:s.screen,object:s.obj,key:s.key,class:s.cls,operation:s.op,dependsOn:s.dep?{type:s.dep.type,need:s.dep.need}:null}));
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='execution-plan.json';a.click();URL.revokeObjectURL(a.href);
+}
+
 /* ---------------- CSV ---------------- */
 function parseCSV(txt){
   const lines=txt.replace(/\r/g,'').split('\n').filter(l=>l.trim().length);
@@ -609,13 +692,13 @@ function run(){
   if(bad.length){msg.textContent='⚠ '+bad.join(' · ');msg.style.color='var(--missing)';}
   else if(!total){msg.textContent='Nothing to classify — paste extracts or load sample.';msg.style.color='var(--muted)';}
   else{msg.textContent=`Classified ${total} record(s) across ${Object.keys(LAST).length} object(s).`;msg.style.color='var(--muted)';}
-  if(total){renderResults();renderGates();renderEffort();renderEmit();}
+  if(total){renderResults();renderGates();renderEffort();renderEmit();renderSequence();}
 }
 
 /* ---------------- Wire up ---------------- */
 document.getElementById('classifyBtn').onclick=run;
 document.getElementById('sampleBtn').onclick=()=>{renderInputs(true);};
-document.getElementById('clearBtn').onclick=()=>{renderInputs(false);LAST={};document.getElementById('resultSec').classList.add('hidden');document.getElementById('gateSec').classList.add('hidden');document.getElementById('effortSec').classList.add('hidden');document.getElementById('emitSec').classList.add('hidden');document.getElementById('parseMsg').textContent='';};
+document.getElementById('clearBtn').onclick=()=>{renderInputs(false);LAST={};document.getElementById('resultSec').classList.add('hidden');document.getElementById('gateSec').classList.add('hidden');document.getElementById('effortSec').classList.add('hidden');document.getElementById('emitSec').classList.add('hidden');document.getElementById('seqSec').classList.add('hidden');document.getElementById('parseMsg').textContent='';};
 document.getElementById('envSel').onchange=ev=>{ENV=ev.target.value;store('acute_env',ENV);updateEnvBanner();renderEffort();};
 document.querySelectorAll('[data-toggle]').forEach(h=>h.onclick=()=>{const b=h.nextElementSibling;b.style.display=b.style.display==='none'?'':'none';});
 document.getElementById('themeBtn').onclick=()=>{
