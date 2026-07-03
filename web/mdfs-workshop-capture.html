@@ -44,6 +44,12 @@
   }
   button.primary{background:var(--navy2); color:#fff;}
   button:hover{opacity:.85;}
+  button:disabled{opacity:.4; cursor:default;}
+  button:disabled:hover{opacity:.4;}
+  .savestat{ align-self:center; display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600;
+    color:#bfe3c9; padding:0 4px; white-space:nowrap; transition:color .2s; }
+  .savestat::before{ content:""; width:7px; height:7px; border-radius:50%; background:#5cc47a; transition:background .2s; }
+  .savestat.saving{ color:#ffe08a; } .savestat.saving::before{ background:#e8b23a; }
   .wrap{padding:0 24px 40px;}
   table{border-collapse:collapse; width:100%; min-width:1500px; background:#fff; font-size:12.5px;}
   thead th{
@@ -237,6 +243,9 @@
     <div><label>Attendees</label><input id="attendees" placeholder="Names, comma-sep" style="width:180px;"></div>
     <div><label>Your name (for comments)</label><input id="commenter" placeholder="You" style="width:120px;"></div>
     <div style="display:flex; gap:8px; align-items:flex-end;">
+      <span id="saveStatus" class="savestat" title="Your work is auto-saved in this browser as you type. Use Save file to keep a shareable copy.">Saved</span>
+      <button id="undoBtn" title="Undo last change (Ctrl+Z)" disabled>&#8630; Undo</button>
+      <button id="redoBtn" title="Redo (Ctrl+Shift+Z / Ctrl+Y)" disabled>&#8631; Redo</button>
       <button id="exportAllExcel" class="primary" title="Excel workbook for sharing/reading — one sheet per canonical + Integration Matrix + Comments. (Not re-importable — use Save file for that.)">&#11015; Excel (all tabs)</button>
       <button id="exportAllJson" title="Save the whole session as one file (all 3 canonicals: MDFS fields, sample values, coverage, notes, comments, transports + Integration Matrix + worksheet). This is the file to re-import.">&#11015; Save file</button>
       <button id="importAllBtn" title="Load a previously Saved file — restores every editable value across all tabs onto the page.">&#11014; Import</button>
@@ -1859,6 +1868,98 @@ window.addEventListener('load', setStickyOffsets);
 // size any restored notes on the initially-visible tab
 fitNotesIn(document.querySelector('.tabpage.active'));
 window.addEventListener('load', ()=>fitNotesIn(document.querySelector('.tabpage.active')));
+
+/* ============ Auto-save indicator + whole-sheet Undo / Redo ============ */
+(function(){
+  const statusEl = document.getElementById('saveStatus');
+  const undoBtn  = document.getElementById('undoBtn');
+  const redoBtn  = document.getElementById('redoBtn');
+  const HIST_MAX = 80;
+  let undoStack = [], redoStack = [];
+  let baseline = null;          // JSON string of the last committed state
+  let busy = false;             // true while we apply an undo/redo (suppresses recording)
+  let savingTimer = null;
+
+  function snap(){ try{ return JSON.stringify(collectAll()); }catch(e){ return null; } }
+
+  function updateBtns(){
+    if(undoBtn) undoBtn.disabled = undoStack.length === 0;
+    if(redoBtn) redoBtn.disabled = redoStack.length === 0;
+  }
+
+  // ---- save indicator: flip to "Saving…" on edit, back to "Saved" once settled
+  function showSaving(){
+    if(!statusEl) return;
+    statusEl.classList.add('saving');
+    statusEl.textContent = 'Saving…';
+    clearTimeout(savingTimer);
+    savingTimer = setTimeout(()=>{
+      statusEl.classList.remove('saving');
+      statusEl.textContent = 'Saved';
+    }, 900);
+  }
+
+  // ---- commit a history entry once typing pauses
+  let histTimer = null;
+  function schedule(){
+    if(busy) return;
+    showSaving();
+    clearTimeout(histTimer);
+    histTimer = setTimeout(commit, 700);
+  }
+  function commit(){
+    if(busy) return;
+    const cur = snap();
+    if(cur === null || cur === baseline) return;
+    undoStack.push(baseline);
+    if(undoStack.length > HIST_MAX) undoStack.shift();
+    baseline = cur;
+    redoStack.length = 0;
+    updateBtns();
+  }
+
+  function apply(json){
+    busy = true;
+    try{ applyAll(JSON.parse(json)); }catch(e){}
+    baseline = json;
+    busy = false;
+    if(statusEl){ statusEl.classList.remove('saving'); statusEl.textContent = 'Saved'; }
+    updateBtns();
+  }
+  function doUndo(){
+    commit();                       // fold any un-committed keystrokes in first
+    if(!undoStack.length) return;
+    const cur = snap();
+    if(cur !== null) redoStack.push(cur);
+    apply(undoStack.pop());
+  }
+  function doRedo(){
+    if(!redoStack.length) return;
+    const cur = snap();
+    if(cur !== null) undoStack.push(cur);
+    apply(redoStack.pop());
+  }
+
+  // record every edit (capture phase so it runs even if a handler stops propagation)
+  document.addEventListener('input', schedule, true);
+  document.addEventListener('change', schedule, true);
+
+  // keyboard: Ctrl/Cmd+Z = undo, Ctrl/Cmd+Shift+Z or Ctrl+Y = redo
+  document.addEventListener('keydown', e=>{
+    if(!(e.ctrlKey || e.metaKey)) return;
+    const k = (e.key||'').toLowerCase();
+    if(k === 'z' && !e.shiftKey){ e.preventDefault(); doUndo(); }
+    else if((k === 'z' && e.shiftKey) || k === 'y'){ e.preventDefault(); doRedo(); }
+  });
+
+  if(undoBtn) undoBtn.addEventListener('click', doUndo);
+  if(redoBtn) redoBtn.addEventListener('click', doRedo);
+
+  // establish the initial baseline once the page (incl. any restored draft) is ready
+  window.addEventListener('load', ()=>{ baseline = snap(); updateBtns(); });
+  baseline = snap();
+  updateBtns();
+})();
 
 </script>
 </body>
