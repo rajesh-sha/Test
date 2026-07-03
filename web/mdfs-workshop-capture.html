@@ -17,20 +17,20 @@
     background:var(--paper); margin:0; color:#1a1a1a;
   }
   header{
-    background:var(--navy); color:#fff; padding:18px 24px;
-    display:flex; flex-wrap:wrap; align-items:center; gap:16px;
+    background:var(--navy); color:#fff; padding:8px 20px;
+    display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px;
     position:sticky; top:0; z-index:20;
   }
-  header h1{font-size:18px; margin:0; font-weight:700;}
-  header .sub{font-size:12px; opacity:.85; margin-top:2px;}
-  .hdr-controls{display:flex; gap:10px; flex-wrap:wrap; margin-left:auto; align-items:center;}
-  .hdr-controls label{font-size:11px; opacity:.85; display:block; margin-bottom:2px;}
+  header h1{font-size:15px; margin:0; font-weight:700; line-height:1.2;}
+  header .sub{font-size:10.5px; opacity:.8; margin-top:1px;}
+  .hdr-controls{display:flex; gap:8px; flex-wrap:wrap; margin-left:auto; align-items:flex-end;}
+  .hdr-controls label{font-size:9.5px; opacity:.8; display:block; margin-bottom:1px; text-transform:uppercase; letter-spacing:.02em;}
   .hdr-controls input, .hdr-controls select{
-    padding:6px 8px; border-radius:4px; border:1px solid #33507e; background:#28477a; color:#fff; font-size:12px;
+    padding:4px 7px; border-radius:4px; border:1px solid #33507e; background:#28477a; color:#fff; font-size:11.5px;
   }
   .hdr-controls input::placeholder{color:#c7d2e6;}
   .toolbar{
-    display:flex; gap:8px; padding:10px 24px; background:#fff; border-bottom:1px solid var(--line);
+    display:flex; gap:8px; padding:7px 24px; background:#fff; border-bottom:1px solid var(--line);
     flex-wrap:wrap; align-items:center;
   }
   .toolbar .stats{font-size:12px; color:#555; margin-right:auto; display:flex; gap:14px;}
@@ -84,7 +84,7 @@
     display:flex; gap:2px; background:var(--navy); padding:0 24px;
   }
   .tabnav button{
-    background:transparent; border:none; color:#c7d2e6; padding:10px 18px; font-size:13px; font-weight:600;
+    background:transparent; border:none; color:#c7d2e6; padding:7px 16px; font-size:12.5px; font-weight:600;
     border-radius:0; border-bottom:3px solid transparent; cursor:pointer;
   }
   .tabnav button.active{color:#fff; border-bottom:3px solid #ffffff; background:rgba(255,255,255,.06);}
@@ -166,7 +166,7 @@
   .cfoot .cpost:hover{ opacity:.9; }
 
   /* ---------- Per-tab filter bar ---------- */
-  .filterbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:9px 24px; background:#fff; border-bottom:1px solid var(--line); }
+  .filterbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:7px 24px; background:#fff; border-bottom:1px solid var(--line); }
   .filterbar .fsearch{ flex:1; min-width:190px; max-width:360px; border:1px solid #cbd5e1; border-radius:6px; padding:7px 11px 7px 30px; font-size:12.5px; font-family:inherit;
     background:#fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%238a94a3' stroke-width='2'><circle cx='11' cy='11' r='7'/><path d='M21 21l-4.3-4.3'/></svg>") no-repeat 8px center; }
   .filterbar .fsearch:focus{ outline:2px solid var(--navy2); border-color:var(--navy2); }
@@ -187,6 +187,10 @@
   .wrap.scrollx{ overflow-x:auto; }
   #mapTable thead tr.group th{ position:sticky; top:var(--headH); z-index:7; }
   #mapTable thead tr.cols th{ position:sticky; top:calc(var(--headH) + var(--grpH)); z-index:6; }
+  /* Procurement & Stock now fit the width (stacked definitions) + sticky header */
+  #procTable, #procOutTable, #stockTable, #stockOutTable{ table-layout:fixed; width:100%; min-width:0; }
+  #procTable td, #procOutTable td, #stockTable td, #stockOutTable td{ word-break:break-word; overflow-wrap:anywhere; }
+  #procTable thead th, #procOutTable thead th, #stockTable thead th, #stockOutTable thead th{ position:sticky; top:var(--headH); z-index:6; }
 </style>
 </head>
 <body>
@@ -305,20 +309,14 @@
 
 <div class="ws-section-title">INT-23 — Canonical Procurement (inbound: FSM → Canonical → S4HC)</div>
 <div class="ws-section-sub">No JAMS or any other FSM mapping is confirmed yet for Procurement — there's no reference column here, unlike the Service Order/WBS tab. Capture live against the canonical field catalogue.</div>
-<div class="wrap scrollx">
+<div class="wrap">
 <table id="procTable">
   <thead>
     <tr class="cols">
-      <th style="min-width:200px;">MDFS Field <span class="badge">live capture</span></th>
-      <th style="min-width:150px;">Sample value <span class="badge">from extract</span></th>
-      <th style="min-width:200px;">Canonical Field</th>
-      <th>Type</th>
-      <th>Mandatory for Canonical</th>
-      <th>Required From FSM</th>
-      <th style="min-width:220px;">S4HC Field</th>
-      <th>Transformation</th>
-      <th style="min-width:170px;">Coverage</th>
-      <th style="min-width:260px;">Business Rule</th>
+      <th style="width:18%;">MDFS Field <span class="badge">capture</span></th>
+      <th style="width:15%;">Sample value <span class="badge">extract</span></th>
+      <th style="width:52%;">Canonical Field &amp; definition (INT-23)</th>
+      <th style="width:15%;">Coverage</th>
     </tr>
   </thead>
   <tbody id="procBody"></tbody>
@@ -327,15 +325,12 @@
 
 <div class="ws-section-title">INT-23 — Canonical Procurement (outbound: S4HC → Canonical → FSM callback)</div>
 <div class="ws-section-sub">Status callback fields returned to the FSM once the document chain is created. Capture the confirmed transport per FSM (REST callback, Platform Event, file drop).</div>
-<div class="wrap scrollx">
+<div class="wrap">
 <table id="procOutTable">
   <thead>
     <tr class="cols">
-      <th style="min-width:220px;">S4HC Field</th>
-      <th style="min-width:220px;">Canonical Field</th>
-      <th>Transformation</th>
-      <th style="min-width:260px;">Business Rule</th>
-      <th style="min-width:220px;">FSM transport <span class="badge">live capture</span></th>
+      <th style="width:70%;">Callback field &amp; definition (S4HC &rarr; Canonical)</th>
+      <th style="width:30%;">FSM transport <span class="badge">live capture</span></th>
     </tr>
   </thead>
   <tbody id="procOutBody"></tbody>
@@ -366,20 +361,14 @@
 
 <div class="ws-section-title">Canonical Stock Consumption / Services (inbound: FSM &rarr; Canonical &rarr; S4HC)</div>
 <div class="ws-section-sub">Stock-consumption confirmation (SVR1 line + SCS1 confirmation) for SubcontractorVan / EmployeeVan / WarehouseRequest. Capture the MDFS field and a sample value against each canonical field. Only contract patterns 1.1&ndash;1.4 route here.</div>
-<div class="wrap scrollx">
+<div class="wrap">
 <table id="stockTable">
   <thead>
     <tr class="cols">
-      <th style="min-width:190px;">MDFS Field <span class="badge">live capture</span></th>
-      <th style="min-width:150px;">Sample value <span class="badge">from extract</span></th>
-      <th style="min-width:230px;">Canonical Field</th>
-      <th>Type</th>
-      <th>Mandatory for Canonical</th>
-      <th>Required From FSM</th>
-      <th style="min-width:240px;">S4HC Field</th>
-      <th>Transformation</th>
-      <th style="min-width:150px;">Coverage</th>
-      <th style="min-width:300px;">Business Rule</th>
+      <th style="width:18%;">MDFS Field <span class="badge">capture</span></th>
+      <th style="width:15%;">Sample value <span class="badge">extract</span></th>
+      <th style="width:52%;">Canonical Field &amp; definition</th>
+      <th style="width:15%;">Coverage</th>
     </tr>
   </thead>
   <tbody id="stockBody"></tbody>
@@ -388,15 +377,12 @@
 
 <div class="ws-section-title">Canonical Stock Consumption / Services (outbound: S4HC &rarr; Canonical &rarr; FSM callback)</div>
 <div class="ws-section-sub">Status &amp; error callback fields returned to the FSM. The stock-availability pre-check returns stockCheckStatus / stockCheckMessage only when NotAvailable. Capture the confirmed transport per FSM (REST callback, Platform Event, file drop).</div>
-<div class="wrap scrollx">
+<div class="wrap">
 <table id="stockOutTable">
   <thead>
     <tr class="cols">
-      <th style="min-width:250px;">S4HC Field</th>
-      <th style="min-width:220px;">Canonical Field</th>
-      <th>Transformation</th>
-      <th style="min-width:320px;">Business Rule</th>
-      <th style="min-width:200px;">FSM transport <span class="badge">live capture</span></th>
+      <th style="width:70%;">Callback field &amp; definition (S4HC &rarr; Canonical)</th>
+      <th style="width:30%;">FSM transport <span class="badge">live capture</span></th>
     </tr>
   </thead>
   <tbody id="stockOutBody"></tbody>
@@ -540,6 +526,29 @@ function canonKey(c){ return String(c||"").replace(/`/g,"").replace(/\s+/g,"").t
 function defOf(map, canon){ return map[canonKey(canon)] || ["",""]; }
 // Header vs Item from a canonical path (items[].* / item.* = item; header.* = header)
 function lvlOf(canon){ return /item/i.test(String(canon||"")) ? "item" : (canon ? "header" : ""); }
+
+// Compact stacked cell for Procurement / Stock inbound: canonical field with
+// its Type · Mandatory · Required-from-FSM · Transformation, the S4HC target,
+// then the business rule — so the grid fits without horizontal scroll.
+function ioCanonCell(canon, type, mandCanon, reqFsm, s4hc, transform, rule){
+  const meta = [type, (mandCanon?('mand: '+mandCanon):''), (reqFsm?('FSM: '+reqFsm):''), (transform?('⟳ '+transform):'')]
+    .filter(Boolean).join('  ·  ');
+  const s4 = s4hc ? `<div class="cmeta"${/^not required/i.test(s4hc)?' style="color:#9aa3af"':''}>S4HC: ${escHtml(s4hc)}</div>` : '';
+  return `<td class="canon-col"><code>${escHtml(canon)}</code>`
+    + (meta ? `<div class="cmeta">${escHtml(meta)}</div>` : '')
+    + s4
+    + (rule ? `<div class="crule">${escHtml(rule)}</div>` : '')
+    + `</td>`;
+}
+// Compact stacked cell for outbound callbacks: canonical callback field with
+// its S4HC source and transformation, then the rule.
+function outCanonCell(s4hc, canon, transform, rule){
+  const meta = [(s4hc?('S4HC: '+s4hc):''), (transform?('⟳ '+transform):'')].filter(Boolean).join('  ·  ');
+  return `<td class="canon-col"><code>${escHtml(canon)}</code>`
+    + (meta ? `<div class="cmeta">${escHtml(meta)}</div>` : '')
+    + (rule ? `<div class="crule">${escHtml(rule)}</div>` : '')
+    + `</td>`;
+}
 
 // One compact cell: canonical field name with its definition stacked beneath —
 // Type · Mandatory · Conditional message type · Transformation, then the rule.
@@ -899,25 +908,16 @@ function procInRowHtml(row, idx, fsmField, status, notes, sampleValue){
   return `<tr data-procrow="${idx}" data-level="${lvlOf(canon)}" data-mand="${mandCanon==='Yes'?'1':'0'}">
     <td><input class="field-input" id="pf_${idx}" placeholder="MDFS field name..." value="${(fsmField||'').replace(/"/g,'&quot;')}"></td>
     <td><input class="field-input" id="psv_${idx}" placeholder="Sample value..." value="${(sampleValue||'').replace(/"/g,'&quot;')}"></td>
-    <td class="canon-col"><code>${canon}</code></td>
-    <td class="meta">${type}</td>
-    <td class="meta">${mandCanon}</td>
-    <td class="meta">${reqFsm}</td>
-    <td class="canon-col">${s4hc}</td>
-    <td class="meta">${transform}</td>
+    ${ioCanonCell(canon, type, mandCanon, reqFsm, s4hc, transform, rule)}
     <td><select class="status-select ${status==='TBC'?'tbc':status.toLowerCase()}" id="ps_${idx}">
       ${STATUS_OPTS.map(o=>`<option value="${o.v}" ${o.v===status?'selected':''}>${o.label}</option>`).join("")}
     </select>${commentBtn('prin:'+idx,'Procurement · INT-23', canon)}</td>
-    <td class="meta">${rule}</td>
   </tr>`;
 }
 function procOutRowHtml(row, idx, transport){
   const [s4hc, canon, transform, rule] = row;
   return `<tr data-procoutrow="${idx}">
-    <td class="canon-col">${s4hc}</td>
-    <td class="canon-col">${canon}</td>
-    <td class="meta">${transform}</td>
-    <td class="meta">${rule}</td>
+    ${outCanonCell(s4hc, canon, transform, rule)}
     <td><input class="field-input" id="pot_${idx}" placeholder="Capture transport..." value="${(transport||'').replace(/"/g,'&quot;')}">${commentBtn('prout:'+idx,'Procurement · INT-23 (out)', canon)}</td>
   </tr>`;
 }
@@ -1080,10 +1080,7 @@ const stockOutBody = document.getElementById('stockOutBody');
 function stockOutRowHtml(row, idx, transport){
   const [s4hc, canon, transform, rule] = row;
   return `<tr>
-    <td class="canon-col">${esc(s4hc)}</td>
-    <td class="canon-col">${esc(canon)}</td>
-    <td class="meta">${esc(transform)}</td>
-    <td class="meta">${esc(rule)}</td>
+    ${outCanonCell(s4hc, canon, transform, rule)}
     <td><input class="field-input" id="kot_${idx}" placeholder="Capture transport..." value="${(transport||'').replace(/"/g,'&quot;')}">${commentBtn('stout:'+idx,'Stock Consumption (out)', canon)}</td>
   </tr>`;
 }
@@ -1094,16 +1091,10 @@ function stockRowHtml(row, idx, fsmField, status, sampleValue){
   return `<tr data-level="${lvlOf(canon)}" data-mand="${mandCanon==='Yes'?'1':'0'}">
     <td><input class="field-input" id="kf_${idx}" placeholder="MDFS field name..." value="${(fsmField||'').replace(/"/g,'&quot;')}"></td>
     <td><input class="field-input" id="ksv_${idx}" placeholder="Sample value..." value="${(sampleValue||'').replace(/"/g,'&quot;')}"></td>
-    <td class="canon-col"><code>${esc(canon)}</code></td>
-    <td class="meta">${esc(type)}</td>
-    <td class="meta">${esc(mandCanon)}</td>
-    <td class="meta">${esc(reqFsm)}</td>
-    <td class="canon-col">${esc(s4hc)}</td>
-    <td class="meta">${esc(transform)}</td>
+    ${ioCanonCell(canon, type, mandCanon, reqFsm, s4hc, transform, rule)}
     <td><select class="status-select ${cls}" id="ks_${idx}">
       ${STATUS_OPTS.map(o=>`<option value="${o.v}" ${o.v===status?'selected':''}>${o.label}</option>`).join("")}
     </select>${commentBtn('stin:'+idx,'Stock Consumption', canon)}</td>
-    <td class="meta">${esc(rule)}</td>
   </tr>`;
 }
 function renderStock(){
