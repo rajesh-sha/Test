@@ -218,7 +218,7 @@
 <div class="toolbar">
   <div class="stats" id="stats"></div>
   <button id="loadDraftBtn" title="Reload the last autosaved draft for this browser tab">Restore last draft</button>
-  <button id="exportCsv" class="primary">Export CSV (paste into Excel)</button>
+  <button id="exportCsv" class="primary">&#11015; Export Excel (this tab)</button>
 </div>
 
 <div class="filterbar" data-scope="tabMapping">
@@ -283,7 +283,7 @@
 <div class="toolbar">
   <div class="stats" id="procStats"></div>
   <button id="procLoadDraftBtn" title="Reload the last autosaved draft for this browser tab">Restore last draft</button>
-  <button id="procExportCsv" class="primary">Export CSV (paste into Excel)</button>
+  <button id="procExportCsv" class="primary">&#11015; Export Excel (this tab)</button>
 </div>
 
 <div class="filterbar" data-scope="tabProc">
@@ -344,7 +344,7 @@
 <div class="toolbar">
   <div class="stats" id="stockStats"></div>
   <button id="stockLoadDraftBtn" title="Reload the last autosaved draft for this browser tab">Restore last draft</button>
-  <button id="stockExportCsv" class="primary">Export CSV (paste into Excel)</button>
+  <button id="stockExportCsv" class="primary">&#11015; Export Excel (this tab)</button>
 </div>
 
 <div class="filterbar" data-scope="tabStock">
@@ -563,6 +563,12 @@ function saveComments(){ try{ localStorage.setItem(COMMENTS_KEY, JSON.stringify(
 function escHtml(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function linkMentions(t){ return escHtml(t).replace(/@([A-Za-z][\w.\-]*)/g,'<span class="men">@$1</span>'); }
 function fmtTime(iso){ try{ return new Date(iso).toLocaleString([], {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}); }catch(e){ return ''; } }
+// Flatten a field's discussion thread into one cell value for exports.
+function commentsText(key){
+  const arr = commentsStore[key] || [];
+  if(!arr.length) return '';
+  return arr.map(c=>`[${c.resolved?'resolved':'open'}] ${c.author||'Anon'} (${fmtTime(c.ts)}): ${c.text}`).join('\n');
+}
 
 // Small comment pill rendered into a row; label is shown in the drawer title.
 function commentBtn(key, moduleName, label){
@@ -802,40 +808,21 @@ function csvEscape(v){
 
 document.getElementById('exportCsv').addEventListener('click', () => {
   const state = collectState();
-  const header = [
-    "JAMS Field (Reference)", (state.fsmName||"FSM")+" Field", "Sample Value", "Coverage", "Notes",
-    "Canonical Field (INT-21)", "Type", "Mandatory from FSM", "Conditional Message Type", "Transformation", "Business Rule",
-    "Canonical Field (INT-22)", "Type", "Mandatory from FSM", "Conditional Message Type", "Transformation", "Business Rule"
-  ];
-  const lines = [header.map(csvEscape).join(",")];
-  ROWS.forEach((r,i) => {
-    const row = state.rows[i];
-    const [x21,rule21] = defOf(DEF21, r.c21);
-    const [x22,rule22] = defOf(DEF22, r.c22);
-    lines.push([
-      r.jams, row.fsmField, row.sampleValue, row.status, row.notes,
-      r.c21, r.t21, r.m21, r.cm21, (r.c21?x21:""), (r.c21?rule21:""),
-      r.c22, r.t22, r.m22, r.cm22, (r.c22?x22:""), (r.c22?rule22:"")
-    ].map(csvEscape).join(","));
-  });
-  lines.push("");
-  lines.push("INT-21 Service Order — outbound (S4HC to FSM callback)");
-  lines.push(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport"].map(csvEscape).join(","));
-  SO_OUT_ROWS.forEach((r,i) => {
-    lines.push([r[0], r[1], r[2], r[3], state.outRows[i].transport].map(csvEscape).join(","));
-  });
-  const meta = `# FSM: ${state.fsmName||''} | Date: ${state.wsDate||''} | Facilitator: ${state.facilitator||''} | Attendees: ${state.attendees||''}\n`;
-  const csv = meta + lines.join("\n");
-  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const fname = (state.fsmName || "FSM").replace(/[^a-z0-9]+/gi,'_');
-  a.href = url;
-  a.download = `Apollo_${fname}_Mapping_Capture_${(state.wsDate||'draft')}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  const fsm = state.fsmName || 'MDFS';
+  const W = [90,110,90,58,140,180,150,52,72,92,82,240,150,52,72,92,82,240];
+  const st = ['jams','cap','cap','cov','cell','rule','mono','cell','cell','cell','cell','rule','mono','cell','cell','cell','cell','rule'];
+  let body = xlHdr(["JAMS Field", fsm+" Field","Sample Value","Coverage","Notes","Comments / discussion",
+    "INT-21 Canonical","Type","Mandatory","Cond Msg Type","Transformation","Business Rule",
+    "INT-22 Canonical","Type","Mandatory","Cond Msg Type","Transformation","Business Rule"]);
+  ROWS.forEach((r,i)=>{ const row=state.rows[i]; const d21=defOf(DEF21,r.c21), d22=defOf(DEF22,r.c22);
+    body += xlData([r.jams,row.fsmField,row.sampleValue,row.status,row.notes,commentsText('so:'+i),
+      r.c21,r.t21,r.m21,r.cm21,(r.c21?d21[0]:''),(r.c21?d21[1]:''),
+      r.c22,r.t22,r.m22,r.cm22,(r.c22?d22[0]:''),(r.c22?d22[1]:'')], st); });
+  body += '<Row></Row>' + xlTitle("OUTBOUND — Service Order status callback (S4HC → FSM)", 6)
+        + xlHdr(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport","Comments"]);
+  SO_OUT_ROWS.forEach((r,i)=>body += xlData([r[0],r[1],r[2],r[3],state.outRows[i].transport,''], ['mono','mono','cell','rule','cap','rule']));
+  downloadXls(`Apollo_${fsm.replace(/[^a-z0-9]+/gi,'_')}_ServiceOrder_${(state.wsDate||'draft')}.xls`,
+    xlWorkbook(xlSheet("Service Order INT-21+22", W, body)));
 });
 
 buildRows();
@@ -1009,31 +996,16 @@ document.getElementById('procLoadDraftBtn').addEventListener('click', () => {
 });
 document.getElementById('procExportCsv').addEventListener('click', () => {
   const state = collectProcState();
-  const fsmName = document.getElementById('fsmName').value || "FSM";
-  const lines = [];
-  lines.push(`# ${fsmName} — INT-23 Procurement Field Mapping | Date: ${document.getElementById('wsDate').value||''} | Facilitator: ${document.getElementById('facilitator').value||''}`);
-  lines.push("");
-  lines.push(["MDFS Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Business Rule"].map(csvEscape).join(","));
-  PROC_IN_ROWS.forEach((r,i) => {
-    lines.push([state.inRows[i].fsmField, state.inRows[i].sampleValue, r[0], r[1], r[2], r[3], r[4], r[5], state.inRows[i].status, r[6]].map(csvEscape).join(","));
-  });
-  lines.push("");
-  lines.push("INT-23 Procurement — outbound (S4HC to FSM callback)");
-  lines.push(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport"].map(csvEscape).join(","));
-  PROC_OUT_ROWS.forEach((r,i) => {
-    lines.push([r[0], r[1], r[2], r[3], state.outRows[i].transport].map(csvEscape).join(","));
-  });
-  const csv = lines.join("\n");
-  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const fname = fsmName.replace(/[^a-z0-9]+/gi,'_');
-  a.href = url;
-  a.download = `Apollo_${fname}_Procurement_Mapping_${(document.getElementById('wsDate').value||'draft')}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  const fsm = document.getElementById('fsmName').value || "MDFS";
+  const W = [110,90,175,58,120,120,200,82,58,170,290];
+  const inSt = ['cap','cap','mono','cell','cell','cell','mono','cell','cov','rule','rule'];
+  let body = xlHdr([fsm+" Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Comments / discussion","Business Rule"]);
+  PROC_IN_ROWS.forEach((r,i)=>body += xlData([state.inRows[i].fsmField,state.inRows[i].sampleValue,r[0],r[1],r[2],r[3],r[4],r[5],state.inRows[i].status,commentsText('prin:'+i),r[6]], inSt));
+  body += '<Row></Row>' + xlTitle("OUTBOUND — S4HC → Canonical → FSM callback",6)
+        + xlHdr(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport","Comments"]);
+  PROC_OUT_ROWS.forEach((r,i)=>body += xlData([r[0],r[1],r[2],r[3],state.outRows[i].transport,commentsText('prout:'+i)], ['mono','mono','cell','rule','cap','rule']));
+  downloadXls(`Apollo_${fsm.replace(/[^a-z0-9]+/gi,'_')}_Procurement_${(document.getElementById('wsDate').value||'draft')}.xls`,
+    xlWorkbook(xlSheet("Procurement INT-23", W, body)));
 });
 
 renderProc();
@@ -1188,19 +1160,16 @@ document.getElementById('stockLoadDraftBtn').addEventListener('click', ()=>{
 });
 document.getElementById('stockExportCsv').addEventListener('click', ()=>{
   const state=collectStockState();
-  const fsmName=document.getElementById('fsmName').value||"FSM";
-  const lines=[];
-  lines.push(`# ${fsmName} — Canonical Stock Consumption / Services Field Mapping | Date: ${document.getElementById('wsDate').value||''}`);
-  lines.push("");
-  lines.push(["MDFS Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Business Rule"].map(csvEscape).join(","));
-  STOCK_IN_ROWS.forEach((r,i)=>{ lines.push([state.inRows[i].fsmField, state.inRows[i].sampleValue, r[0], r[1], r[2], r[3], r[4], r[5], state.inRows[i].status, r[6]].map(csvEscape).join(",")); });
-  lines.push("");
-  lines.push("Stock Consumption — outbound (S4HC to FSM callback)");
-  lines.push(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport"].map(csvEscape).join(","));
-  STOCK_OUT_ROWS.forEach((r,i)=>{ lines.push([r[0], r[1], r[2], r[3], state.outRows[i].transport].map(csvEscape).join(",")); });
-  const blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8;"}); const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download=`Apollo_${fsmName.replace(/[^a-z0-9]+/gi,'_')}_StockConsumption_Mapping_${(document.getElementById('wsDate').value||'draft')}.csv`;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  const fsm=document.getElementById('fsmName').value||"MDFS";
+  const W = [110,90,175,58,120,120,200,82,58,170,290];
+  const inSt = ['cap','cap','mono','cell','cell','cell','mono','cell','cov','rule','rule'];
+  let body = xlHdr([fsm+" Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Comments / discussion","Business Rule"]);
+  STOCK_IN_ROWS.forEach((r,i)=>body += xlData([state.inRows[i].fsmField,state.inRows[i].sampleValue,r[0],r[1],r[2],r[3],r[4],r[5],state.inRows[i].status,commentsText('stin:'+i),r[6]], inSt));
+  body += '<Row></Row>' + xlTitle("OUTBOUND — S4HC → Canonical → FSM callback",6)
+        + xlHdr(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport","Comments"]);
+  STOCK_OUT_ROWS.forEach((r,i)=>body += xlData([r[0],r[1],r[2],r[3],state.outRows[i].transport,commentsText('stout:'+i)], ['mono','mono','cell','rule','cap','rule']));
+  downloadXls(`Apollo_${fsm.replace(/[^a-z0-9]+/gi,'_')}_StockConsumption_${(document.getElementById('wsDate').value||'draft')}.xls`,
+    xlWorkbook(xlSheet("Stock Consumption", W, body)));
 });
 renderStock();
 try{ const rawStock=localStorage.getItem(STOCK_STORAGE_KEY); if(rawStock) applyStockState(JSON.parse(rawStock)); }catch(e){}
@@ -1552,6 +1521,16 @@ function xlSheet(name, widths, bodyXml){
   const safe = String(name).replace(/[:\\\/?*\[\]]/g,' ').slice(0,31);
   const cols = widths.map(w=>`<Column ss:Width="${w}"/>`).join('');
   return `<Worksheet ss:Name="${xmlEsc(safe)}"><Table ss:DefaultRowHeight="15">${cols}${bodyXml}</Table>${XL_FREEZE}</Worksheet>`;
+}
+function xlWorkbook(sheetsXml){
+  return '<?xml version="1.0"?>\n<?mso-application progid="Excel.Sheet"?>\n'
+    + '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel">\n'
+    + XL_STYLES + '\n' + sheetsXml + '\n</Workbook>';
+}
+function downloadXls(name, xml){
+  const blob = new Blob(['﻿'+xml], {type:"application/vnd.ms-excel"});
+  const url = URL.createObjectURL(blob); const a = document.createElement('a');
+  a.href=url; a.download=name; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
 function exportAllExcel(){
