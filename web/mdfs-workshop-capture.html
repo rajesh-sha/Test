@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Apollo — MDFS Field Mapping Workshop Capture</title>
+<title>FSM Field Mapping — Workshop Capture</title>
 <style>
   :root{
     --navy:#1F3864; --navy2:#1F4E79; --paper:#f4f6f9; --line:#d9dee6;
@@ -232,8 +232,8 @@
 
 <header>
   <div>
-    <h1>MDFS Field Mapping — Workshop Capture</h1>
-    <div class="sub">Canonical Service Order (INT-21), WBS (INT-22) &amp; Procurement (INT-23) · JAMS confirmed as reference for Service Order/WBS · MDFS capture file</div>
+    <h1 id="appTitle">MDFS Field Mapping — Workshop Capture</h1>
+    <div class="sub">Canonical Service Order (INT-21), WBS (INT-22) &amp; Procurement (INT-23) · JAMS confirmed as reference for Service Order/WBS · <span class="fsmLabel">MDFS</span> capture file</div>
   </div>
   <div class="hdr-controls">
     <div><label>FSM being mapped</label>
@@ -292,7 +292,7 @@
     </tr>
     <tr class="cols">
       <th style="width:11%;">JAMS Field <span class="badge">reference</span></th>
-      <th style="width:12%;">MDFS Field <span class="badge">capture</span></th>
+      <th style="width:12%;"><span class="fsmLabel">MDFS</span> Field <span class="badge">capture</span></th>
       <th style="width:10%;">Sample value <span class="badge">extract</span></th>
       <th style="width:28%;">Canonical Field &amp; definition (INT-21)</th>
       <th style="width:8%;">Status</th>
@@ -352,7 +352,7 @@
 <table id="procTable">
   <thead>
     <tr class="cols">
-      <th style="width:15%;">MDFS Field <span class="badge">capture</span></th>
+      <th style="width:15%;"><span class="fsmLabel">MDFS</span> Field <span class="badge">capture</span></th>
       <th style="width:13%;">Sample value <span class="badge">extract</span></th>
       <th style="width:43%;">Canonical Field &amp; definition (INT-23)</th>
       <th style="width:13%;">Status</th>
@@ -405,7 +405,7 @@
 <table id="stockTable">
   <thead>
     <tr class="cols">
-      <th style="width:15%;">MDFS Field <span class="badge">capture</span></th>
+      <th style="width:15%;"><span class="fsmLabel">MDFS</span> Field <span class="badge">capture</span></th>
       <th style="width:13%;">Sample value <span class="badge">extract</span></th>
       <th style="width:43%;">Canonical Field &amp; definition</th>
       <th style="width:13%;">Status</th>
@@ -791,7 +791,7 @@ function buildRows(){
     const sStatus = sd.status || 'TBC';
     const sCls = (STATUS_OPTS.find(o=>o.v===sStatus)||STATUS_OPTS[0]).cls;
     html += `<td class="jams-col">${esc(r.jams).replace(/\\n/g,'<br>')}</td>`;
-    html += `<td><textarea class="field-input" id="ff_${rowId}" rows="1" placeholder="MDFS field name...">${escHtml(sd.fsm||'')}</textarea></td>`;
+    html += `<td><textarea class="field-input fsm-field" id="ff_${rowId}" rows="1" placeholder="MDFS field name...">${escHtml(sd.fsm||'')}</textarea></td>`;
     html += `<td><textarea class="field-input" id="sv_${rowId}" rows="1" placeholder="Sample value...">${escHtml(sd.sample||'')}</textarea></td>`;
     // INT-21 canonical field + stacked definition
     html += canonCell(r.c21, r.t21, r.m21, r.cm21, defOf(DEF21, r.c21));
@@ -887,6 +887,7 @@ function applyState(state){
   document.getElementById('wsDate').value = state.wsDate || "";
   document.getElementById('facilitator').value = state.facilitator || "";
   document.getElementById('attendees').value = state.attendees || "";
+  if(typeof applyFsmBranding==='function') applyFsmBranding(state.fsmName);
   (state.rows||[]).forEach((row,i) => {
     const ff = document.getElementById('ff_r'+i);
     const st = document.getElementById('st_r'+i);
@@ -1022,7 +1023,7 @@ const procOutBody = document.getElementById('procOutBody');
 function procInRowHtml(row, idx, fsmField, status, notes, sampleValue){
   const [canon, type, mandCanon, reqFsm, s4hc, transform, rule] = row;
   return `<tr data-procrow="${idx}" data-level="${lvlOf(canon)}" data-mand="${mandCanon==='Yes'?'1':'0'}">
-    <td><textarea class="field-input" id="pf_${idx}" rows="1" placeholder="MDFS field name...">${escHtml(fsmField||'')}</textarea></td>
+    <td><textarea class="field-input fsm-field" id="pf_${idx}" rows="1" placeholder="MDFS field name...">${escHtml(fsmField||'')}</textarea></td>
     <td><textarea class="field-input" id="psv_${idx}" rows="1" placeholder="Sample value...">${escHtml(sampleValue||'')}</textarea></td>
     ${ioCanonCell(canon, type, mandCanon, reqFsm, s4hc, transform, rule)}
     <td><select class="status-select ${status==='TBC'?'tbc':status.toLowerCase()}" id="ps_${idx}">
@@ -1210,7 +1211,7 @@ function stockRowHtml(row, idx, fsmField, status, sampleValue, notes){
   const [canon, type, mandCanon, reqFsm, s4hc, transform, rule] = row;
   const cls = status==='TBC' ? 'tbc' : (STATUS_OPTS.find(o=>o.v===status)||STATUS_OPTS[0]).cls;
   return `<tr data-level="${lvlOf(canon)}" data-mand="${mandCanon==='Yes'?'1':'0'}">
-    <td><textarea class="field-input" id="kf_${idx}" rows="1" placeholder="MDFS field name...">${escHtml(fsmField||'')}</textarea></td>
+    <td><textarea class="field-input fsm-field" id="kf_${idx}" rows="1" placeholder="MDFS field name...">${escHtml(fsmField||'')}</textarea></td>
     <td><textarea class="field-input" id="ksv_${idx}" rows="1" placeholder="Sample value...">${escHtml(sampleValue||'')}</textarea></td>
     ${ioCanonCell(canon, type, mandCanon, reqFsm, s4hc, transform, rule)}
     <td><select class="status-select ${cls}" id="ks_${idx}">
@@ -1700,6 +1701,7 @@ function applyAll(obj){
   }
   // persist into the per-tab autosave slots so a later reload keeps the import
   autosave(); procAutosave(); stockAutosave(); wsAutosave();
+  if(typeof applyFsmBranding==='function') applyFsmBranding();
   if(typeof fitNotesIn==='function') fitNotesIn(document.querySelector('.tabpage.active'));
   return true;
 }
@@ -2120,6 +2122,7 @@ document.getElementById('importFile').addEventListener('change', async (e) => {
       const applied = applyWorkbook(sheets);
       if(applied.length){
         autosave(); procAutosave(); stockAutosave();
+        if(typeof applyFsmBranding==='function') applyFsmBranding();
         if(typeof fitNotesIn==='function') fitNotesIn(document.querySelector('.tabpage.active'));
         alert('Imported from Excel — restored on: '+applied.join(', ')+'.\n\nMDFS fields, sample values, status, notes and outbound transports were loaded. (Per-field comments and the Integration Matrix round-trip only through the Save file .json.)');
       } else {
@@ -2191,6 +2194,26 @@ function setStickyOffsets(){
 setStickyOffsets();
 window.addEventListener('resize', setStickyOffsets);
 window.addEventListener('load', setStickyOffsets);
+
+/* ===== FSM-generic branding — drive the title, sub-header, the "<FSM> Field"
+   column headers and the field-name placeholders from the "FSM being mapped"
+   box, instead of hard-coding MDFS. Type PIMS / MARS / any name and the whole
+   tool re-labels; exports and filenames already follow the same name. ===== */
+function applyFsmBranding(raw){
+  const src = (raw==null) ? ((document.getElementById('fsmName')||{}).value) : raw;
+  const nm = (src && String(src).trim()) || 'FSM';
+  document.title = nm + ' Field Mapping — Workshop Capture';
+  const h1 = document.getElementById('appTitle'); if(h1) h1.textContent = nm + ' Field Mapping — Workshop Capture';
+  document.querySelectorAll('.fsmLabel').forEach(el=>el.textContent = nm);
+  document.querySelectorAll('.fsm-field').forEach(el=>el.placeholder = nm + ' field name...');
+}
+(function(){
+  const inp = document.getElementById('fsmName');
+  if(inp){
+    applyFsmBranding(inp.value);
+    inp.addEventListener('input', ()=>{ applyFsmBranding(inp.value); autosave(); });
+  } else { applyFsmBranding('MDFS'); }
+})();
 
 // size any restored notes on the initially-visible tab
 fitNotesIn(document.querySelector('.tabpage.active'));
