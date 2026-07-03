@@ -299,6 +299,23 @@
 </table>
 </div>
 
+<div class="ws-section-title">Canonical Stock Consumption / Services (outbound: S4HC &rarr; Canonical &rarr; FSM callback)</div>
+<div class="ws-section-sub">Status &amp; error callback fields returned to the FSM. The stock-availability pre-check returns stockCheckStatus / stockCheckMessage only when NotAvailable. Capture the confirmed transport per FSM (REST callback, Platform Event, file drop).</div>
+<div class="wrap">
+<table id="stockOutTable">
+  <thead>
+    <tr class="cols">
+      <th style="min-width:250px;">S4HC Field</th>
+      <th style="min-width:220px;">Canonical Field</th>
+      <th>Transformation</th>
+      <th style="min-width:320px;">Business Rule</th>
+      <th style="min-width:200px;">FSM transport <span class="badge">live capture</span></th>
+    </tr>
+  </thead>
+  <tbody id="stockOutBody"></tbody>
+</table>
+</div>
+
 <div class="footer-note">
   Same autosave, CSV and whole-mapping Export/Import behaviour as the other tabs.
 </div>
@@ -884,6 +901,29 @@ const STOCK_IN_ROWS = [
 ];
 const stockBody = document.getElementById('stockBody');
 
+// Outbound (S4HC -> Canonical -> FSM callback): [ S4HC, Canonical, Transformation, Business Rule ]
+const STOCK_OUT_ROWS = [
+  ["`api_whse_physstockprod WarehousePhysicalStockProducts` (pre-check)","`header.stockCheckStatus` (error callback)","Derived","Available (check passed, flow continues — not in the success callback) or NotAvailable (check failed, flow stopped). Only returned to the FSM when NotAvailable; the FSM receives this instead of the normal success fields."],
+  ["`api_whse_physstockprod` (pre-check mismatch detail)","`header.stockCheckMessage` (error callback)","Derived","Human-readable mismatch explanation, e.g. 'Serial SN-001 not found in bin CL-AREA for product UFY10041760FSN'. Only present when stockCheckStatus = NotAvailable."],
+  ["`A_ServiceOrder.ServiceOrder`","`header.sapServiceOrder` (callback)","Pass-through","The Service Order the stock line belongs to. Returned to the FSM on success."],
+  ["`A_ServiceConfirmation.ServiceConfirmation`","`header.sapServiceConfirmation` (callback)","Pass-through","The Service Confirmation number issued by SAP (e.g. 9000000004). Returned to the FSM on success."],
+  ["`A_ServiceConfirmation.ServiceConfirmationIsFinal`","`header.sapIsFinal` (callback)","Pass-through","Returned as N (not final) for these scenarios."],
+  ["`WhseOutboundDeliveryOrderHead.EWMOutboundDeliveryOrder`","`header.sapOutboundDelivery` (callback)","Pass-through","The EWM outbound delivery order created by the confirmation."],
+  ["Goods-issue posted flag","`header.sapGoodsIssued` (callback)","Derived","True once the canonical posts the goods issue (van consumption only - SCN-L-001 / SCN-L-002)."],
+];
+const stockOutBody = document.getElementById('stockOutBody');
+
+function stockOutRowHtml(row, idx, transport){
+  const [s4hc, canon, transform, rule] = row;
+  return `<tr>
+    <td class="canon-col">${esc(s4hc)}</td>
+    <td class="canon-col">${esc(canon)}</td>
+    <td class="meta">${esc(transform)}</td>
+    <td class="meta">${esc(rule)}</td>
+    <td><input class="field-input" id="kot_${idx}" placeholder="Capture transport..." value="${(transport||'').replace(/"/g,'&quot;')}"></td>
+  </tr>`;
+}
+
 function stockRowHtml(row, idx, fsmField, status, sampleValue){
   const [canon, type, mandCanon, reqFsm, s4hc, transform, rule] = row;
   const cls = status==='TBC' ? 'tbc' : (STATUS_OPTS.find(o=>o.v===status)||STATUS_OPTS[0]).cls;
@@ -914,6 +954,8 @@ function renderStock(){
       updateStockStats(); stockAutosave();
     });
   });
+  stockOutBody.innerHTML = STOCK_OUT_ROWS.map((r,i)=>stockOutRowHtml(r,i,"")).join("");
+  STOCK_OUT_ROWS.forEach((r,i)=>{ document.getElementById('kot_'+i).addEventListener('input', stockAutosave); });
   updateStockStats();
 }
 function updateStockStats(){
@@ -927,11 +969,16 @@ function updateStockStats(){
      <span class="stat">of ${STOCK_IN_ROWS.length} fields</span>`;
 }
 function collectStockState(){
-  return { inRows: STOCK_IN_ROWS.map((r,i)=>({
-    fsmField: document.getElementById('kf_'+i).value,
-    sampleValue: document.getElementById('ksv_'+i).value,
-    status: document.getElementById('ks_'+i).value,
-  })) };
+  return {
+    inRows: STOCK_IN_ROWS.map((r,i)=>({
+      fsmField: document.getElementById('kf_'+i).value,
+      sampleValue: document.getElementById('ksv_'+i).value,
+      status: document.getElementById('ks_'+i).value,
+    })),
+    outRows: STOCK_OUT_ROWS.map((r,i)=>({
+      transport: document.getElementById('kot_'+i).value,
+    })),
+  };
 }
 function applyStockState(state){
   if(!state) return;
@@ -942,6 +989,9 @@ function applyStockState(state){
     const st=document.getElementById('ks_'+i); st.value=row.status||"TBC";
     STATUS_OPTS.forEach(o=>st.classList.remove(o.cls));
     st.classList.add((STATUS_OPTS.find(o=>o.v===st.value)||STATUS_OPTS[0]).cls);
+  });
+  (state.outRows||[]).forEach((row,i)=>{
+    const t=document.getElementById('kot_'+i); if(t) t.value=row.transport||"";
   });
   updateStockStats();
 }
@@ -962,6 +1012,10 @@ document.getElementById('stockExportCsv').addEventListener('click', ()=>{
   lines.push("");
   lines.push(["MDFS Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Business Rule"].map(csvEscape).join(","));
   STOCK_IN_ROWS.forEach((r,i)=>{ lines.push([state.inRows[i].fsmField, state.inRows[i].sampleValue, r[0], r[1], r[2], r[3], r[4], r[5], state.inRows[i].status, r[6]].map(csvEscape).join(",")); });
+  lines.push("");
+  lines.push("Stock Consumption — outbound (S4HC to FSM callback)");
+  lines.push(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport"].map(csvEscape).join(","));
+  STOCK_OUT_ROWS.forEach((r,i)=>{ lines.push([r[0], r[1], r[2], r[3], state.outRows[i].transport].map(csvEscape).join(",")); });
   const blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8;"}); const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download=`Apollo_${fsmName.replace(/[^a-z0-9]+/gi,'_')}_StockConsumption_Mapping_${(document.getElementById('wsDate').value||'draft')}.csv`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
