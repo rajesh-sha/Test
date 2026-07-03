@@ -263,7 +263,7 @@
   <button id="tabBtnProc">Procurement Field Mapping</button>
   <button id="tabBtnStock">Stock Consumption Field Mapping</button>
   <button id="tabBtnMatrix">Integration Matrix</button>
-  <button id="tabBtnWorksheet">Future Integration Points Worksheet</button>
+  <button id="tabBtnWorksheet"><span class="fsmLabel">MDFS</span> Explore Phase Working Sheet</button>
 </div>
 
 <div id="tabMapping" class="tabpage active">
@@ -1922,10 +1922,8 @@ function exportAllExcel(){
   stkBody += '<Row></Row>' + xlTitle("OUTBOUND — S4HC → Canonical → FSM callback",5) + xlHdr(outHdr);
   STOCK_OUT_ROWS.forEach((r,i)=>stkBody += xlData([r[0],r[1],r[2],r[3],stk.outRows[i].transport], outStyle));
 
-  // --- Future Integration Points ---
-  const fipW = [90,150,110,155,110,150,190,130,150,190,150,100];
-  let fipBodyX = xlHdr(["FSM System","Process Step","FSM Object","Trigger Status / Action","Process Type","Canonical Model","What it does in SAP","Integration Pattern","Technology Type","Minimum Payload Required","SAP Outcome","Status"]);
-  fipData.forEach(r=>fipBodyX += xlData(r.slice(), null));
+  // NOTE: the Explore Phase Working Sheet (Future Integration Points) is
+  // reference-only and is intentionally NOT included in this mapping export.
 
   // --- Workshop Info ---
   let infoBody = xlHdr(["Field","Value"]);
@@ -1960,7 +1958,6 @@ function exportAllExcel(){
     + xlSheet("Service Order", soW, soBody) + '\n'
     + xlSheet("Procurement", ioW, prBody) + '\n'
     + xlSheet("Stock Consumption", ioW, stkBody) + '\n'
-    + xlSheet("Future Integration", fipW, fipBodyX) + '\n'
     + xlSheet("Integration Matrix", mtxW, mtxBody) + '\n'
     + xlSheet("Comments", cmtW, cmtBody) + '\n'
     + xlSheet("Workshop Info", [170,340], infoBody) + '\n'
