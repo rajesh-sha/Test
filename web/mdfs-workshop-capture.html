@@ -291,7 +291,7 @@
       <th style="width:12%;">MDFS Field <span class="badge">capture</span></th>
       <th style="width:10%;">Sample value <span class="badge">extract</span></th>
       <th style="width:28%;">Canonical Field &amp; definition (INT-21)</th>
-      <th style="width:8%;">Coverage</th>
+      <th style="width:8%;">Status</th>
       <th style="width:11%;">Notes captured live</th>
       <th style="width:20%;">Canonical Field &amp; definition (INT-22)</th>
     </tr>
@@ -351,7 +351,7 @@
       <th style="width:15%;">MDFS Field <span class="badge">capture</span></th>
       <th style="width:13%;">Sample value <span class="badge">extract</span></th>
       <th style="width:43%;">Canonical Field &amp; definition (INT-23)</th>
-      <th style="width:13%;">Coverage</th>
+      <th style="width:13%;">Status</th>
       <th style="width:16%;">Notes &amp; comments</th>
     </tr>
   </thead>
@@ -404,7 +404,7 @@
       <th style="width:15%;">MDFS Field <span class="badge">capture</span></th>
       <th style="width:13%;">Sample value <span class="badge">extract</span></th>
       <th style="width:43%;">Canonical Field &amp; definition</th>
-      <th style="width:13%;">Coverage</th>
+      <th style="width:13%;">Status</th>
       <th style="width:16%;">Notes &amp; comments</th>
     </tr>
   </thead>
@@ -541,6 +541,45 @@
 const ROWS = [{"jams": "messageID", "c21": "`header.sourceMessageId`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": "`header.sourceMessageId`", "t22": "string", "m22": "Yes", "cm22": "All"}, {"jams": "fsmSystem", "c21": "`header.sourceSystem`", "t21": "string enum", "m21": "Yes", "cm21": "All", "c22": "`header.sourceSystemTag`", "t22": "string", "m22": "Yes", "cm22": "All"}, {"jams": "messageType", "c21": "`header.sourceMessageType`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": "All"}, {"jams": "jobID", "c21": "`header.fsmJobNumber`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "refNo", "c21": "`header.clientJobNumber`", "t21": "string", "m21": "Conditional", "cm21": "CREATE_SO", "c22": "`header.clientJobNumber`", "t22": "string", "m22": "Yes", "cm22": "PROJECT"}, {"jams": "contractID", "c21": "`header.clientContractId`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": "`header.clientContractId`", "t22": "string", "m22": "Yes", "cm22": "All"}, {"jams": "department", "c21": "`header.serviceHierarchy`", "t21": "string", "m21": "Conditional", "cm21": "CREATE_SO", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "jobType", "c21": "`item.serviceHierarchy2`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "rateCardCustomerID", "c21": "`header.customerRegion`", "t21": "string", "m21": "Conditional", "cm21": "CREATE_SO", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "rateCardSubbieID", "c21": "`item.subbieRegion`", "t21": "string", "m21": "Conditional", "cm21": "RCTI", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "costDetailID (for SORs)\nresID (for resources, plant,  stock and labor)", "c21": "`items[].lineNumber`", "t21": "int", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "stockNo if message type is MATERIALS_USAGE\nsorID if message type is RCTI; REQUEST_PO; CLAIM", "c21": "`items[].product`", "t21": "code", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "qty", "c21": "`items[].quantity`", "t21": "decimal", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "uom", "c21": "`items[]. quantityUnit`", "t21": "code", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TimeBooking = N/A JAMS will not send labor time booking.\nCustomerService = If the customer claim canonical is being used this value will be set\nEquipment = N/A JAMS will not send labor time booking.\nSubcontractorProcurement = Trajce will include messageType field in the payload if this this message type  value is RCTI and the procurement canonical is being used set this field to SubcontractorProcurement\nIndirectProcurement = Trajce will include messageType field in the payload if this this message type  value is REQUEST_PO and the procurement canonical is being used set this field to IndirectProcurement. If the sorID field in this payload is empy or is not there then use the generic material XXXX and overwrite the description, UOM, price etc.\nVanStockConsumption =  If the stock consumption canonical is being used(message type = MATERIALS_USAGE) set the value of this field to VanStockConsumption. The plant will be determined based on the remote plant assigned to the contract.\nWarehouseStockReservation = This scenario is not relevant for JAMS", "c21": "`items[].lineType`", "t21": "enum", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TBC", "c21": "`items[].isBillable`", "t21": "boolean", "m21": "Yes", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TBC\nCost Plus = Might not be relevant for JAMS pattern 1.1 or 1.3. Karan will confirm with the business if the contracts map to this scenarios is mapped correctly.\nBack to Back = Not something that JAMS does.\nNon-Back to Back = Will only come through at point of customer claim\nFixed Price = Will need to chekc with the business\nFixed Fee = Will need to chekc with the business", "c21": "`items[].pricingMode`", "t21": "enum", "m21": "Yes", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TimeBooking = N/A\nCustomerService = Based on the contract mapping table\nEquipment = Based on the contract mapping table\nSubcontractorProcurement = Based on the contract mapping table\nIndirectProcurement = Based on the contract mapping table\nVanStockConsumption = Based on the contract mapping table\nWarehouseStockReservation = N/A", "c21": "`items[].plant`", "t21": "string", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "warehouseId", "c21": "`items[].vanID`", "t21": "string", "m21": "Conditional", "cm21": "MATERIALS_USAGE", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "rctiId", "c21": "`items[].RCTIReference`", "t21": "string", "m21": "Conditional", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "supplierId", "c21": "`items[].supplier`", "t21": "code", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "woId", "c21": "`items[].activity`", "t21": "string", "m21": "Optional", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TBC", "c21": "`items[].pricingElements[]`", "t21": "array", "m21": "Conditional", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "PROJREF", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].parentProjectElement`", "t22": "string", "m22": "Yes", "cm22": null}, {"jams": "WBSREF/jobID", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].ProjectElement`", "t22": "string", "m22": "No", "cm22": null}, {"jams": "jobDesc", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].projectElementDescription`", "t22": "string(40)", "m22": "Yes", "cm22": null}, {"jams": "TBC", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].isBillingElement`", "t22": "boolean", "m22": "Yes", "cm22": null}, {"jams": "TBC", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].doaApproverLevel1`", "t22": "string", "m22": "No", "cm22": null}, {"jams": "TBC", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].doaApproverLevel2`", "t22": "string", "m22": "No", "cm22": null}]
 ;
 
+// ---- Validation seed: Service Order canonical mapped against the MDFS
+// "Subcontractor Claim Detail" (epd_subcontractorclaimdetail) sample data.
+// This sample exercises the RCTI/CLAIM item-level part of the canonical, so
+// item fields map; CREATE_SO header fields and INT-22 WBS fields are not in
+// the sample and stay TBC. Confident = "Mapped", proposed = "To review",
+// unknown/not-in-sample = "TBC" (to be reviewed), not-applicable = "N/A".
+// Values are from the first sample record. Indexed to match ROWS order.
+const SO_SEED = [
+  {status:"TBC", note:"Message envelope / idempotency ID generated by the FSM integration layer — not stored on the claim record."},
+  {fsm:"(constant) MDFS", sample:"MDFS", status:"Mapped", note:"Source system is fixed to MDFS for every message from this FSM."},
+  {fsm:"(derived from record type)", sample:"RCTI", status:"To review", note:"Sample is a Subcontractor Claim Detail → resolves to RCTI (or CLAIM). Confirm which message type is emitted."},
+  {fsm:"epd_workorderidname", sample:"W000400898", status:"Mapped", note:"FSM work order number = header.fsmJobNumber."},
+  {status:"TBC", note:"Client/customer job number is not held on the claim detail; sourced from the parent Work Order."},
+  {status:"TBC", note:"Contract ID not present on this entity; derived via Work Order → contract-mapping table."},
+  {status:"TBC", note:"Service hierarchy (department) — CREATE_SO header field, not in this claim sample."},
+  {status:"TBC", note:"Job type / service hierarchy 2 — not present in this sample."},
+  {status:"TBC", note:"Customer rate-card region — CREATE_SO header field, not in this sample."},
+  {status:"TBC", note:"Subbie rate-card region — RCTI item field; confirm source."},
+  {fsm:"epd_name (claim detail no.)", sample:"SCD-000832565", status:"To review", note:"FSM line identifier. SAP line number is derived (from 20 in +10 increments). Confirm SCD id → lineNumber."},
+  {fsm:"epd_productidname / epd_productid", sample:"(OffNet) Complex Fault - all site types", status:"To review", note:"Product / SOR for the RCTI line. Value shown is the product name; SAP needs the product code."},
+  {fsm:"epd_quantity", sample:"1", status:"Mapped", note:"Line quantity."},
+  {status:"TBC", note:"Unit of measure is not held on the claim detail; derive per product."},
+  {fsm:"(derived) SubcontractorProcurement", sample:"SubcontractorProcurement", status:"To review", note:"Subcontractor claim ⇒ lineType SubcontractorProcurement. Confirm against the option list."},
+  {status:"TBC", note:"isBillable flag not directly on the claim detail; derive from claim / contract."},
+  {status:"TBC", note:"Pricing mode (SOR / Cost Plus / None) to be confirmed with the business."},
+  {status:"TBC", note:"Plant is derived from the contract-mapping table; not on the claim record."},
+  {status:"N/A", note:"vanID is only relevant for van stock consumption (MATERIALS_USAGE); N/A for a subcontractor claim."},
+  {fsm:"epd_subcontractorclaimidname", sample:"SCC-0036122", status:"To review", note:"Subcontractor claim number as RCTIReference for contract patterns 1.1/1.3. Confirm."},
+  {fsm:"owneridname (subcontractor)", sample:"Never Fail Communications", status:"To review", note:"Subcontractor / supplier — needs the SAP vendor mapping. Confirm the true source field for the supplier code."},
+  {status:"TBC", note:"Activity (intermediate Job↔SOR tier) is not represented on the claim detail."},
+  {fsm:"epd_totalamount (+ _base, exchangerate, transactioncurrencyidname)", sample:"246.63 AUD", status:"To review", note:"Claim amount → SOR / Cost-Plus pricing element. Confirm condition types and currency handling."},
+  {status:"TBC", note:"INT-22 WBS (parent project element) — project payload, not represented in this claim sample."},
+  {status:"TBC", note:"INT-22 WBS (project element) — not represented in this claim sample."},
+  {fsm:"epd_productidname / work order description", sample:"(OffNet) Complex Fault - all site types", status:"To review", note:"INT-22 WBS scope — illustrative only; sample is a claim line, not a project create. 40-char limit applies."},
+  {status:"TBC", note:"INT-22 billing-element flag — not in this sample."},
+  {status:"TBC", note:"INT-22 DOA approver level 1 — not in this sample."},
+  {status:"TBC", note:"INT-22 DOA approver level 2 — not in this sample."},
+];
+
 // Canonical-field definitions (Transformation + Business Rule) so the workshop
 // can see what each canonical field is for. Keyed by the field path (backticks
 // and spaces stripped) and looked up against each row's c21 / c22.
@@ -623,11 +662,13 @@ function canonCell(canon, type, mand, cond, def){
     + `</td>`;
 }
 
+// Mapping status (replaces the old Fit/Partial/Gap "coverage" model).
+// TBC = not yet mapped / to be reviewed.  To review = proposed mapping,
+// needs validation.  Mapped = confirmed.  N/A = not applicable to this FSM.
 const STATUS_OPTS = [
   {v:"TBC", label:"TBC", cls:"tbc"},
-  {v:"Fit", label:"Fit", cls:"fit"},
-  {v:"Partial", label:"Partial", cls:"partial"},
-  {v:"Gap", label:"Gap", cls:"gap"},
+  {v:"Mapped", label:"Mapped", cls:"fit"},
+  {v:"To review", label:"To review", cls:"partial"},
   {v:"N/A", label:"N/A", cls:"tbc"},
 ];
 
@@ -721,7 +762,7 @@ document.getElementById('cBody').addEventListener('click', (e)=>{
 /* =========================================================================== */
 
 const tbody = document.getElementById('tbody');
-const STORAGE_KEY = 'apollo_fsm_capture_draft_mdfs_v1';
+const STORAGE_KEY = 'apollo_fsm_capture_draft_mdfs_v2';
 
 function esc(s){
   if(s===null || s===undefined) return "";
@@ -742,16 +783,19 @@ function buildRows(){
     const _canon = r.c21 || r.c22 || '';
     const _mand = (r.m21==='Yes' || r.m22==='Yes') ? '1' : '0';
     html += `<tr data-row="${i}" data-level="${lvlOf(_canon)}" data-mand="${_mand}">`;
+    const sd = SO_SEED[i] || {};
+    const sStatus = sd.status || 'TBC';
+    const sCls = (STATUS_OPTS.find(o=>o.v===sStatus)||STATUS_OPTS[0]).cls;
     html += `<td class="jams-col">${esc(r.jams).replace(/\\n/g,'<br>')}</td>`;
-    html += `<td><input class="field-input" id="ff_${rowId}" placeholder="MDFS field name..." /></td>`;
-    html += `<td><input class="field-input" id="sv_${rowId}" placeholder="Sample value..." /></td>`;
+    html += `<td><input class="field-input" id="ff_${rowId}" placeholder="MDFS field name..." value="${escHtml(sd.fsm||'')}" /></td>`;
+    html += `<td><input class="field-input" id="sv_${rowId}" placeholder="Sample value..." value="${escHtml(sd.sample||'')}" /></td>`;
     // INT-21 canonical field + stacked definition
     html += canonCell(r.c21, r.t21, r.m21, r.cm21, defOf(DEF21, r.c21));
-    // Coverage + Notes (mapping status)
-    html += `<td><select class="status-select tbc" id="st_${rowId}">`;
-    STATUS_OPTS.forEach(o => html += `<option value="${o.v}">${o.label}</option>`);
+    // Status + Notes (mapping status)
+    html += `<td><select class="status-select ${sCls}" id="st_${rowId}">`;
+    STATUS_OPTS.forEach(o => html += `<option value="${o.v}" ${o.v===sStatus?'selected':''}>${o.label}</option>`);
     html += `</select></td>`;
-    html += `<td><textarea class="notes-input" id="nt_${rowId}" rows="2" placeholder="Notes / caveat..."></textarea>${commentBtn('so:'+i,'Service Order · INT-21/22', r.c21||r.c22||r.jams)}</td>`;
+    html += `<td><textarea class="notes-input" id="nt_${rowId}" rows="2" placeholder="Notes / caveat...">${escHtml(sd.note||'')}</textarea>${commentBtn('so:'+i,'Service Order · INT-21/22', r.c21||r.c22||r.jams)}</td>`;
     // INT-22 canonical field + stacked definition
     html += canonCell(r.c22, r.t22, r.m22, r.cm22, defOf(DEF22, r.c22));
     html += `</tr>`;
@@ -775,16 +819,16 @@ function buildRows(){
 }
 
 function updateStats(){
-  const counts = {Fit:0, Partial:0, Gap:0, TBC:0, 'N/A':0};
+  const counts = {Mapped:0, 'To review':0, TBC:0, 'N/A':0};
   ROWS.forEach((r,i) => {
     const v = document.getElementById('st_r'+i).value;
     counts[v] = (counts[v]||0) + 1;
   });
   document.getElementById('stats').innerHTML = `
-    <span class="stat"><span class="dot fit"></span>Fit ${counts.Fit}</span>
-    <span class="stat"><span class="dot partial"></span>Partial ${counts.Partial}</span>
-    <span class="stat"><span class="dot gap"></span>Gap ${counts.Gap}</span>
-    <span class="stat"><span class="dot tbc"></span>TBC ${counts.TBC + counts['N/A']}</span>
+    <span class="stat"><span class="dot fit"></span>Mapped ${counts.Mapped}</span>
+    <span class="stat"><span class="dot partial"></span>To review ${counts['To review']}</span>
+    <span class="stat"><span class="dot tbc"></span>TBC ${counts.TBC}</span>
+    <span class="stat"><span class="dot tbc"></span>N/A ${counts['N/A']}</span>
     <span class="stat">of ${ROWS.length} fields</span>
   `;
 }
@@ -889,7 +933,7 @@ document.getElementById('exportCsv').addEventListener('click', () => {
   const fsm = state.fsmName || 'MDFS';
   const W = [90,110,90,58,140,180,150,52,72,92,82,240,150,52,72,92,82,240];
   const st = ['jams','cap','cap','cov','cell','rule','mono','cell','cell','cell','cell','rule','mono','cell','cell','cell','cell','rule'];
-  let body = xlHdr(["JAMS Field", fsm+" Field","Sample Value","Coverage","Notes","Comments / discussion",
+  let body = xlHdr(["JAMS Field", fsm+" Field","Sample Value","Status","Notes","Comments / discussion",
     "INT-21 Canonical","Type","Mandatory","Cond Msg Type","Transformation","Business Rule",
     "INT-22 Canonical","Type","Mandatory","Cond Msg Type","Transformation","Business Rule"]);
   ROWS.forEach((r,i)=>{ const row=state.rows[i]; const d21=defOf(DEF21,r.c21), d22=defOf(DEF22,r.c22);
@@ -1013,16 +1057,16 @@ function renderProc(){
 }
 
 function updateProcStats(){
-  const counts = {Fit:0, Partial:0, Gap:0, TBC:0, 'N/A':0};
+  const counts = {Mapped:0, 'To review':0, TBC:0, 'N/A':0};
   PROC_IN_ROWS.forEach((r,i) => {
     const v = document.getElementById('ps_'+i).value;
     counts[v] = (counts[v]||0) + 1;
   });
   document.getElementById('procStats').innerHTML = `
-    <span class="stat"><span class="dot fit"></span>Fit ${counts.Fit}</span>
-    <span class="stat"><span class="dot partial"></span>Partial ${counts.Partial}</span>
-    <span class="stat"><span class="dot gap"></span>Gap ${counts.Gap}</span>
-    <span class="stat"><span class="dot tbc"></span>TBC ${counts.TBC + counts['N/A']}</span>
+    <span class="stat"><span class="dot fit"></span>Mapped ${counts.Mapped}</span>
+    <span class="stat"><span class="dot partial"></span>To review ${counts['To review']}</span>
+    <span class="stat"><span class="dot tbc"></span>TBC ${counts.TBC}</span>
+    <span class="stat"><span class="dot tbc"></span>N/A ${counts['N/A']}</span>
     <span class="stat">of ${PROC_IN_ROWS.length} fields</span>
   `;
 }
@@ -1082,7 +1126,7 @@ document.getElementById('procExportCsv').addEventListener('click', () => {
   const fsm = document.getElementById('fsmName').value || "MDFS";
   const W = [110,90,175,58,120,120,200,82,58,150,170,290];
   const inSt = ['cap','cap','mono','cell','cell','cell','mono','cell','cov','cell','rule','rule'];
-  let body = xlHdr([fsm+" Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Notes","Comments / discussion","Business Rule"]);
+  let body = xlHdr([fsm+" Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Status","Notes","Comments / discussion","Business Rule"]);
   PROC_IN_ROWS.forEach((r,i)=>body += xlData([state.inRows[i].fsmField,state.inRows[i].sampleValue,r[0],r[1],r[2],r[3],r[4],r[5],state.inRows[i].status,state.inRows[i].notes||'',commentsText('prin:'+i),r[6]], inSt));
   body += '<Row></Row>' + xlTitle("OUTBOUND — S4HC → Canonical → FSM callback",6)
         + xlHdr(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport","Comments"]);
@@ -1189,13 +1233,13 @@ function renderStock(){
   updateStockStats();
 }
 function updateStockStats(){
-  const counts={Fit:0,Partial:0,Gap:0,TBC:0,'N/A':0};
+  const counts={Mapped:0,'To review':0,TBC:0,'N/A':0};
   STOCK_IN_ROWS.forEach((r,i)=>{ const v=document.getElementById('ks_'+i).value; counts[v]=(counts[v]||0)+1; });
   document.getElementById('stockStats').innerHTML =
-    `<span class="stat"><span class="dot fit"></span>Fit ${counts.Fit}</span>
-     <span class="stat"><span class="dot partial"></span>Partial ${counts.Partial}</span>
-     <span class="stat"><span class="dot gap"></span>Gap ${counts.Gap}</span>
-     <span class="stat"><span class="dot tbc"></span>TBC ${counts.TBC+counts['N/A']}</span>
+    `<span class="stat"><span class="dot fit"></span>Mapped ${counts.Mapped}</span>
+     <span class="stat"><span class="dot partial"></span>To review ${counts['To review']}</span>
+     <span class="stat"><span class="dot tbc"></span>TBC ${counts.TBC}</span>
+     <span class="stat"><span class="dot tbc"></span>N/A ${counts['N/A']}</span>
      <span class="stat">of ${STOCK_IN_ROWS.length} fields</span>`;
 }
 function collectStockState(){
@@ -1241,7 +1285,7 @@ document.getElementById('stockExportCsv').addEventListener('click', ()=>{
   const fsm=document.getElementById('fsmName').value||"MDFS";
   const W = [110,90,175,58,120,120,200,82,58,150,170,290];
   const inSt = ['cap','cap','mono','cell','cell','cell','mono','cell','cov','cell','rule','rule'];
-  let body = xlHdr([fsm+" Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Notes","Comments / discussion","Business Rule"]);
+  let body = xlHdr([fsm+" Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Status","Notes","Comments / discussion","Business Rule"]);
   STOCK_IN_ROWS.forEach((r,i)=>body += xlData([state.inRows[i].fsmField,state.inRows[i].sampleValue,r[0],r[1],r[2],r[3],r[4],r[5],state.inRows[i].status,state.inRows[i].notes||'',commentsText('stin:'+i),r[6]], inSt));
   body += '<Row></Row>' + xlTitle("OUTBOUND — S4HC → Canonical → FSM callback",6)
         + xlHdr(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport","Comments"]);
@@ -1847,7 +1891,7 @@ function exportAllExcel(){
   // --- Sheet 1: Service Order INT-21 + INT-22 ---
   const soW = [90,110,90,58,140,150,52,72,92,82,260,150,52,72,92,82,260];
   const soStyle = ['jams','cap','cap','cov','cell','mono','cell','cell','cell','cell','rule','mono','cell','cell','cell','cell','rule'];
-  let soBody = xlHdr(["JAMS Field", fsm+" Field","Sample Value","Coverage","Notes",
+  let soBody = xlHdr(["JAMS Field", fsm+" Field","Sample Value","Status","Notes",
     "INT-21 Canonical","Type","Mandatory","Cond Msg Type","Transformation","Business Rule",
     "INT-22 Canonical","Type","Mandatory","Cond Msg Type","Transformation","Business Rule"]);
   ROWS.forEach((r,i)=>{ const row=so.rows[i]; const d21=defOf(DEF21,r.c21), d22=defOf(DEF22,r.c22);
@@ -1859,7 +1903,7 @@ function exportAllExcel(){
   const ioW = [110,90,175,58,120,120,200,82,58,150,290];
   const inStyle  = ['cap','cap','mono','cell','cell','cell','mono','cell','cov','cell','rule'];
   const outStyle = ['mono','mono','cell','rule','cap'];
-  const inHdr  = [fsm+" Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Notes","Business Rule"];
+  const inHdr  = [fsm+" Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Status","Notes","Business Rule"];
   const outHdr = ["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport"];
 
   let prBody = xlHdr(inHdr);
