@@ -70,10 +70,14 @@
   .cmeta{font-size:10.5px; color:#5a6472; margin-top:4px; font-weight:600;}
   .crule{font-size:10.5px; color:#666; margin-top:3px; line-height:1.4;}
   .canon-empty{color:#b6bdc7; text-align:center;}
-  input.field-input{
-    width:100%; min-width:160px; border:1px solid #cbd5e1; border-radius:4px; padding:5px 6px; font-size:12.5px; font-family:inherit;
+  .field-input{
+    width:100%; min-width:140px; box-sizing:border-box; display:block;
+    border:1px solid #cbd5e1; border-radius:4px; padding:5px 6px; font-size:12.5px; font-family:inherit;
+    line-height:1.4; resize:vertical; min-height:32px; white-space:pre-wrap; word-break:break-word;
+    overflow-wrap:anywhere; overflow:hidden; field-sizing:content;
   }
-  input.field-input:focus{outline:2px solid var(--navy2); border-color:var(--navy2);}
+  textarea.field-input{display:block;}
+  .field-input:focus{outline:2px solid var(--navy2); border-color:var(--navy2);}
   select.status-select{
     width:100%; border-radius:4px; padding:5px 4px; font-size:12px; font-weight:600; border:1px solid #cbd5e1;
   }
@@ -787,8 +791,8 @@ function buildRows(){
     const sStatus = sd.status || 'TBC';
     const sCls = (STATUS_OPTS.find(o=>o.v===sStatus)||STATUS_OPTS[0]).cls;
     html += `<td class="jams-col">${esc(r.jams).replace(/\\n/g,'<br>')}</td>`;
-    html += `<td><input class="field-input" id="ff_${rowId}" placeholder="MDFS field name..." value="${escHtml(sd.fsm||'')}" /></td>`;
-    html += `<td><input class="field-input" id="sv_${rowId}" placeholder="Sample value..." value="${escHtml(sd.sample||'')}" /></td>`;
+    html += `<td><textarea class="field-input" id="ff_${rowId}" rows="1" placeholder="MDFS field name...">${escHtml(sd.fsm||'')}</textarea></td>`;
+    html += `<td><textarea class="field-input" id="sv_${rowId}" rows="1" placeholder="Sample value...">${escHtml(sd.sample||'')}</textarea></td>`;
     // INT-21 canonical field + stacked definition
     html += canonCell(r.c21, r.t21, r.m21, r.cm21, defOf(DEF21, r.c21));
     // Status + Notes (mapping status)
@@ -847,7 +851,7 @@ function soOutRowHtml(row, idx, transport){
     <td class="canon-col">${canon}</td>
     <td class="meta">${transform}</td>
     <td class="meta">${rule}</td>
-    <td><input class="field-input" id="sot_${idx}" placeholder="Capture transport..." value="${(transport||'').replace(/"/g,'&quot;')}"></td>
+    <td><textarea class="field-input" id="sot_${idx}" rows="1" placeholder="Capture transport...">${escHtml(transport||'')}</textarea></td>
   </tr>`;
 }
 function renderSoOut(transports){
@@ -969,7 +973,7 @@ const tabMatrix = document.getElementById('tabMatrix');
 const tabWorksheet = document.getElementById('tabWorksheet');
 const ALL_TAB_BTNS = [tabBtnMapping, tabBtnProc, tabBtnStock, tabBtnMatrix, tabBtnWorksheet];
 const ALL_TAB_PAGES = [tabMapping, tabProc, tabStock, tabMatrix, tabWorksheet];
-function fitNotesIn(scope){ (scope||document).querySelectorAll('textarea.notes-input').forEach(t=>{ t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; }); }
+function fitNotesIn(scope){ (scope||document).querySelectorAll('textarea.notes-input, textarea.field-input').forEach(t=>{ t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; }); }
 function activateTab(btn, page){
   ALL_TAB_BTNS.forEach(b => b.classList.remove('active'));
   ALL_TAB_PAGES.forEach(p => p.classList.remove('active'));
@@ -979,7 +983,7 @@ function activateTab(btn, page){
 }
 document.addEventListener('input', e=>{
   const t=e.target;
-  if(t && t.tagName==='TEXTAREA' && t.classList.contains('notes-input')){ t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; }
+  if(t && t.tagName==='TEXTAREA' && (t.classList.contains('notes-input')||t.classList.contains('field-input'))){ t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; }
 });
 tabBtnMapping.addEventListener('click', () => activateTab(tabBtnMapping, tabMapping));
 tabBtnProc.addEventListener('click', () => activateTab(tabBtnProc, tabProc));
@@ -1018,8 +1022,8 @@ const procOutBody = document.getElementById('procOutBody');
 function procInRowHtml(row, idx, fsmField, status, notes, sampleValue){
   const [canon, type, mandCanon, reqFsm, s4hc, transform, rule] = row;
   return `<tr data-procrow="${idx}" data-level="${lvlOf(canon)}" data-mand="${mandCanon==='Yes'?'1':'0'}">
-    <td><input class="field-input" id="pf_${idx}" placeholder="MDFS field name..." value="${(fsmField||'').replace(/"/g,'&quot;')}"></td>
-    <td><input class="field-input" id="psv_${idx}" placeholder="Sample value..." value="${(sampleValue||'').replace(/"/g,'&quot;')}"></td>
+    <td><textarea class="field-input" id="pf_${idx}" rows="1" placeholder="MDFS field name...">${escHtml(fsmField||'')}</textarea></td>
+    <td><textarea class="field-input" id="psv_${idx}" rows="1" placeholder="Sample value...">${escHtml(sampleValue||'')}</textarea></td>
     ${ioCanonCell(canon, type, mandCanon, reqFsm, s4hc, transform, rule)}
     <td><select class="status-select ${status==='TBC'?'tbc':status.toLowerCase()}" id="ps_${idx}">
       ${STATUS_OPTS.map(o=>`<option value="${o.v}" ${o.v===status?'selected':''}>${o.label}</option>`).join("")}
@@ -1031,7 +1035,7 @@ function procOutRowHtml(row, idx, transport){
   const [s4hc, canon, transform, rule] = row;
   return `<tr data-procoutrow="${idx}">
     ${outCanonCell(s4hc, canon, transform, rule)}
-    <td><input class="field-input" id="pot_${idx}" placeholder="Capture transport..." value="${(transport||'').replace(/"/g,'&quot;')}">${commentBtn('prout:'+idx,'Procurement · INT-23 (out)', canon)}</td>
+    <td><textarea class="field-input" id="pot_${idx}" rows="1" placeholder="Capture transport...">${escHtml(transport||'')}</textarea>${commentBtn('prout:'+idx,'Procurement · INT-23 (out)', canon)}</td>
   </tr>`;
 }
 
@@ -1198,7 +1202,7 @@ function stockOutRowHtml(row, idx, transport){
   const [s4hc, canon, transform, rule] = row;
   return `<tr>
     ${outCanonCell(s4hc, canon, transform, rule)}
-    <td><input class="field-input" id="kot_${idx}" placeholder="Capture transport..." value="${(transport||'').replace(/"/g,'&quot;')}">${commentBtn('stout:'+idx,'Stock Consumption (out)', canon)}</td>
+    <td><textarea class="field-input" id="kot_${idx}" rows="1" placeholder="Capture transport...">${escHtml(transport||'')}</textarea>${commentBtn('stout:'+idx,'Stock Consumption (out)', canon)}</td>
   </tr>`;
 }
 
@@ -1206,8 +1210,8 @@ function stockRowHtml(row, idx, fsmField, status, sampleValue, notes){
   const [canon, type, mandCanon, reqFsm, s4hc, transform, rule] = row;
   const cls = status==='TBC' ? 'tbc' : (STATUS_OPTS.find(o=>o.v===status)||STATUS_OPTS[0]).cls;
   return `<tr data-level="${lvlOf(canon)}" data-mand="${mandCanon==='Yes'?'1':'0'}">
-    <td><input class="field-input" id="kf_${idx}" placeholder="MDFS field name..." value="${(fsmField||'').replace(/"/g,'&quot;')}"></td>
-    <td><input class="field-input" id="ksv_${idx}" placeholder="Sample value..." value="${(sampleValue||'').replace(/"/g,'&quot;')}"></td>
+    <td><textarea class="field-input" id="kf_${idx}" rows="1" placeholder="MDFS field name...">${escHtml(fsmField||'')}</textarea></td>
+    <td><textarea class="field-input" id="ksv_${idx}" rows="1" placeholder="Sample value...">${escHtml(sampleValue||'')}</textarea></td>
     ${ioCanonCell(canon, type, mandCanon, reqFsm, s4hc, transform, rule)}
     <td><select class="status-select ${cls}" id="ks_${idx}">
       ${STATUS_OPTS.map(o=>`<option value="${o.v}" ${o.v===status?'selected':''}>${o.label}</option>`).join("")}
