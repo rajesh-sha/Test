@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ellipse Refresh Cockpit</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --panel:#ffffff; --ink:#12151c; --muted:#5b6472; --line:#e2e6ec;
+    --accent:#2f6df6; --accent-ink:#fff;
+    --missing:#c2410c; --missing-bg:#fff1e8;
+    --stale:#a16207; --stale-bg:#fff8e1;
+    --orphan:#7c3aed; --orphan-bg:#f3ecff;
+    --event:#0369a1; --event-bg:#e6f4fb;
+    --ok:#15803d; --ok-bg:#e9f7ee;
+    --hold:#334155; --hold-bg:#eef1f5;
+    --shadow:0 1px 2px rgba(16,22,40,.06),0 6px 20px rgba(16,22,40,.06);
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0e1117; --panel:#161b22; --ink:#e6edf3; --muted:#9aa4b2; --line:#26303c;
+      --accent:#4b86ff; --missing:#fb923c; --missing-bg:#2a1a10;
+      --stale:#eab308; --stale-bg:#2a2410; --orphan:#c084fc; --orphan-bg:#241833;
+      --event:#38bdf8; --event-bg:#0d2230; --ok:#4ade80; --ok-bg:#0f2417;
+      --hold:#cbd5e1; --hold-bg:#1b222c;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 22px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1117; --panel:#161b22; --ink:#e6edf3; --muted:#9aa4b2; --line:#26303c;
+    --accent:#4b86ff; --missing:#fb923c; --missing-bg:#2a1a10; --stale:#eab308; --stale-bg:#2a2410;
+    --orphan:#c084fc; --orphan-bg:#241833; --event:#38bdf8; --event-bg:#0d2230;
+    --ok:#4ade80; --ok-bg:#0f2417; --hold:#cbd5e1; --hold-bg:#1b222c;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 22px rgba(0,0,0,.35);
+  }
+  :root[data-theme="light"]{
+    --bg:#f6f7f9; --panel:#fff; --ink:#12151c; --muted:#5b6472; --line:#e2e6ec; --accent:#2f6df6;
+    --missing:#c2410c; --missing-bg:#fff1e8; --stale:#a16207; --stale-bg:#fff8e1;
+    --orphan:#7c3aed; --orphan-bg:#f3ecff; --event:#0369a1; --event-bg:#e6f4fb;
+    --ok:#15803d; --ok-bg:#e9f7ee; --hold:#334155; --hold-bg:#eef1f5;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:24px 20px 80px}
+  header.top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+  h1{font-size:22px;margin:0;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:13.5px;margin:2px 0 0}
+  .ver{font:600 11px var(--mono);color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 9px;white-space:nowrap}
+  .themebtn{cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:12.5px}
+  .concept{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0 22px}
+  .concept .step{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow)}
+  .concept .step b{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+  .concept .step span{font-size:13px;color:var(--muted)}
+  .concept .arrow{align-self:center;color:var(--muted);font-size:18px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);margin:16px 0;overflow:hidden}
+  .sec-h{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer}
+  .sec-h h2{font-size:15px;margin:0}
+  .sec-h .hint{font-size:12.5px;color:var(--muted)}
+  .sec-b{padding:16px 18px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  @media(max-width:860px){.grid3{grid-template-columns:1fr}}
+  .obj{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .obj h3{margin:0;font-size:13.5px;padding:10px 12px;background:var(--bg);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .obj h3 small{font:600 10.5px var(--mono);color:var(--muted)}
+  .obj .body{padding:10px 12px}
+  label.fld{display:block;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:8px 0 3px}
+  textarea{width:100%;min-height:90px;resize:vertical;font:12px/1.45 var(--mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px}
+  .row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+  .row .k{font-size:11.5px;color:var(--muted)}
+  input.key{font:12px var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:5px 7px;color:var(--ink);width:130px}
+  button.run{cursor:pointer;background:var(--accent);color:var(--accent-ink);border:0;border-radius:9px;padding:10px 16px;font-weight:600;font-size:13.5px}
+  button.ghost{cursor:pointer;background:transparent;color:var(--accent);border:1px solid var(--line);border-radius:9px;padding:9px 14px;font-size:13px;font-weight:600}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center}
+  /* result cards */
+  .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:2px 0 14px}
+  @media(max-width:720px){.cards{grid-template-columns:repeat(2,1fr)}}
+  .card{border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+  .card .n{font-size:22px;font-weight:700;line-height:1}
+  .card .t{font-size:11px;letter-spacing:.03em;text-transform:uppercase;margin-top:4px}
+  .c-missing{background:var(--missing-bg)} .c-missing .n,.c-missing .t{color:var(--missing)}
+  .c-stale{background:var(--stale-bg)} .c-stale .n,.c-stale .t{color:var(--stale)}
+  .c-orphan{background:var(--orphan-bg)} .c-orphan .n,.c-orphan .t{color:var(--orphan)}
+  .c-event{background:var(--event-bg)} .c-event .n,.c-event .t{color:var(--event)}
+  .c-ok{background:var(--ok-bg)} .c-ok .n,.c-ok .t{color:var(--ok)}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .tw{overflow-x:auto}
+  th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:top;white-space:nowrap}
+  th{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);position:sticky;top:0;background:var(--panel)}
+  td.wrap{white-space:normal;min-width:240px}
+  .pill{display:inline-block;font:600 10.5px var(--mono);padding:2px 7px;border-radius:999px}
+  .p-missing{background:var(--missing-bg);color:var(--missing)}
+  .p-stale{background:var(--stale-bg);color:var(--stale)}
+  .p-orphan{background:var(--orphan-bg);color:var(--orphan)}
+  .p-event{background:var(--event-bg);color:var(--event)}
+  .p-ok{background:var(--ok-bg);color:var(--ok)}
+  .p-hold{background:var(--hold-bg);color:var(--hold)}
+  code{font:12px var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+  /* gates */
+  .gate{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;margin:10px 0}
+  .gate .lamp{width:12px;height:12px;border-radius:50%;flex:none}
+  .gate.pass .lamp{background:var(--ok)} .gate.block .lamp{background:var(--missing)} .gate.idle .lamp{background:var(--muted)}
+  .gate .g-body{flex:1}
+  .gate .g-title{font-weight:600;font-size:13.5px}
+  .gate .g-sub{font-size:12px;color:var(--muted)}
+  .gate .g-tag{font:600 11px var(--mono)}
+  .gate.pass .g-tag{color:var(--ok)} .gate.block .g-tag{color:var(--missing)} .gate.idle .g-tag{color:var(--muted)}
+  details.cap summary{cursor:pointer;font-size:12.5px;color:var(--muted);padding:2px 0}
+  .muted{color:var(--muted)} .small{font-size:12px}
+  .note{font-size:12px;color:var(--muted);background:var(--bg);border:1px dashed var(--line);border-radius:8px;padding:9px 11px;margin-top:12px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-top:6px}
+  .legend span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:middle}
+  .lg-m::before{background:var(--missing)} .lg-s::before{background:var(--stale)} .lg-o::before{background:var(--orphan)} .lg-e::before{background:var(--event)} .lg-k::before{background:var(--ok)}
+  .envrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  select#envSel{font:600 13px var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--ink)}
+  .envbanner{font-size:12.5px;padding:7px 11px;border-radius:8px;flex:1;min-width:240px}
+  .envbanner.ok{background:var(--ok-bg);color:var(--ok)}
+  .envbanner.warn{background:var(--stale-bg);color:var(--stale)}
+  .envbanner.block{background:var(--missing-bg);color:var(--missing)}
+  .assume{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:2px 0 14px}
+  .assume label{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .assume input{width:82px;font:12px var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:5px 7px;color:var(--ink)}
+  .eff-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:2px 0 14px}
+  @media(max-width:720px){.eff-cards{grid-template-columns:1fr}}
+  .eff-card{border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;background:var(--bg)}
+  .eff-card .n{font-size:26px;font-weight:700;line-height:1;color:var(--accent)}
+  .eff-card .t{font-size:11.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);margin-top:5px}
+  .eff-card .u{font-size:12px;color:var(--muted)}
+  .flow{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap;margin:2px 0 16px}
+  .flow .node{flex:1;min-width:190px;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg)}
+  .flow .node b{font-size:12.5px} .flow .node .d{font-size:11.5px;color:var(--muted);margin-top:4px;white-space:normal}
+  .flow .node.src{border-left:3px solid var(--event)} .flow .node.hub{border-left:3px solid var(--accent)} .flow .node.tgt{border-left:3px solid var(--ok)}
+  .flow .fa{align-self:center;color:var(--muted);font-size:20px}
+  .conn{display:grid;grid-template-columns:130px 1fr;gap:8px 10px;align-items:center;margin:6px 0 12px;max-width:640px}
+  .conn label{font-size:12px;color:var(--muted)} .conn input{font:12px var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;color:var(--ink)}
+  pre.tmpl{font:11.5px/1.55 var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow-x:auto;white-space:pre;color:var(--ink);margin:6px 0}
+  pre.tmpl .c{color:var(--muted)} pre.tmpl .v{color:var(--accent)}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Ellipse Refresh Cockpit</h1>
+      <p class="sub">SF EC → Ellipse pre-flight · ACUTE-014 (Org) / 015 (Position) / 001 (Employee) · diff → classify → route → gate</p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span class="ver">PROTOTYPE v1 · zero-dependency</span>
+      <button class="themebtn" id="themeBtn" title="Toggle theme">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="concept">
+    <div class="step"><b>1 · Diff</b><span>Join EC current-state against Ellipse current-state on the natural key.</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><b>2 · Classify</b><span>Bucket every record: Missing · Stale · Orphaned · Event-history.</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><b>3 · Route</b><span>Each class → the correct Ellipse verb, with guardrails baked in.</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><b>4 · Gate</b><span>Org → Position → Employee, hard-gated on zero unexplained drift.</span></div>
+  </div>
+
+  <!-- INPUT -->
+  <section>
+    <div class="sec-h" data-toggle><h2>1 · Reconciliation input</h2><span class="hint">Paste CSV extracts (header row required). Sample data pre-loaded.</span></div>
+    <div class="sec-b">
+      <div class="envrow">
+        <span class="k" style="font-weight:600;font-size:12px">Target environment</span>
+        <select id="envSel">
+          <option>Dev</option><option selected>SIT</option><option>UAT</option><option>Production</option>
+        </select>
+        <span id="envBanner" class="envbanner"></span>
+      </div>
+      <div class="envrow" style="margin-top:-2px">
+        <span class="k" style="font-weight:600;font-size:12px">Interface connection</span>
+        <input class="key" id="g_ec" style="width:220px" placeholder="EC base URL">
+        <input class="key" id="g_is" style="width:300px" placeholder="SAP IS endpoint">
+        <input class="key" id="g_since" style="width:150px" placeholder="delta 'since'">
+        <span class="small muted">feeds Section 5 payloads &amp; templates · saved to this browser</span>
+      </div>
+      <div class="grid3" id="inputs"></div>
+      <div class="actions">
+        <button class="run" id="classifyBtn">Classify drift &amp; route</button>
+        <button class="ghost" id="sampleBtn">Reset to sample data</button>
+        <button class="ghost" id="clearBtn">Clear all</button>
+        <span class="small muted" id="parseMsg"></span>
+      </div>
+      <div class="note">
+        <b>Model.</b> These interfaces are delta, verb-routed, <b>not</b> idempotent upserts. A blind full replay fails on duplicate creates,
+        fails on modify-where-missing, and cannot delete employees. This tool classifies drift first so each record goes to the right verb —
+        turning the static runsheet into an executable pre-flight. Event-history drift (transfers/terminations/HD mid-window) can't be derived
+        from current state alone; it is surfaced as Class D for case-by-case handling.
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="resultSec" class="hidden">
+    <div class="sec-h" data-toggle><h2>2 · Classified drift &amp; routed actions</h2><span class="hint">Guardrails enforced per class · export below</span></div>
+    <div class="sec-b" id="resultBody"></div>
+  </section>
+
+  <!-- GATES -->
+  <section id="gateSec" class="hidden">
+    <div class="sec-h" data-toggle><h2>3 · Sequenced runsheet (hard gates)</h2><span class="hint">Do not start a phase until the prior phase reconciles clean</span></div>
+    <div class="sec-b" id="gateBody"></div>
+  </section>
+
+  <!-- EFFORT -->
+  <section id="effortSec" class="hidden">
+    <div class="sec-h" data-toggle><h2>4 · Effort &amp; runtime estimate</h2><span class="hint">Best-effort planning model — driven by the classified counts &amp; environment</span></div>
+    <div class="sec-b" id="effortBody"></div>
+  </section>
+
+  <!-- EMIT -->
+  <section id="emitSec" class="hidden">
+    <div class="sec-h" data-toggle><h2>5 · Emit interface payloads — feed to Ellipse</h2><span class="hint">Turn routed drift into the messages the iFlow posts</span></div>
+    <div class="sec-b" id="emitBody"></div>
+  </section>
+
+  <!-- CAPABILITY REFERENCE -->
+  <section>
+    <div class="sec-h" data-toggle><h2>Capability &amp; verb-routing reference</h2><span class="hint">21 Ellipse files · from the mapping workbook</span></div>
+    <div class="sec-b">
+      <div class="tw"><table id="capTable"></table></div>
+      <p class="small muted" style="margin-top:10px">OI-n = Open Items tab · CI-n = Clarification Items tab. Exclusions in scope: rehire (OI-5, held), suspension (CI-6, out — LWOP), physical location (out — defaulted), contested position fields (CI-18/19/21/22).</p>
+    </div>
+  </section>
+
+  <footer class="small muted" style="text-align:center;margin-top:24px">
+    Standalone HTML · no network, no dependencies · grounded in Ellipse–SF Mapping Specification (File Mechanisms, Index) &amp; Refresh Runsheet v0.2
+  </footer>
+</div>
+
+<script>
+/* ---------------- Capability matrix (from mapping workbook) ---------------- */
+const CAP=[
+ ["ACUTE-014","#01 Table Files (MSM010)","MSM010B screen svc","Re-send org codes","Yes*","Re-sendable; verify update not duplicate (align EC externalCode)."],
+ ["ACUTE-014","#02 PRC Codes (MSM80P)","MSM80PB screen svc","Re-send PRC hierarchy","Yes*","Send full hierarchy top-down; parents first. PRC cannot be delimited (NA)."],
+ ["ACUTE-015","#03 Create Position","MSM870A/B","Recreate missing","Partial","Missing only; re-create on existing errors."],
+ ["ACUTE-015","#04 Position Attributes","MSM870B","Re-align stale","Yes*","Modify path. Table order A→B→dependents."],
+ ["ACUTE-015","#05 Position Details","MSM8PAA","Re-align stale","Yes*","Old tech; award/rate contested (CI-18/19)."],
+ ["ACUTE-015","#06 Position Evaluation","MSM8PCA","Re-align stale","Yes*","Eval date/reason contested (CI-21)."],
+ ["ACUTE-015","#07 Position Costing","MSM8PUA","Re-align stale","Yes*","Costing logic pending (CI-22)."],
+ ["ACUTE-015","#08 Insert Position","PosnHierarchy.insertPosition","Rebuild links","Partial","Parent (FL) must exist; top-down by level."],
+ ["ACUTE-015","#09 Modify Position","PosnHierarchy.modPosition","Re-point / delimit","Yes*","Also on parent update. Orphan removal via #09+#04 (CI-46)."],
+ ["ACUTE-015","#10 Delete Position","PosnHierarchy.deletePosition","—","No","CI-46 Closed: removal handled via Modify Position (#09+#04), not #10."],
+ ["ACUTE-001","#11 Create Employee","Employee.create","Recreate missing","Partial","Missing only; duplicate create errors (TC6). High call volume — throttle."],
+ ["ACUTE-001","#12 Modify Employee","Employee.modify","Re-align stale","Yes*","Best-fit refresh verb. Current state only, no history."],
+ ["ACUTE-001","#13 Transfer Employee","Employee.transferPosition","Corrective transfer","Caution","Event-reason driven; refresh≠event. Class D, per-case (Gary)."],
+ ["ACUTE-001","#14 Terminate Employee","Employee.transferPosition","Re-apply missed term","Caution","Term date = actual last date (CI-2). Class D."],
+ ["ACUTE-001","#15 Reactivate Employee","Employee.transferPosition","Rehire","No — hold","Rehire design pending OI-5. Exclude."],
+ ["ACUTE-001","#16 Suspend Employee","Employee.transferPosition","—","No","Not required (CI-6) — LWOP."],
+ ["ACUTE-001","#17 Physical Location Trf","MSM829 screen svc","—","No","No longer required — field defaulted."],
+ ["ACUTE-001","#18–#20 Emp Position","Create/Mod/Del Emp Position","Re-align HD","Caution","HD modify=end-date only; other changes = delete+recreate. Class D."],
+ ["ACUTE-001","#21 Reference Codes","MSE81S_RC screen svc","CW extra info","Yes*","Sent with #11 for contractors (CW)."],
+ ["ALL","Delete/delimit employees","n/a","Remove orphans","No","NA in Ellipse — manual correction / env reload."],
+];
+function renderCap(){
+  const t=document.getElementById('capTable');
+  t.innerHTML='<thead><tr><th>Interface</th><th>File</th><th>Ellipse service</th><th>Refresh use</th><th>Supports?</th><th>Condition</th></tr></thead>'+
+   '<tbody>'+CAP.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="muted">${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td class="wrap muted">${r[5]}</td></tr>`).join('')+'</tbody>';
+}
+
+/* ---------------- Object config ---------------- */
+const OBJ=[
+ {id:'org', name:'Org', iface:'ACUTE-014', key:'externalCode',
+  compare:['description'],
+  sampleEC:`externalCode,description\nORG100,Executive\nORG110,Operations\nORG120,Finance\nORG130,Field Services`,
+  sampleEL:`externalCode,description\nORG100,Executive\nORG110,Operations Division\nORG120,Finance\nORG900,Legacy Unit`},
+ {id:'pos', name:'Position', iface:'ACUTE-015', key:'positionId',
+  compare:['title','reportsTo','occupancyStatus'],
+  sampleEC:`positionId,title,reportsTo,occupancyStatus\nPOS200,Ops Manager,POS100,Occupied\nPOS210,Field Tech,POS200,Occupied\nPOS220,Analyst,POS120,Occupied\nPOS230,Coordinator,POS200,Occupied`,
+  sampleEL:`positionId,title,reportsTo,occupancyStatus\nPOS200,Ops Manager,POS100,Occupied\nPOS210,Field Technician,POS200,Occupied\nPOS220,Analyst,POS120,Occupied\nPOS900,Old Role,POS100,Occupied`},
+ {id:'emp', name:'Employee', iface:'ACUTE-001', key:'personIdExternal',
+  compare:['name','positionId','workerType'], eventField:'positionId', cwField:'workerType',
+  sampleEC:`personIdExternal,name,positionId,workerType\nE1001,Alice Ng,POS200,Employee\nE1002,Bob Rai,POS210,Employee\nE1003,Cara Lim,POS220,Contractor\nE1004,Dan Osei,POS230,Employee`,
+  sampleEL:`personIdExternal,name,positionId,workerType\nE1001,Alice Ng,POS200,Employee\nE1002,Bob Rai,POS999,Employee\nE1003,Cara Lim,POS220,Contractor\nE1900,Zed Old,POS100,Employee`},
+];
+
+/* ---------------- Verb routing ---------------- */
+function route(objId,cls,rec){
+  const R={verb:'',files:'',guard:'',pill:''};
+  if(objId==='org'){
+    if(cls==='Missing'){R.verb='Re-send';R.files='#01 → #02';R.guard='Send codes top-down; verify insert-or-update';}
+    else if(cls==='Stale'){R.verb='Re-send';R.files='#02';R.guard='Description/hierarchy update';}
+    else if(cls==='Orphaned'){R.verb='Log — no delete';R.files='n/a';R.guard='PRC cannot be delimited (NA). Manual review.';}
+  }else if(objId==='pos'){
+    if(cls==='Missing'){R.verb='Create';R.files='#03 → #04-07 → #08';R.guard='Create only; #08 insert top-down after parent exists';}
+    else if(cls==='Stale'){R.verb='Modify';R.files='#04-07, #09';R.guard='Exclude contested fields CI-18/19/21/22 unless accepted';}
+    else if(cls==='Orphaned'){R.verb='Delimit via Modify';R.files='#09 (Superior→DeletedCOR) + #04 (Occupancy=D)';R.guard='CI-46: not via #10. Business confirm per orphan.';}
+  }else if(objId==='emp'){
+    if(cls==='Missing'){R.verb='Create';R.files='#11'+(rec._cw?' + #21 (CW)':'');R.guard='Duplicate create errors (TC6). Throttle batch — high call volume.';}
+    else if(cls==='Stale'){R.verb='Modify';R.files='#12';R.guard='Touch-update / widened delta. Current state only.';}
+    else if(cls==='Event'){R.verb='Corrective transfer';R.files='#13 / #14 / #18-20';R.guard='Class D: refresh≠event. Per-case with agreed event reason (Gary).';}
+    else if(cls==='Orphaned'){R.verb='No delete path';R.files='manual';R.guard='NA in Ellipse — manual correction / env reload list.';}
+  }
+  return R;
+}
+
+/* ---------------- Environments & effort model ---------------- */
+function store(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+function load(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+let ENV=load('acute_env')||'SIT';
+const ASSUME={hoursPerDay:8, callsPerMin:75};
+const ENVS={
+ Dev:{mult:0.7, tone:'ok', replay:'Allowed — build/debug', freeze:'Light — no formal freeze', approve:'Team',
+      note:'Interface replay used freely to build and debug. Minimal governance; snapshot optional.'},
+ SIT:{mult:1.0, tone:'ok', replay:'Allowed — baseline path', freeze:'Formal freeze + restore point', approve:'Integration lead',
+      note:'The baseline case this cockpit is built for: freeze → snapshot → reconcile → replay → verify → release.'},
+ UAT:{mult:1.15, tone:'warn', replay:'Allowed — with test-lead sign-off', freeze:'Strict freeze; coordinate with the test cycle', approve:'Test lead (Sushant) + integration lead',
+      note:'Business-facing. Must not disrupt an active UAT cycle. Stricter sign-off, data-handling and evidence.'},
+ Production:{mult:1.6, tone:'block', replay:'NOT sanctioned via these interfaces', freeze:'CAB change window', approve:'CAB / change control',
+      note:'The interfaces are DELTA; the design assumes prod Ellipse is kept current by BAU deltas. Prod data alignment is a migration / incident-CR activity, not ad-hoc interface replay. Use this cockpit for SIT/UAT — raise a CR for any prod correction.'}
+};
+// per-record human effort (person-hours) to handle/triage a drift record of this class
+const HUMAN={Missing:0.15, Stale:0.10, Event:1.0, Orphaned:0.30};
+// Ellipse calls per record (drives elapsed run / lock window) — from File Mechanisms
+const CALLS={org:{Missing:6,Stale:4,Orphaned:0}, pos:{Missing:18,Stale:10,Orphaned:8}, emp:{Missing:54,Stale:8,Event:12,Orphaned:0}};
+const FIXED={'Freeze & baseline':8,'Reconcile (base)':12,'Decide path':4,'Verify & release':12};
+
+function updateEnvBanner(){
+  const e=ENVS[ENV], b=document.getElementById('envBanner');
+  b.className='envbanner '+e.tone;
+  b.innerHTML=`<b>${ENV} — replay ${e.replay}.</b> ${e.note}`;
+}
+function renderEffort(){
+  if(!Object.keys(LAST).length) return;
+  const e=ENVS[ENV], A=ASSUME;
+  let recTotal=0, driftHuman=0, callsTotal=0, drows=[];
+  OBJ.forEach(o=>{const res=LAST[o.id]; if(!res)return; recTotal+=res.length;
+    ['Missing','Stale','Event','Orphaned'].forEach(cls=>{
+      const n=res.filter(r=>r.cls===cls).length; if(!n)return;
+      const h=(HUMAN[cls]||0)*n, calls=((CALLS[o.id]||{})[cls]||0)*n;
+      driftHuman+=h; callsTotal+=calls; drows.push([o.name,cls,n,h,calls]);
+    });
+  });
+  const reconVar=0.02*recTotal;
+  const fixedSum=Object.values(FIXED).reduce((a,b)=>a+b,0);
+  const humanBase=fixedSum+reconVar+driftHuman;
+  const human=humanBase*e.mult, pd=human/(A.hoursPerDay||8);
+  const secPerCall=60/(A.callsPerMin||75), elapsedH=callsTotal*secPerCall/3600;
+
+  const fixedRows=Object.entries(FIXED).map(([k,v])=>`<tr><td>${k}</td><td class="muted">fixed</td><td class="muted">—</td><td>${v.toFixed(1)}</td><td class="muted">—</td></tr>`).join('');
+  const recRow=`<tr><td>Reconcile (per record)</td><td class="muted">variable</td><td>${recTotal}</td><td>${reconVar.toFixed(1)}</td><td class="muted">—</td></tr>`;
+  const driftRows=drows.map(r=>`<tr><td>${r[0]}</td><td><span class="pill ${classNamePill(r[1])}">${r[1]}</span></td><td>${r[2]}</td><td>${r[3].toFixed(1)}</td><td class="muted">${r[4]||'—'}</td></tr>`).join('');
+
+  document.getElementById('effortBody').innerHTML=`
+    <div class="assume">
+      <label>Working hours / day <input id="a_hpd" type="number" min="1" step="0.5" value="${A.hoursPerDay}"></label>
+      <label>Ellipse throughput (calls/min) <input id="a_cpm" type="number" min="1" step="5" value="${A.callsPerMin}"></label>
+      <label class="muted">Governance factor ×${e.mult} (${ENV})</label>
+    </div>
+    <div class="eff-cards">
+      <div class="eff-card"><div class="n">${pd.toFixed(1)}</div><div class="t">Human effort</div><div class="u">person-days · ${ENV}</div></div>
+      <div class="eff-card"><div class="n">${elapsedH.toFixed(1)}</div><div class="t">Ellipse run / lock window</div><div class="u">hours · ${callsTotal.toLocaleString()} calls</div></div>
+      <div class="eff-card"><div class="n">${recTotal.toLocaleString()}</div><div class="t">Records processed</div><div class="u">reconciled this cycle</div></div>
+    </div>
+    <div class="tw"><table><thead><tr><th>Activity</th><th>Type</th><th>Records</th><th>Person-hours</th><th>Ellipse calls</th></tr></thead>
+      <tbody>${fixedRows}${recRow}${driftRows}
+      <tr style="font-weight:700"><td>Subtotal</td><td class="muted">before env factor</td><td></td><td>${humanBase.toFixed(1)}</td><td>${callsTotal.toLocaleString()}</td></tr>
+      <tr style="font-weight:700"><td>${ENV} total</td><td class="muted">×${e.mult} governance</td><td></td><td>${human.toFixed(1)} ph = ${pd.toFixed(1)} pd</td><td>${elapsedH.toFixed(1)} h window</td></tr>
+      </tbody></table></div>
+    <div class="note"><b>Environment deltas.</b> Replay: <b>${e.replay}</b> · Freeze: ${e.freeze} · Approval: ${e.approve}.${ENV==='Production'?' <b style="color:var(--missing)">Production alignment = migration / change-control, not interface replay — raise a CR to Eshan (Risk 9 / CI-…).</b>':''}</div>
+    <div class="note"><b>Basis — best-effort planning model, tune before committing.</b> Ellipse calls/record from File Mechanisms (sequential screen services; employee create up to ~54 calls/record over 12 screens). Human rates are planning assumptions: create ${HUMAN.Missing}h, modify ${HUMAN.Stale}h, event-history / Class D per-case with Gary ${HUMAN.Event}h, orphan disposition ${HUMAN.Orphaned}h per record; reconcile 0.02h/record + ${fixedSum}h fixed overhead. Human effort is analysis / monitoring / triage — the interface does the writes, not a person. The lock window is the elapsed Ellipse run to agree with Hitachi (Risk 4 / CI-11), not additional person-time. Env factor reflects governance overhead only.</div>`;
+  const hpd=document.getElementById('a_hpd'), cpm=document.getElementById('a_cpm');
+  hpd.onchange=ev=>{ASSUME.hoursPerDay=parseFloat(ev.target.value)||8;renderEffort();};
+  cpm.onchange=ev=>{ASSUME.callsPerMin=parseFloat(ev.target.value)||75;renderEffort();};
+  document.getElementById('effortSec').classList.remove('hidden');
+}
+
+/* ---------------- Interface feed: emit payloads ---------------- */
+// SIT defaults (illustrative — edit in section 5; your values persist to this browser).
+const CONN={ecBase:'https://sit.example.successfactors.eu', isEndpoint:'https://sit.example.it-cpi001.cfapps.eu10.hana.ondemand.com', since:'2000-01-01T00:00:00'};
+(function(){const s=load('acute_conn'); if(s){try{Object.assign(CONN,JSON.parse(s));}catch(e){}}})();
+function saveConn(){store('acute_conn',JSON.stringify(CONN));}
+// per object+class: the Ellipse operation the iFlow performs, and any verb-specific payload fields
+const EMIT={
+ org:{Missing:{op:'create',files:'#01 → #02',svc:'MSM010B / MSM80PB'}, Stale:{op:'modify',files:'#02',svc:'MSM80PB'}},
+ pos:{Missing:{op:'create',files:'#03 → #04-07 → #08',svc:'MSM870B / PosnHierarchy.insertPosition',extra:r=>({parentPosition:(r.rec||{}).reportsTo})},
+      Stale:{op:'modify',files:'#04-07, #09',svc:'MSM870B / PosnHierarchy.modPosition',extra:r=>({superior:(r.rec||{}).reportsTo})},
+      Orphaned:{op:'delimit',files:'#09 + #04',svc:'PosnHierarchy.modPosition / MSM870B',extra:()=>({superior:'DeletedCOR',occupancyStatus:'D'})}},
+ emp:{Missing:{op:'create',files:'#11',svc:'Employee.create'},
+      Stale:{op:'modify',files:'#12',svc:'Employee.modify',changedOnly:true},
+      Event:{op:'transferPosition',files:'#13',svc:'Employee.transferPosition',changedOnly:true,extra:r=>({newPosition:(r.rec||{}).positionId,eventReason:'<<REQUIRED: Gary>>'}),needs:'event reason'}}
+};
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function buildMessages(){
+  const msgs=[];
+  OBJ.forEach((o,oi)=>{const res=LAST[o.id]; if(!res)return;
+    res.forEach(r=>{
+      if(r.cls==='Aligned') return;
+      const cfg=(EMIT[o.id]||{})[r.cls], rec=r.rec||{};
+      if(!cfg){ msgs.push({obj:o.name,iface:o.iface,rankObj:oi,rank:9,cls:r.cls,op:'manual',files:route(o.id,r.cls,r).files,svc:'—',key:r.key,payload:null,note:route(o.id,r.cls,r).guard}); return; }
+      const payload={}; payload[o.key]=r.key;
+      if(cfg.changedOnly && r.diffs && r.diffs.length){ r.diffs.forEach(f=>payload[f]=rec[f]); }
+      else { o.compare.forEach(f=>payload[f]=rec[f]); }
+      if(cfg.extra) Object.assign(payload,cfg.extra(r));
+      let files=cfg.files; if(o.id==='emp'&&r.cls==='Missing'&&r._cw){files='#11 + #21'; payload.referenceCodes='(CW)';}
+      const rank={create:0,delimit:1,modify:2,transferPosition:3}[cfg.op]??5;
+      msgs.push({obj:o.name,iface:o.iface,rankObj:oi,rank,cls:r.cls,op:cfg.op,files,svc:cfg.svc,key:r.key,payload,needs:cfg.needs,note:route(o.id,r.cls,r).guard});
+    });
+  });
+  msgs.sort((a,b)=>(a.rankObj-b.rankObj)||(a.rank-b.rank)||(a.key<b.key?-1:1));
+  msgs.forEach((m,i)=>m.seq=i+1);
+  return msgs;
+}
+function renderEmit(){
+  if(!Object.keys(LAST).length) return;
+  const msgs=buildMessages(), auto=msgs.filter(m=>m.op!=='manual'), manual=msgs.filter(m=>m.op==='manual');
+  const flow=`<div class="flow">
+    <div class="node src"><b>① SF EC — source of truth</b><div class="d">OData <b>delta</b> pull on <code>lastModifiedDateTime</code>. For a full refresh: widen the window or touch-update records so they re-emit.</div></div>
+    <div class="fa">→</div>
+    <div class="node hub"><b>② Cockpit / SAP IS — orchestrator</b><div class="d">Reconcile vs Ellipse current-state → classify → route → <b>emit per-verb messages</b>, sequenced &amp; throttled. Guardrails block mis-routes.</div></div>
+    <div class="fa">→</div>
+    <div class="node tgt"><b>③ Ellipse — target</b><div class="d">EWS per verb: <code>Employee.create/modify/transferPosition</code>, MSM870, MSE875. Its current-state read feeds back into ②.</div></div>
+  </div>`;
+  const ec=CONN.ecBase.replace(/\/$/,''), is=CONN.isEndpoint.replace(/\/$/,'');
+  const sample=auto.find(m=>m.iface==='ACUTE-001')||auto[0];
+  const templates=`<pre class="tmpl"><span class="c"># ① SOURCE — pull EC current-state (widen 'since' for a full refresh)</span>
+GET ${esc(ec)}/odata/v2/<span class="v">EmpEmployment</span>
+    ?$filter=lastModifiedDateTime gt datetime'${esc(CONN.since)}'
+    &$expand=empJobNav,personNav&$format=json
+Authorization: Basic ****</pre>
+<pre class="tmpl"><span class="c"># ③ TARGET — push one routed message via SAP IS iFlow → Ellipse EWS</span>
+POST ${esc(is)}/http/<span class="v">${sample?sample.iface.toLowerCase():'acute-001'}/${sample?sample.op:'Employee.create'}</span>
+Content-Type: application/json
+${sample?esc(JSON.stringify(sample.payload,null,2)):'{ }'}</pre>`;
+  const rows=auto.map(m=>`<tr><td>${m.seq}</td><td>${m.iface}</td><td><span class="pill ${classNamePill(m.cls)}">${m.cls}</span></td><td><b>${m.op}</b></td><td><code>${m.files}</code></td><td><code>${esc(m.key)}</code></td><td class="wrap"><code>${esc(JSON.stringify(m.payload))}</code>${m.needs?' <span class="pill p-hold">needs '+m.needs+'</span>':''}</td></tr>`).join('');
+  const manualRows=manual.length?`<p class="small muted" style="margin-top:14px"><b>${manual.length} record(s) have no interface payload</b> (no verb in Ellipse) — manual correction list:</p><div class="tw"><table><thead><tr><th>Object</th><th>Class</th><th>Key</th><th>Disposition</th></tr></thead><tbody>${manual.map(m=>`<tr><td>${m.obj}</td><td><span class="pill ${classNamePill(m.cls)}">${m.cls}</span></td><td><code>${esc(m.key)}</code></td><td class="wrap muted">${m.note}</td></tr>`).join('')}</tbody></table></div>`:'';
+  document.getElementById('emitBody').innerHTML=flow+`
+    <p class="small muted" style="margin:2px 0 6px"><b>Connection</b> (set at the top — Section 1 · saved to this browser): EC <code>${esc(ec)}</code> · SAP IS <code>${esc(is)}</code> · since <code>${esc(CONN.since)}</code></p>
+    <div class="actions" style="margin-top:0"><button class="ghost" id="fetchBtn">⇅ Try live fetch (EC)</button><span class="small muted" id="emitStatus"></span></div>
+    ${templates}
+    <p class="small muted" style="margin:12px 0 4px"><b>${auto.length} interface message(s)</b> generated from routed drift, in send order (Org → Position → Employee; create → delimit → modify → transfer):</p>
+    <div class="tw"><table><thead><tr><th>#</th><th>Interface</th><th>Class</th><th>Verb</th><th>File(s)</th><th>Key</th><th>Payload</th></tr></thead><tbody>${rows||'<tr><td colspan="7" class="muted">No drift to emit.</td></tr>'}</tbody></table></div>
+    ${manualRows}
+    <div class="actions"><button class="ghost" id="expGrouped">⤓ Export payloads by interface (JSON)</button><button class="ghost" id="expBatch">⤓ Export sequenced batch (JSON)</button></div>
+    <div class="note"><b>How the feed works.</b> This page is the pre-flight + emitter — it does not write to Ellipse itself. It produces the exact per-verb messages SAP IS posts to the Ellipse web services (screen services / <code>PosnHierarchy</code> / <code>Employee</code>), in dependency order, with the throttle/lock window from section 4. Modifies carry only changed fields; transfers (Class D) are emitted with an <code>eventReason</code> placeholder that must be agreed with Gary before send; orphaned employees have no verb and drop to the manual list. Wire the exported batch into the iFlow, or host this page behind SAP IS to enable live fetch/push.</div>`;
+  document.getElementById('fetchBtn').onclick=fetchSource;
+  document.getElementById('expGrouped').onclick=()=>exportPayloads('grouped');
+  document.getElementById('expBatch').onclick=()=>exportPayloads('batch');
+  document.getElementById('emitSec').classList.remove('hidden');
+}
+async function fetchSource(){
+  const s=document.getElementById('emitStatus');
+  if(!CONN.ecBase||CONN.ecBase.includes('<')){s.textContent='Set a real EC base URL first.';s.style.color='var(--stale)';return;}
+  s.textContent='Fetching…'; s.style.color='var(--muted)';
+  try{
+    const u=CONN.ecBase.replace(/\/$/,'')+"/odata/v2/EmpEmployment?$format=json&$filter=lastModifiedDateTime gt datetime'"+encodeURIComponent(CONN.since)+"'";
+    const r=await fetch(u); if(!r.ok) throw new Error('HTTP '+r.status);
+    const j=await r.json(); const n=(j.d&&j.d.results&&j.d.results.length)||0;
+    s.textContent='Fetched '+n+' row(s) — map into the Employee EC box, then Classify.'; s.style.color='var(--ok)';
+  }catch(e){ s.textContent='Fetch blocked here ('+e.message+'). Host behind SAP IS / a CORS-enabled proxy, or use the paste path.'; s.style.color='var(--stale)'; }
+}
+function exportPayloads(kind){
+  const msgs=buildMessages().filter(m=>m.op!=='manual'); let data;
+  if(kind==='grouped'){ data={}; msgs.forEach(m=>{(data[m.iface]=data[m.iface]||[]).push({seq:m.seq,verb:m.op,service:m.svc,files:m.files,key:m.key,payload:m.payload,needs:m.needs||null});}); }
+  else { data=msgs.map(m=>({seq:m.seq,interface:m.iface,verb:m.op,service:m.svc,files:m.files,key:m.key,payload:m.payload,needs:m.needs||null})); }
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(kind==='grouped'?'interface-payloads-by-interface':'interface-payloads-batch')+'.json';a.click();URL.revokeObjectURL(a.href);
+}
+
+/* ---------------- CSV ---------------- */
+function parseCSV(txt){
+  const lines=txt.replace(/\r/g,'').split('\n').filter(l=>l.trim().length);
+  if(!lines.length) return {head:[],rows:[]};
+  const split=l=>{const o=[];let cur='',q=false;for(const ch of l){if(ch=='"'){q=!q;}else if(ch==','&&!q){o.push(cur);cur='';}else cur+=ch;}o.push(cur);return o.map(s=>s.trim());};
+  const head=split(lines[0]);
+  const rows=lines.slice(1).map(l=>{const c=split(l);const o={};head.forEach((h,i)=>o[h]=c[i]??'');return o;});
+  return {head,rows};
+}
+const norm=v=>(v==null?'':String(v)).trim().toLowerCase();
+
+/* ---------------- Classify ---------------- */
+function classify(o,ec,el){
+  const k=o.key, ecM=new Map(), elM=new Map();
+  ec.rows.forEach(r=>ecM.set(r[k],r)); el.rows.forEach(r=>elM.set(r[k],r));
+  const out=[];
+  for(const [key,r] of ecM){
+    if(key===''||key===undefined) continue;
+    const e=elM.get(key);
+    if(!e){out.push({key,cls:'Missing',diffs:[],rec:r,_cw:o.cwField&&norm(r[o.cwField]).startsWith('contr')}); continue;}
+    const diffs=o.compare.filter(f=>norm(r[f])!==norm(e[f]));
+    if(!diffs.length){out.push({key,cls:'Aligned',diffs:[],rec:r});}
+    else if(o.eventField && diffs.includes(o.eventField)){
+      out.push({key,cls:'Event',diffs,rec:r,detail:`${o.eventField}: ${e[o.eventField]} → ${r[o.eventField]}`});
+    }else{
+      out.push({key,cls:'Stale',diffs,rec:r,detail:diffs.map(f=>`${f}: ${e[f]||'∅'} → ${r[f]||'∅'}`).join('; ')});
+    }
+  }
+  for(const [key,r] of elM){ if(key!==''&&!ecM.has(key)) out.push({key,cls:'Orphaned',diffs:[],rec:r}); }
+  return out;
+}
+
+/* ---------------- Render inputs ---------------- */
+function renderInputs(useSample){
+  const host=document.getElementById('inputs'); host.innerHTML='';
+  OBJ.forEach(o=>{
+    const el=document.createElement('div'); el.className='obj';
+    el.innerHTML=`<h3>${o.name} <small>${o.iface}</small></h3>
+      <div class="body">
+        <label class="fld">SF EC — current state (source of truth)</label>
+        <textarea id="ec_${o.id}" spellcheck="false">${useSample?o.sampleEC:''}</textarea>
+        <label class="fld">Ellipse — current state</label>
+        <textarea id="el_${o.id}" spellcheck="false">${useSample?o.sampleEL:''}</textarea>
+        <div class="row"><span class="k">Key</span><input class="key" id="key_${o.id}" value="${o.key}"><span class="k">compare: ${o.compare.join(', ')}</span></div>
+      </div>`;
+    host.appendChild(el);
+  });
+}
+
+/* ---------------- Render results ---------------- */
+let LAST={};
+function classNamePill(c){return {Missing:'p-missing',Stale:'p-stale',Orphaned:'p-orphan',Event:'p-event',Aligned:'p-ok'}[c]||'p-hold';}
+function classCard(c){return {Missing:'c-missing',Stale:'c-stale',Orphaned:'c-orphan',Event:'c-event',Aligned:'c-ok'}[c];}
+
+function renderResults(){
+  const body=document.getElementById('resultBody'); body.innerHTML='';
+  OBJ.forEach(o=>{
+    const res=LAST[o.id]; if(!res) return;
+    const cnt={Missing:0,Stale:0,Orphaned:0,Event:0,Aligned:0};
+    res.forEach(r=>cnt[r.cls]++);
+    const wrap=document.createElement('div'); wrap.style.marginBottom='22px';
+    let cards=`<div class="cards">
+      <div class="card c-missing"><div class="n">${cnt.Missing}</div><div class="t">Missing</div></div>
+      <div class="card c-stale"><div class="n">${cnt.Stale}</div><div class="t">Stale</div></div>
+      <div class="card c-event"><div class="n">${cnt.Event}</div><div class="t">Event-hist</div></div>
+      <div class="card c-orphan"><div class="n">${cnt.Orphaned}</div><div class="t">Orphaned</div></div>
+      <div class="card c-ok"><div class="n">${cnt.Aligned}</div><div class="t">Aligned</div></div></div>`;
+    const drift=res.filter(r=>r.cls!=='Aligned');
+    let rows=drift.map(r=>{
+      const R=route(o.id,r.cls,r);
+      return `<tr>
+        <td><code>${r.key}</code></td>
+        <td><span class="pill ${classNamePill(r.cls)}">${r.cls}</span></td>
+        <td class="wrap muted">${r.detail||(r.cls==='Missing'?'in EC, absent in Ellipse':r.cls==='Orphaned'?'in Ellipse, absent in EC':'')}</td>
+        <td><b>${R.verb}</b></td>
+        <td><code>${R.files}</code></td>
+        <td class="wrap muted">${R.guard}</td>
+      </tr>`;}).join('');
+    if(!drift.length) rows=`<tr><td colspan="6" class="muted">No drift — ${o.name} aligned.</td></tr>`;
+    wrap.innerHTML=`<h3 style="margin:0 0 8px;font-size:14px">${o.name} <span class="muted small">· ${o.iface}</span></h3>${cards}
+      <div class="tw"><table><thead><tr><th>Key</th><th>Class</th><th>Drift detail</th><th>Verb</th><th>File(s)</th><th>Guardrail</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    body.appendChild(wrap);
+  });
+  const act=document.createElement('div'); act.className='actions';
+  act.innerHTML=`<button class="ghost" id="expDrift">⤓ Export drift register (CSV)</button><button class="ghost" id="expActions">⤓ Export routed action list (CSV)</button>`;
+  body.appendChild(act);
+  document.getElementById('expDrift').onclick=()=>exportCSV('drift');
+  document.getElementById('expActions').onclick=()=>exportCSV('actions');
+  document.getElementById('resultSec').classList.remove('hidden');
+}
+
+/* ---------------- Gates ---------------- */
+function renderGates(){
+  const body=document.getElementById('gateBody'); body.innerHTML='';
+  const order=[['org','Phase 3 · Org (ACUTE-014)'],['pos','Phase 4 · Position (ACUTE-015)'],['emp','Phase 5 · Employee (ACUTE-001)']];
+  let priorClean=true;
+  order.forEach(([id,label])=>{
+    const res=LAST[id]||[];
+    const block=res.filter(r=>r.cls==='Missing'||r.cls==='Stale'||r.cls==='Event').length; // auto-actionable drift
+    const orph=res.filter(r=>r.cls==='Orphaned').length;
+    const clean=block===0;
+    let state,tag,sub;
+    if(!priorClean){state='idle';tag='WAITING';sub='Blocked — prior phase not reconciled clean.';}
+    else if(clean){state='pass';tag='READY';sub=`No actionable drift. ${orph?orph+' orphan(s) need disposition before sign-off.':'Proceed.'}`;}
+    else{state='block';tag='ACTION';sub=`${block} record(s) to route${orph?' · '+orph+' orphan(s)':''}. Re-reconcile to zero before next phase.`;}
+    const g=document.createElement('div'); g.className='gate '+state;
+    g.innerHTML=`<div class="lamp"></div><div class="g-body"><div class="g-title">${label}</div><div class="g-sub">${sub}</div></div><div class="g-tag">${tag}</div>`;
+    body.appendChild(g);
+    priorClean = priorClean && clean;
+  });
+  const legend=document.createElement('div'); legend.className='legend';
+  legend.innerHTML=`<span class="lg-m">Missing → create</span><span class="lg-s">Stale → modify</span><span class="lg-e">Event-hist → corrective (Class D)</span><span class="lg-o">Orphaned → manual/delimit</span><span class="lg-k">Aligned → none</span>`;
+  body.appendChild(legend);
+  document.getElementById('gateSec').classList.remove('hidden');
+}
+
+/* ---------------- Export ---------------- */
+function exportCSV(kind){
+  const esc=s=>{s=(s==null?'':String(s));return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
+  let head,rows=[];
+  OBJ.forEach(o=>{(LAST[o.id]||[]).forEach(r=>{
+    if(kind==='actions'&&r.cls==='Aligned') return;
+    const R=route(o.id,r.cls,r);
+    rows.push([o.name,o.iface,r.key,r.cls,r.detail||'',R.verb,R.files,R.guard]);
+  });});
+  head=['Object','Interface','Key','Class','DriftDetail','Verb','Files','Guardrail'];
+  const csv=[head,...rows].map(r=>r.map(esc).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=(kind==='actions'?'routed-actions':'drift-register')+'.csv';a.click();URL.revokeObjectURL(url);
+}
+
+/* ---------------- Run ---------------- */
+function run(){
+  LAST={}; let total=0, bad=[];
+  OBJ.forEach(o=>{
+    const ec=parseCSV(document.getElementById('ec_'+o.id).value);
+    const el=parseCSV(document.getElementById('el_'+o.id).value);
+    o.key=document.getElementById('key_'+o.id).value.trim()||o.key;
+    if(!ec.rows.length&&!el.rows.length) return;
+    if(!ec.head.includes(o.key)||!el.head.includes(o.key)){bad.push(`${o.name}: key "${o.key}" not in both headers`);return;}
+    LAST[o.id]=classify(o,ec,el); total+=LAST[o.id].length;
+  });
+  const msg=document.getElementById('parseMsg');
+  if(bad.length){msg.textContent='⚠ '+bad.join(' · ');msg.style.color='var(--missing)';}
+  else if(!total){msg.textContent='Nothing to classify — paste extracts or load sample.';msg.style.color='var(--muted)';}
+  else{msg.textContent=`Classified ${total} record(s) across ${Object.keys(LAST).length} object(s).`;msg.style.color='var(--muted)';}
+  if(total){renderResults();renderGates();renderEffort();renderEmit();}
+}
+
+/* ---------------- Wire up ---------------- */
+document.getElementById('classifyBtn').onclick=run;
+document.getElementById('sampleBtn').onclick=()=>{renderInputs(true);};
+document.getElementById('clearBtn').onclick=()=>{renderInputs(false);LAST={};document.getElementById('resultSec').classList.add('hidden');document.getElementById('gateSec').classList.add('hidden');document.getElementById('effortSec').classList.add('hidden');document.getElementById('emitSec').classList.add('hidden');document.getElementById('parseMsg').textContent='';};
+document.getElementById('envSel').onchange=ev=>{ENV=ev.target.value;store('acute_env',ENV);updateEnvBanner();renderEffort();};
+document.querySelectorAll('[data-toggle]').forEach(h=>h.onclick=()=>{const b=h.nextElementSibling;b.style.display=b.style.display==='none'?'':'none';});
+document.getElementById('themeBtn').onclick=()=>{
+  const r=document.documentElement;const cur=r.getAttribute('data-theme');
+  const isDark=cur? cur==='dark' : matchMedia('(prefers-color-scheme:dark)').matches;
+  r.setAttribute('data-theme',isDark?'light':'dark');
+};
+// top connection inputs (always visible in section 1) — populate, persist, live-refresh section 5
+function applyConnInputs(){document.getElementById('g_ec').value=CONN.ecBase;document.getElementById('g_is').value=CONN.isEndpoint;document.getElementById('g_since').value=CONN.since;}
+[['g_ec','ecBase'],['g_is','isEndpoint'],['g_since','since']].forEach(([id,k])=>{
+  document.getElementById(id).oninput=e=>{CONN[k]=e.target.value;saveConn();if(!document.getElementById('emitSec').classList.contains('hidden'))renderEmit();};
+});
+renderCap(); renderInputs(true); document.getElementById('envSel').value=ENV; applyConnInputs(); updateEnvBanner(); run();
+</script>
+</body>
+</html>
