@@ -890,7 +890,7 @@ document.getElementById('exportCsv').addEventListener('click', () => {
   body += '<Row></Row>' + xlTitle("OUTBOUND — Service Order status callback (S4HC → FSM)", 6)
         + xlHdr(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport","Comments"]);
   SO_OUT_ROWS.forEach((r,i)=>body += xlData([r[0],r[1],r[2],r[3],state.outRows[i].transport,''], ['mono','mono','cell','rule','cap','rule']));
-  downloadXls(`Apollo_${fsm.replace(/[^a-z0-9]+/gi,'_')}_ServiceOrder_${(state.wsDate||'draft')}.xls`,
+  downloadXls((`${fsm} Canonical Field Mapping - Service Order`).replace(/[\\/:*?"<>|]/g,'-')+'.xls',
     xlWorkbook(xlSheet("Service Order INT-21+22", W, body)));
 });
 
@@ -1078,7 +1078,7 @@ document.getElementById('procExportCsv').addEventListener('click', () => {
   body += '<Row></Row>' + xlTitle("OUTBOUND — S4HC → Canonical → FSM callback",6)
         + xlHdr(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport","Comments"]);
   PROC_OUT_ROWS.forEach((r,i)=>body += xlData([r[0],r[1],r[2],r[3],state.outRows[i].transport,commentsText('prout:'+i)], ['mono','mono','cell','rule','cap','rule']));
-  downloadXls(`Apollo_${fsm.replace(/[^a-z0-9]+/gi,'_')}_Procurement_${(document.getElementById('wsDate').value||'draft')}.xls`,
+  downloadXls((`${fsm} Canonical Field Mapping - Procurement`).replace(/[\\/:*?"<>|]/g,'-')+'.xls',
     xlWorkbook(xlSheet("Procurement INT-23", W, body)));
 });
 
@@ -1237,7 +1237,7 @@ document.getElementById('stockExportCsv').addEventListener('click', ()=>{
   body += '<Row></Row>' + xlTitle("OUTBOUND — S4HC → Canonical → FSM callback",6)
         + xlHdr(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport","Comments"]);
   STOCK_OUT_ROWS.forEach((r,i)=>body += xlData([r[0],r[1],r[2],r[3],state.outRows[i].transport,commentsText('stout:'+i)], ['mono','mono','cell','rule','cap','rule']));
-  downloadXls(`Apollo_${fsm.replace(/[^a-z0-9]+/gi,'_')}_StockConsumption_${(document.getElementById('wsDate').value||'draft')}.xls`,
+  downloadXls((`${fsm} Canonical Field Mapping - Stock Consumption`).replace(/[\\/:*?"<>|]/g,'-')+'.xls',
     xlWorkbook(xlSheet("Stock Consumption", W, body)));
 });
 renderStock();
@@ -1779,7 +1779,7 @@ function exportAllExcel(){
   const blob = new Blob(['﻿'+xml], {type:"application/vnd.ms-excel"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href=url; a.download=`Apollo_${fsm.replace(/[^a-z0-9]+/gi,'_')}_All_Mappings_${date||'draft'}.xls`;
+  a.href=url; a.download=(`${fsm} Canonical Field Mapping${date?' '+date:''}`).replace(/[\\/:*?"<>|]/g,'-')+'.xls';
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 document.getElementById('exportAllExcel').addEventListener('click', exportAllExcel);
