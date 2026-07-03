@@ -252,8 +252,8 @@
       <button id="redoBtn" title="Redo (Ctrl+Shift+Z / Ctrl+Y)" disabled>&#8631; Redo</button>
       <button id="exportAllExcel" class="primary" title="Excel workbook for sharing/reading — one sheet per canonical + Integration Matrix + Comments. (Not re-importable — use Save file for that.)">&#11015; Excel (all tabs)</button>
       <button id="exportAllJson" title="Save the whole session as one file (all 3 canonicals: MDFS fields, sample values, coverage, notes, comments, transports + Integration Matrix + worksheet). This is the file to re-import.">&#11015; Save file</button>
-      <button id="importAllBtn" title="Load a previously Saved file — restores every editable value across all tabs onto the page.">&#11014; Import</button>
-      <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+      <button id="importAllBtn" title="Load a Save file (.json) — restores everything — or an Excel export (.xlsx) to restore the field mappings, sample values, status, notes and transports.">&#11014; Import</button>
+      <input type="file" id="importFile" accept=".json,application/json,.xlsx,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display:none">
     </div>
   </div>
 </header>
@@ -1968,22 +1968,174 @@ function exportAllExcel(){
 }
 document.getElementById('exportAllExcel').addEventListener('click', exportAllExcel);
 
+/* ============ Import from the exported Excel (.xlsx) as well as JSON ============
+   Reads the workbook this tool produces — even after it has been opened and
+   re-saved in Excel (DEFLATE-compressed, shared-strings table). Restores the
+   editable columns (MDFS field, sample value, status, notes, transports) on the
+   three canonical tabs. Full-fidelity round-trip (comments, matrix, worksheet)
+   still uses the Save file .json. ---------------------------------------------- */
+async function inflateRaw(bytes){
+  if(typeof DecompressionStream==='undefined')
+    throw new Error("This browser can't read compressed .xlsx. Use a modern browser, or import the Save file (.json).");
+  const ds = new DecompressionStream('deflate-raw');
+  const stream = new Blob([bytes]).stream().pipeThrough(ds);
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+async function unzip(bytes){
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let eocd = -1;
+  for(let i=bytes.length-22; i>=0; i--){ if(dv.getUint32(i,true)===0x06054b50){ eocd=i; break; } }
+  if(eocd<0) throw new Error('Not a valid .xlsx (no zip end record).');
+  const count = dv.getUint16(eocd+10,true);
+  let off = dv.getUint32(eocd+16,true);
+  const dec = new TextDecoder();
+  const out = {}; const pending = [];
+  for(let i=0;i<count;i++){
+    if(dv.getUint32(off,true)!==0x02014b50) break;
+    const method   = dv.getUint16(off+10,true);
+    const compSize = dv.getUint32(off+20,true);
+    const nameLen  = dv.getUint16(off+28,true);
+    const extraLen = dv.getUint16(off+30,true);
+    const cmtLen   = dv.getUint16(off+32,true);
+    const localOff = dv.getUint32(off+42,true);
+    const name = dec.decode(bytes.subarray(off+46, off+46+nameLen));
+    const lNameLen = dv.getUint16(localOff+26,true);
+    const lExtraLen= dv.getUint16(localOff+28,true);
+    const start = localOff+30+lNameLen+lExtraLen;
+    const comp = bytes.subarray(start, start+compSize);
+    if(method===0){ out[name]=comp; }
+    else if(method===8){ pending.push(inflateRaw(comp).then(d=>{ out[name]=d; })); }
+    off += 46+nameLen+extraLen+cmtLen;
+  }
+  await Promise.all(pending);
+  return out;
+}
+function colToIdx(ref){ const m=/^([A-Z]+)/.exec(ref||''); if(!m) return -1; let n=0; for(const ch of m[1]) n=n*26+(ch.charCodeAt(0)-64); return n-1; }
+function parseSheetXml(xml, shared){
+  const doc = new DOMParser().parseFromString(xml,'application/xml');
+  const rows = [];
+  [...doc.getElementsByTagName('row')].forEach(rowEl=>{
+    const arr = [];
+    [...rowEl.getElementsByTagName('c')].forEach(c=>{
+      const idx = colToIdx(c.getAttribute('r'));
+      const t = c.getAttribute('t');
+      let val = '';
+      if(t==='inlineStr'){ val=[...c.getElementsByTagName('t')].map(x=>x.textContent).join(''); }
+      else if(t==='s'){ const v=c.getElementsByTagName('v')[0]; if(v) val=shared[parseInt(v.textContent,10)]||''; }
+      else { const v=c.getElementsByTagName('v')[0]; if(v) val=v.textContent; }
+      if(idx>=0) arr[idx]=val; else arr.push(val);
+    });
+    rows.push(arr);
+  });
+  return rows;
+}
+async function readXlsx(arrayBuffer){
+  const files = await unzip(new Uint8Array(arrayBuffer));
+  const dec = new TextDecoder();
+  const txt = n => files[n] ? dec.decode(files[n]) : null;
+  // shared strings
+  const shared = [];
+  const ss = txt('xl/sharedStrings.xml');
+  if(ss){ const d=new DOMParser().parseFromString(ss,'application/xml');
+    [...d.getElementsByTagName('si')].forEach(si=>shared.push([...si.getElementsByTagName('t')].map(t=>t.textContent).join(''))); }
+  // workbook rels
+  const relMap = {}; const rels = txt('xl/_rels/workbook.xml.rels');
+  if(rels){ const d=new DOMParser().parseFromString(rels,'application/xml');
+    [...d.getElementsByTagName('Relationship')].forEach(r=>{ relMap[r.getAttribute('Id')]=r.getAttribute('Target'); }); }
+  // sheet name -> grid
+  const sheets = {}; const wb = txt('xl/workbook.xml');
+  if(wb){ const d=new DOMParser().parseFromString(wb,'application/xml');
+    [...d.getElementsByTagName('sheet')].forEach(s=>{
+      const name = s.getAttribute('name');
+      const rid = s.getAttribute('r:id') || s.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');
+      let tgt = relMap[rid]; if(!tgt) return;
+      tgt = tgt.replace(/^\/?/,''); if(!tgt.startsWith('xl/')) tgt='xl/'+tgt;
+      const sx = txt(tgt); if(sx) sheets[name] = parseSheetXml(sx, shared);
+    });
+  }
+  return sheets;
+}
+function _cell(r,i){ return (i>=0 && r && r[i]!=null) ? String(r[i]) : ''; }
+function _normStatus(v){ v=(v||'').trim(); const L={Fit:'Mapped',Partial:'To review',Gap:'TBC'}; if(L[v])return L[v]; return STATUS_OPTS.some(o=>o.v===v)?v:'TBC'; }
+function applyWorkbook(sheets){
+  const applied = [];
+  // workshop meta (keep current unless the sheet provides it)
+  const meta = { fsmName:_v('fsmName'), wsDate:_v('wsDate'), facilitator:_v('facilitator'), attendees:_v('attendees') };
+  const info = sheets['Workshop Info'];
+  if(info) info.forEach(r=>{ const k=_cell(r,0).trim(), v=_cell(r,1);
+    if(k==='FSM being mapped') meta.fsmName=v;
+    else if(k==='Workshop date'){ if(/^\d{4}-\d{2}-\d{2}/.test(v)) meta.wsDate=v.slice(0,10); }
+    else if(k==='Facilitator') meta.facilitator=v;
+    else if(k==='Attendees') meta.attendees=v;
+  });
+  // ---- Service Order (JAMS-style, INT-21/22)
+  const so = sheets['Service Order'];
+  if(so){
+    const h = so.findIndex(r=>_cell(r,0).trim()==='JAMS Field');
+    if(h>=0){
+      const hdr = so[h].map(x=>(x||'').trim());
+      const ci = {mdfs:hdr.indexOf('MDFS Field'), sample:hdr.indexOf('Sample Value'), status:hdr.indexOf('Status'), notes:hdr.indexOf('Notes')};
+      const rows = [];
+      for(let i=0;i<ROWS.length;i++){ const r=so[h+1+i]||[];
+        rows.push({fsmField:_cell(r,ci.mdfs), sampleValue:_cell(r,ci.sample),
+          status: ci.status>=0 ? _normStatus(_cell(r,ci.status)) : (document.getElementById('st_r'+i)||{}).value||'TBC',
+          notes:_cell(r,ci.notes)}); }
+      const outH = so.findIndex((r,idx)=> idx>h+ROWS.length && _cell(r,0).trim()==='S4HC Field');
+      const outRows = [];
+      if(outH>=0){ const ti=so[outH].map(x=>(x||'').trim()).indexOf('FSM transport');
+        for(let i=0;i<SO_OUT_ROWS.length;i++){ outRows.push({transport:_cell(so[outH+1+i]||[], ti)}); } }
+      applyState(Object.assign({}, meta, {rows, outRows}));
+      applied.push('Service Order');
+    }
+  } else { _sv('fsmName',meta.fsmName); _sv('wsDate',meta.wsDate); _sv('facilitator',meta.facilitator); _sv('attendees',meta.attendees); }
+  // ---- Procurement / Stock (same inbound/outbound layout)
+  function ioApply(sheetName, IN_ROWS, OUT_ROWS, applyFn, stPrefix){
+    const g = sheets[sheetName]; if(!g) return false;
+    const h = g.findIndex(r=>_cell(r,0).trim()==='MDFS Field'); if(h<0) return false;
+    const hdr = g[h].map(x=>(x||'').trim());
+    const ci = {sample:hdr.indexOf('Sample Value'), status:hdr.indexOf('Status'), notes:hdr.indexOf('Notes')};
+    const inRows = [];
+    for(let i=0;i<IN_ROWS.length;i++){ const r=g[h+1+i]||[];
+      inRows.push({fsmField:_cell(r,0), sampleValue:_cell(r,ci.sample),
+        status: ci.status>=0 ? _normStatus(_cell(r,ci.status)) : (document.getElementById(stPrefix+i)||{}).value||'TBC',
+        notes:_cell(r,ci.notes)}); }
+    const outH = g.findIndex((r,idx)=> idx>h+IN_ROWS.length && _cell(r,0).trim()==='S4HC Field');
+    const outRows = [];
+    if(outH>=0){ const ti=g[outH].map(x=>(x||'').trim()).indexOf('FSM transport');
+      for(let i=0;i<OUT_ROWS.length;i++){ outRows.push({transport:_cell(g[outH+1+i]||[], ti)}); } }
+    applyFn({inRows, outRows}); return true;
+  }
+  if(ioApply('Procurement', PROC_IN_ROWS, PROC_OUT_ROWS, applyProcState, 'ps_')) applied.push('Procurement');
+  if(ioApply('Stock Consumption', STOCK_IN_ROWS, STOCK_OUT_ROWS, applyStockState, 'ks_')) applied.push('Stock Consumption');
+  return applied;
+}
+
 document.getElementById('importAllBtn').addEventListener('click', () => document.getElementById('importFile').click());
-document.getElementById('importFile').addEventListener('change', (e) => {
+document.getElementById('importFile').addEventListener('change', async (e) => {
   const f = e.target.files[0]; if(!f) return;
-  const rd = new FileReader();
-  rd.onload = () => {
-    try{
-      const obj = JSON.parse(rd.result);
+  const name = (f.name||'').toLowerCase();
+  try{
+    if(name.endsWith('.xlsx') || name.endsWith('.xlsm')){
+      const sheets = await readXlsx(await f.arrayBuffer());
+      const applied = applyWorkbook(sheets);
+      if(applied.length){
+        autosave(); procAutosave(); stockAutosave();
+        if(typeof fitNotesIn==='function') fitNotesIn(document.querySelector('.tabpage.active'));
+        alert('Imported from Excel — restored on: '+applied.join(', ')+'.\n\nMDFS fields, sample values, status, notes and outbound transports were loaded. (Per-field comments and the Integration Matrix round-trip only through the Save file .json.)');
+      } else {
+        alert('Could not find the mapping sheets (Service Order / Procurement / Stock Consumption) in that workbook.');
+      }
+    } else {
+      const obj = JSON.parse(await f.text());
       if(obj && (obj.serviceOrder || obj.procurement || obj.stock || obj.worksheet)){
         applyAll(obj);
-        alert('Imported. Restored across all tabs: MDFS fields, sample values, coverage/status, notes, comments, outbound transports, the Integration Matrix and the worksheet.');
+        alert('Imported. Restored across all tabs: MDFS fields, sample values, status, notes, comments, outbound transports, the Integration Matrix and the worksheet.');
       } else {
         alert('That file does not look like a mapping export from this tool.');
       }
-    }catch(err){ alert('Could not read that file. Please choose a mapping .json exported by this tool.'); }
-  };
-  rd.readAsText(f); e.target.value='';
+    }
+  }catch(err){ alert('Could not read that file: '+((err&&err.message)||err)+'\n\nChoose a .json Save file, or an .xlsx exported by this tool.'); }
+  e.target.value='';
 });
 
 
