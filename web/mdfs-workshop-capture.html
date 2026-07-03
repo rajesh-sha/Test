@@ -891,7 +891,7 @@ document.getElementById('exportCsv').addEventListener('click', () => {
         + xlHdr(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport","Comments"]);
   SO_OUT_ROWS.forEach((r,i)=>body += xlData([r[0],r[1],r[2],r[3],state.outRows[i].transport,''], ['mono','mono','cell','rule','cap','rule']));
   downloadXls((`${fsm} Canonical Field Mapping - Service Order`).replace(/[\\/:*?"<>|]/g,'-')+'.xls',
-    xlWorkbook(xlSheet("Service Order INT-21+22", W, body)));
+    xlWorkbook(xlSheet("Service Order", W, body)));
 });
 
 buildRows();
@@ -1079,7 +1079,7 @@ document.getElementById('procExportCsv').addEventListener('click', () => {
         + xlHdr(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport","Comments"]);
   PROC_OUT_ROWS.forEach((r,i)=>body += xlData([r[0],r[1],r[2],r[3],state.outRows[i].transport,commentsText('prout:'+i)], ['mono','mono','cell','rule','cap','rule']));
   downloadXls((`${fsm} Canonical Field Mapping - Procurement`).replace(/[\\/:*?"<>|]/g,'-')+'.xls',
-    xlWorkbook(xlSheet("Procurement INT-23", W, body)));
+    xlWorkbook(xlSheet("Procurement", W, body)));
 });
 
 renderProc();
@@ -1767,8 +1767,8 @@ function exportAllExcel(){
   const xml = '<?xml version="1.0"?>\n<?mso-application progid="Excel.Sheet"?>\n'
     + '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel">\n'
     + XL_STYLES + '\n'
-    + xlSheet("Service Order INT-21+22", soW, soBody) + '\n'
-    + xlSheet("Procurement INT-23", ioW, prBody) + '\n'
+    + xlSheet("Service Order", soW, soBody) + '\n'
+    + xlSheet("Procurement", ioW, prBody) + '\n'
     + xlSheet("Stock Consumption", ioW, stkBody) + '\n'
     + xlSheet("Future Integration", fipW, fipBodyX) + '\n'
     + xlSheet("Integration Matrix", mtxW, mtxBody) + '\n'
