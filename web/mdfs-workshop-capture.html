@@ -237,9 +237,9 @@
     <div><label>Attendees</label><input id="attendees" placeholder="Names, comma-sep" style="width:180px;"></div>
     <div><label>Your name (for comments)</label><input id="commenter" placeholder="You" style="width:120px;"></div>
     <div style="display:flex; gap:8px; align-items:flex-end;">
-      <button id="exportAllExcel" class="primary" title="Export all three mapping tabs + worksheet as one Excel file — a sheet per canonical (Service Order, Procurement, Stock Consumption, Future Integration)">&#11015; Excel (all tabs)</button>
-      <button id="exportAllJson" title="Export the whole mapping (all tabs + captured MDFS fields + sample values) as one file to re-import later">&#11015; Save file</button>
-      <button id="importAllBtn" title="Import a saved mapping file to load captured values back in">&#11014; Import</button>
+      <button id="exportAllExcel" class="primary" title="Excel workbook for sharing/reading — one sheet per canonical + Integration Matrix + Comments. (Not re-importable — use Save file for that.)">&#11015; Excel (all tabs)</button>
+      <button id="exportAllJson" title="Save the whole session as one file (all 3 canonicals: MDFS fields, sample values, coverage, notes, comments, transports + Integration Matrix + worksheet). This is the file to re-import.">&#11015; Save file</button>
+      <button id="importAllBtn" title="Load a previously Saved file — restores every editable value across all tabs onto the page.">&#11014; Import</button>
       <input type="file" id="importFile" accept=".json,application/json" style="display:none">
     </div>
   </div>
@@ -1643,6 +1643,7 @@ function applyAll(obj){
   }
   // persist into the per-tab autosave slots so a later reload keeps the import
   autosave(); procAutosave(); stockAutosave(); wsAutosave();
+  if(typeof fitNotesIn==='function') fitNotesIn(document.querySelector('.tabpage.active'));
   return true;
 }
 
@@ -1792,7 +1793,7 @@ document.getElementById('importFile').addEventListener('change', (e) => {
       const obj = JSON.parse(rd.result);
       if(obj && (obj.serviceOrder || obj.procurement || obj.stock || obj.worksheet)){
         applyAll(obj);
-        alert('Mapping imported — MDFS fields, sample values, statuses and notes are loaded across all tabs.');
+        alert('Imported. Restored across all tabs: MDFS fields, sample values, coverage/status, notes, comments, outbound transports, the Integration Matrix and the worksheet.');
       } else {
         alert('That file does not look like a mapping export from this tool.');
       }
