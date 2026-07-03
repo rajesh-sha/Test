@@ -1337,59 +1337,93 @@ document.getElementById('exportAllJson').addEventListener('click', () => {
   a.href=url; a.download=`Apollo_${safe}_Field_Mapping_${(data.meta.wsDate||'draft')}.json`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 });
-// ---- Export ALL tabs to one Excel workbook (a sheet per canonical) ----
+// ---- Export ALL tabs to one nicely-formatted Excel workbook (sheet per canonical) ----
 function xmlEsc(s){ return String(s==null?'':s)
   .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\r?\n/g,'&#10;'); }
-function xlRow(arr){ return '<Row>'+arr.map(v=>`<Cell><Data ss:Type="String">${xmlEsc(v)}</Data></Cell>`).join('')+'</Row>'; }
-function xlSheet(name, rows){
+
+const XL_BORDER = '<Borders>'
+  + '<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D9DEE6"/>'
+  + '<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D9DEE6"/>'
+  + '</Borders>';
+const XL_STYLES = '<Styles>'
+  + '<Style ss:ID="Default" ss:Name="Normal"><Alignment ss:Vertical="Top"/><Font ss:FontName="Calibri" ss:Size="10"/></Style>'
+  + '<Style ss:ID="hdr"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:FontName="Calibri" ss:Size="10"/><Interior ss:Color="#1F4E79" ss:Pattern="Solid"/><Alignment ss:Vertical="Center" ss:Horizontal="Left" ss:WrapText="1"/>'+XL_BORDER+'</Style>'
+  + '<Style ss:ID="title"><Font ss:Bold="1" ss:Color="#1F3864" ss:Size="10"/><Interior ss:Color="#D6E0EA" ss:Pattern="Solid"/><Alignment ss:Vertical="Center"/></Style>'
+  + '<Style ss:ID="cell"><Alignment ss:Vertical="Top" ss:WrapText="1"/><Font ss:FontName="Calibri" ss:Size="10"/>'+XL_BORDER+'</Style>'
+  + '<Style ss:ID="cap"><Alignment ss:Vertical="Top" ss:WrapText="1"/><Font ss:FontName="Calibri" ss:Size="10"/><Interior ss:Color="#FFFBEA" ss:Pattern="Solid"/>'+XL_BORDER+'</Style>'
+  + '<Style ss:ID="mono"><Alignment ss:Vertical="Top" ss:WrapText="1"/><Font ss:FontName="Consolas" ss:Size="9.5" ss:Color="#1F4E79"/>'+XL_BORDER+'</Style>'
+  + '<Style ss:ID="rule"><Alignment ss:Vertical="Top" ss:WrapText="1"/><Font ss:FontName="Calibri" ss:Size="9.5" ss:Color="#444444"/>'+XL_BORDER+'</Style>'
+  + '<Style ss:ID="cov"><Alignment ss:Vertical="Top" ss:Horizontal="Center" ss:WrapText="1"/><Font ss:Bold="1" ss:FontName="Calibri" ss:Size="10" ss:Color="#6B7280"/>'+XL_BORDER+'</Style>'
+  + '<Style ss:ID="jams"><Alignment ss:Vertical="Top" ss:WrapText="1"/><Font ss:Italic="1" ss:FontName="Calibri" ss:Size="10" ss:Color="#2E5395"/><Interior ss:Color="#EAF1FB" ss:Pattern="Solid"/>'+XL_BORDER+'</Style>'
+  + '<Style ss:ID="lbl"><Font ss:Bold="1" ss:FontName="Calibri" ss:Size="10"/><Alignment ss:Vertical="Top"/>'+XL_BORDER+'</Style>'
+  + '</Styles>';
+const XL_FREEZE = '<WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">'
+  + '<FreezePanes/><FrozenNoColor/><SplitHorizontal>1</SplitHorizontal><TopRowBottomPane>1</TopRowBottomPane><ActivePane>2</ActivePane></WorksheetOptions>';
+
+function xlHdr(labels){ return '<Row ss:AutoFitHeight="0" ss:Height="30">'
+  + labels.map(l=>`<Cell ss:StyleID="hdr"><Data ss:Type="String">${xmlEsc(l)}</Data></Cell>`).join('') + '</Row>'; }
+function xlData(values, styleCols){ return '<Row>'
+  + values.map((v,i)=>`<Cell ss:StyleID="${(styleCols&&styleCols[i])||'cell'}"><Data ss:Type="String">${xmlEsc(v)}</Data></Cell>`).join('') + '</Row>'; }
+function xlTitle(text, span){ return `<Row><Cell ss:StyleID="title" ss:MergeAcross="${(span||1)-1}"><Data ss:Type="String">${xmlEsc(text)}</Data></Cell></Row>`; }
+function xlSheet(name, widths, bodyXml){
   const safe = String(name).replace(/[:\\\/?*\[\]]/g,' ').slice(0,31);
-  return `<Worksheet ss:Name="${xmlEsc(safe)}"><Table>${rows.map(xlRow).join('')}</Table></Worksheet>`;
+  const cols = widths.map(w=>`<Column ss:Width="${w}"/>`).join('');
+  return `<Worksheet ss:Name="${xmlEsc(safe)}"><Table ss:DefaultRowHeight="15">${cols}${bodyXml}</Table>${XL_FREEZE}</Worksheet>`;
 }
+
 function exportAllExcel(){
   const so = collectState(), pr = collectProcState(), stk = collectStockState();
   const fsm = _v('fsmName')||'MDFS', date = _v('wsDate')||'';
 
-  // Sheet 1 — Service Order (INT-21 + INT-22, side by side, with definitions)
-  const soRows = [["JAMS Field", fsm+" Field", "Sample Value", "Coverage", "Notes",
-    "INT-21 Canonical", "Type", "Mandatory", "Cond Msg Type", "Transformation", "Business Rule",
-    "INT-22 Canonical", "Type", "Mandatory", "Cond Msg Type", "Transformation", "Business Rule"]];
-  ROWS.forEach((r,i)=>{
-    const row = so.rows[i]; const d21 = defOf(DEF21,r.c21); const d22 = defOf(DEF22,r.c22);
-    soRows.push([r.jams, row.fsmField, row.sampleValue, row.status, row.notes,
-      r.c21, r.t21, r.m21, r.cm21, (r.c21?d21[0]:''), (r.c21?d21[1]:''),
-      r.c22, r.t22, r.m22, r.cm22, (r.c22?d22[0]:''), (r.c22?d22[1]:'')]);
-  });
+  // --- Sheet 1: Service Order INT-21 + INT-22 ---
+  const soW = [90,110,90,58,140,150,52,72,92,82,260,150,52,72,92,82,260];
+  const soStyle = ['jams','cap','cap','cov','cell','mono','cell','cell','cell','cell','rule','mono','cell','cell','cell','cell','rule'];
+  let soBody = xlHdr(["JAMS Field", fsm+" Field","Sample Value","Coverage","Notes",
+    "INT-21 Canonical","Type","Mandatory","Cond Msg Type","Transformation","Business Rule",
+    "INT-22 Canonical","Type","Mandatory","Cond Msg Type","Transformation","Business Rule"]);
+  ROWS.forEach((r,i)=>{ const row=so.rows[i]; const d21=defOf(DEF21,r.c21), d22=defOf(DEF22,r.c22);
+    soBody += xlData([r.jams,row.fsmField,row.sampleValue,row.status,row.notes,
+      r.c21,r.t21,r.m21,r.cm21,(r.c21?d21[0]:''),(r.c21?d21[1]:''),
+      r.c22,r.t22,r.m22,r.cm22,(r.c22?d22[0]:''),(r.c22?d22[1]:'')], soStyle); });
 
-  // Sheet 2 — Procurement (inbound + outbound)
-  const prRows = [[fsm+" Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Business Rule"]];
-  PROC_IN_ROWS.forEach((r,i)=>prRows.push([pr.inRows[i].fsmField, pr.inRows[i].sampleValue, r[0],r[1],r[2],r[3],r[4],r[5], pr.inRows[i].status, r[6]]));
-  prRows.push([]); prRows.push(["OUTBOUND — S4HC to FSM callback"]);
-  prRows.push(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport"]);
-  PROC_OUT_ROWS.forEach((r,i)=>prRows.push([r[0],r[1],r[2],r[3], pr.outRows[i].transport]));
+  // --- Procurement / Stock share the same shape ---
+  const ioW = [110,90,175,58,120,120,200,82,58,290];
+  const inStyle  = ['cap','cap','mono','cell','cell','cell','mono','cell','cov','rule'];
+  const outStyle = ['mono','mono','cell','rule','cap'];
+  const inHdr  = [fsm+" Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Business Rule"];
+  const outHdr = ["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport"];
 
-  // Sheet 3 — Stock Consumption (inbound + outbound)
-  const stkRows = [[fsm+" Field","Sample Value","Canonical Field","Type","Mandatory for Canonical","Required From FSM","S4HC Field","Transformation","Coverage","Business Rule"]];
-  STOCK_IN_ROWS.forEach((r,i)=>stkRows.push([stk.inRows[i].fsmField, stk.inRows[i].sampleValue, r[0],r[1],r[2],r[3],r[4],r[5], stk.inRows[i].status, r[6]]));
-  stkRows.push([]); stkRows.push(["OUTBOUND — S4HC to FSM callback"]);
-  stkRows.push(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport"]);
-  STOCK_OUT_ROWS.forEach((r,i)=>stkRows.push([r[0],r[1],r[2],r[3], stk.outRows[i].transport]));
+  let prBody = xlHdr(inHdr);
+  PROC_IN_ROWS.forEach((r,i)=>prBody += xlData([pr.inRows[i].fsmField,pr.inRows[i].sampleValue,r[0],r[1],r[2],r[3],r[4],r[5],pr.inRows[i].status,r[6]], inStyle));
+  prBody += '<Row></Row>' + xlTitle("OUTBOUND — S4HC → Canonical → FSM callback",5) + xlHdr(outHdr);
+  PROC_OUT_ROWS.forEach((r,i)=>prBody += xlData([r[0],r[1],r[2],r[3],pr.outRows[i].transport], outStyle));
 
-  // Sheet 4 — Future Integration Points
-  const fipRows = [["FSM System","Process Step","FSM Object","Trigger Status / Action","Process Type","Canonical Model","What it does in SAP","Integration Pattern","Technology Type","Minimum Payload Required","SAP Outcome","Status"]];
-  fipData.forEach(r=>fipRows.push(r.slice()));
+  let stkBody = xlHdr(inHdr);
+  STOCK_IN_ROWS.forEach((r,i)=>stkBody += xlData([stk.inRows[i].fsmField,stk.inRows[i].sampleValue,r[0],r[1],r[2],r[3],r[4],r[5],stk.inRows[i].status,r[6]], inStyle));
+  stkBody += '<Row></Row>' + xlTitle("OUTBOUND — S4HC → Canonical → FSM callback",5) + xlHdr(outHdr);
+  STOCK_OUT_ROWS.forEach((r,i)=>stkBody += xlData([r[0],r[1],r[2],r[3],stk.outRows[i].transport], outStyle));
 
-  const metaRows = [["FSM being mapped", fsm],["Workshop date", date],["Facilitator", _v('facilitator')],["Attendees", _v('attendees')]];
+  // --- Future Integration Points ---
+  const fipW = [90,150,110,155,110,150,190,130,150,190,150,100];
+  let fipBodyX = xlHdr(["FSM System","Process Step","FSM Object","Trigger Status / Action","Process Type","Canonical Model","What it does in SAP","Integration Pattern","Technology Type","Minimum Payload Required","SAP Outcome","Status"]);
+  fipData.forEach(r=>fipBodyX += xlData(r.slice(), null));
+
+  // --- Workshop Info ---
+  let infoBody = xlHdr(["Field","Value"]);
+  [["FSM being mapped",fsm],["Workshop date",date],["Facilitator",_v('facilitator')],["Attendees",_v('attendees')]]
+    .forEach(r=>infoBody += xlData(r,['lbl','cell']));
 
   const xml = '<?xml version="1.0"?>\n<?mso-application progid="Excel.Sheet"?>\n'
-    + '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n'
-    + [ xlSheet("Service Order INT-21+22", soRows),
-        xlSheet("Procurement INT-23", prRows),
-        xlSheet("Stock Consumption", stkRows),
-        xlSheet("Future Integration", fipRows),
-        xlSheet("Workshop Info", metaRows) ].join('\n')
-    + '\n</Workbook>';
+    + '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel">\n'
+    + XL_STYLES + '\n'
+    + xlSheet("Service Order INT-21+22", soW, soBody) + '\n'
+    + xlSheet("Procurement INT-23", ioW, prBody) + '\n'
+    + xlSheet("Stock Consumption", ioW, stkBody) + '\n'
+    + xlSheet("Future Integration", fipW, fipBodyX) + '\n'
+    + xlSheet("Workshop Info", [170,340], infoBody) + '\n'
+    + '</Workbook>';
 
-  const blob = new Blob([xml], {type:"application/vnd.ms-excel"});
+  const blob = new Blob(['﻿'+xml], {type:"application/vnd.ms-excel"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href=url; a.download=`Apollo_${fsm.replace(/[^a-z0-9]+/gi,'_')}_All_Mappings_${date||'draft'}.xls`;
