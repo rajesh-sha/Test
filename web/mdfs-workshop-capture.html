@@ -164,6 +164,19 @@
   .cfoot .cname{ flex:1; border:1px solid #cbd5e1; border-radius:8px; padding:7px 9px; font-size:12px; }
   .cfoot .cpost{ background:var(--navy2); color:#fff; border:1px solid var(--navy2); border-radius:8px; padding:8px 16px; font-weight:600; cursor:pointer; }
   .cfoot .cpost:hover{ opacity:.9; }
+
+  /* ---------- Per-tab filter bar ---------- */
+  .filterbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:9px 24px; background:#fff; border-bottom:1px solid var(--line); }
+  .filterbar .fsearch{ flex:1; min-width:190px; max-width:360px; border:1px solid #cbd5e1; border-radius:6px; padding:7px 11px 7px 30px; font-size:12.5px; font-family:inherit;
+    background:#fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%238a94a3' stroke-width='2'><circle cx='11' cy='11' r='7'/><path d='M21 21l-4.3-4.3'/></svg>") no-repeat 8px center; }
+  .filterbar .fsearch:focus{ outline:2px solid var(--navy2); border-color:var(--navy2); }
+  .filterbar .seg{ display:inline-flex; border:1px solid #cbd5e1; border-radius:6px; overflow:hidden; }
+  .filterbar .seg button{ border:none; background:#fff; padding:6px 13px; font-size:12px; font-weight:600; color:#5a6472; border-right:1px solid #e4e8ee; border-radius:0; cursor:pointer; }
+  .filterbar .seg button:last-child{ border-right:none; }
+  .filterbar .seg button.on{ background:#1F4E79; color:#fff; }
+  .filterbar label{ display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:#5a6472; user-select:none; }
+  .filterbar label input{ accent-color:#1F4E79; width:15px; height:15px; }
+  .filterbar .fcount{ margin-left:auto; font-size:12px; color:#8a94a3; font-weight:600; }
 </style>
 </head>
 <body>
@@ -206,6 +219,13 @@
   <div class="stats" id="stats"></div>
   <button id="loadDraftBtn" title="Reload the last autosaved draft for this browser tab">Restore last draft</button>
   <button id="exportCsv" class="primary">Export CSV (paste into Excel)</button>
+</div>
+
+<div class="filterbar" data-scope="tabMapping">
+  <input class="fsearch" type="search" placeholder="Search field / canonical / rule…">
+  <div class="seg"><button type="button" data-lvl="all" class="on">All</button><button type="button" data-lvl="header">Header</button><button type="button" data-lvl="item">Item</button></div>
+  <label><input type="checkbox" class="fmand"> Mandatory only</label>
+  <span class="fcount"></span>
 </div>
 
 <div class="wrap">
@@ -266,6 +286,13 @@
   <button id="procExportCsv" class="primary">Export CSV (paste into Excel)</button>
 </div>
 
+<div class="filterbar" data-scope="tabProc">
+  <input class="fsearch" type="search" placeholder="Search field / canonical / rule…">
+  <div class="seg"><button type="button" data-lvl="all" class="on">All</button><button type="button" data-lvl="header">Header</button><button type="button" data-lvl="item">Item</button></div>
+  <label><input type="checkbox" class="fmand"> Mandatory only</label>
+  <span class="fcount"></span>
+</div>
+
 <div class="ws-section-title">INT-23 — Canonical Procurement (inbound: FSM → Canonical → S4HC)</div>
 <div class="ws-section-sub">No JAMS or any other FSM mapping is confirmed yet for Procurement — there's no reference column here, unlike the Service Order/WBS tab. Capture live against the canonical field catalogue.</div>
 <div class="wrap">
@@ -318,6 +345,13 @@
   <div class="stats" id="stockStats"></div>
   <button id="stockLoadDraftBtn" title="Reload the last autosaved draft for this browser tab">Restore last draft</button>
   <button id="stockExportCsv" class="primary">Export CSV (paste into Excel)</button>
+</div>
+
+<div class="filterbar" data-scope="tabStock">
+  <input class="fsearch" type="search" placeholder="Search field / canonical / rule…">
+  <div class="seg"><button type="button" data-lvl="all" class="on">All</button><button type="button" data-lvl="header">Header</button><button type="button" data-lvl="item">Item</button></div>
+  <label><input type="checkbox" class="fmand"> Mandatory only</label>
+  <span class="fcount"></span>
 </div>
 
 <div class="ws-section-title">Canonical Stock Consumption / Services (inbound: FSM &rarr; Canonical &rarr; S4HC)</div>
@@ -494,6 +528,8 @@ const DEF22 = {
 };
 function canonKey(c){ return String(c||"").replace(/`/g,"").replace(/\s+/g,"").trim(); }
 function defOf(map, canon){ return map[canonKey(canon)] || ["",""]; }
+// Header vs Item from a canonical path (items[].* / item.* = item; header.* = header)
+function lvlOf(canon){ return /item/i.test(String(canon||"")) ? "item" : (canon ? "header" : ""); }
 
 // One compact cell: canonical field name with its definition stacked beneath —
 // Type · Mandatory · Conditional message type · Transformation, then the rule.
@@ -619,7 +655,9 @@ function buildRows(){
     const rowId = "r"+i;
     const has21 = !!r.c21;
     const has22 = !!r.c22;
-    html += `<tr data-row="${i}">`;
+    const _canon = r.c21 || r.c22 || '';
+    const _mand = (r.m21==='Yes' || r.m22==='Yes') ? '1' : '0';
+    html += `<tr data-row="${i}" data-level="${lvlOf(_canon)}" data-mand="${_mand}">`;
     html += `<td class="jams-col">${esc(r.jams).replace(/\\n/g,'<br>')}</td>`;
     html += `<td><input class="field-input" id="ff_${rowId}" placeholder="MDFS field name..." /></td>`;
     html += `<td><input class="field-input" id="sv_${rowId}" placeholder="Sample value..." /></td>`;
@@ -861,7 +899,7 @@ const procOutBody = document.getElementById('procOutBody');
 
 function procInRowHtml(row, idx, fsmField, status, notes, sampleValue){
   const [canon, type, mandCanon, reqFsm, s4hc, transform, rule] = row;
-  return `<tr data-procrow="${idx}">
+  return `<tr data-procrow="${idx}" data-level="${lvlOf(canon)}" data-mand="${mandCanon==='Yes'?'1':'0'}">
     <td><input class="field-input" id="pf_${idx}" placeholder="MDFS field name..." value="${(fsmField||'').replace(/"/g,'&quot;')}"></td>
     <td><input class="field-input" id="psv_${idx}" placeholder="Sample value..." value="${(sampleValue||'').replace(/"/g,'&quot;')}"></td>
     <td class="canon-col"><code>${canon}</code></td>
@@ -1071,7 +1109,7 @@ function stockOutRowHtml(row, idx, transport){
 function stockRowHtml(row, idx, fsmField, status, sampleValue){
   const [canon, type, mandCanon, reqFsm, s4hc, transform, rule] = row;
   const cls = status==='TBC' ? 'tbc' : (STATUS_OPTS.find(o=>o.v===status)||STATUS_OPTS[0]).cls;
-  return `<tr>
+  return `<tr data-level="${lvlOf(canon)}" data-mand="${mandCanon==='Yes'?'1':'0'}">
     <td><input class="field-input" id="kf_${idx}" placeholder="MDFS field name..." value="${(fsmField||'').replace(/"/g,'&quot;')}"></td>
     <td><input class="field-input" id="ksv_${idx}" placeholder="Sample value..." value="${(sampleValue||'').replace(/"/g,'&quot;')}"></td>
     <td class="canon-col"><code>${esc(canon)}</code></td>
@@ -1608,6 +1646,49 @@ document.getElementById('importFile').addEventListener('change', (e) => {
   };
   rd.readAsText(f); e.target.value='';
 });
+
+
+// ===================== Per-tab search / level / mandatory filter =====================
+function setupFilter(bar){
+  const scope = document.getElementById(bar.dataset.scope);
+  if(!scope) return;
+  const search = bar.querySelector('.fsearch');
+  const mand = bar.querySelector('.fmand');
+  const segBtns = bar.querySelectorAll('.seg button');
+  const count = bar.querySelector('.fcount');
+  let level = 'all';
+  function apply(){
+    const q = search.value.trim().toLowerCase();
+    const onlyMand = mand.checked;
+    let shown = 0, total = 0;
+    scope.querySelectorAll('tbody tr').forEach(tr=>{
+      if(!tr.querySelector('td')) return;            // skip spacer rows
+      total++;
+      const lvl = tr.dataset.level || '';
+      const isMand = tr.dataset.mand === '1';
+      let ok = true;
+      if(level==='header' && lvl!=='header') ok=false;
+      if(level==='item'   && lvl!=='item')   ok=false;
+      if(onlyMand && !isMand) ok=false;
+      if(ok && q){
+        const hay = (tr.textContent + ' ' +
+          Array.from(tr.querySelectorAll('input,textarea')).map(e=>e.value).join(' ')).toLowerCase();
+        if(!hay.includes(q)) ok=false;
+      }
+      tr.style.display = ok ? '' : 'none';
+      if(ok) shown++;
+    });
+    count.textContent = (q || onlyMand || level!=='all') ? (shown + ' shown') : '';
+  }
+  search.addEventListener('input', apply);
+  mand.addEventListener('change', apply);
+  segBtns.forEach(b=>b.addEventListener('click', ()=>{
+    level = b.dataset.lvl;
+    segBtns.forEach(x=>x.classList.toggle('on', x===b));
+    apply();
+  }));
+}
+document.querySelectorAll('.filterbar').forEach(setupFilter);
 
 </script>
 </body>
