@@ -362,7 +362,7 @@ function renderEffort(){
       <tr style="font-weight:700"><td>Subtotal</td><td class="muted">before env factor</td><td></td><td>${humanBase.toFixed(1)}</td><td>${callsTotal.toLocaleString()}</td></tr>
       <tr style="font-weight:700"><td>${ENV} total</td><td class="muted">×${e.mult} governance</td><td></td><td>${human.toFixed(1)} ph = ${pd.toFixed(1)} pd</td><td>${elapsedH.toFixed(1)} h window</td></tr>
       </tbody></table></div>
-    <div class="note"><b>Environment deltas.</b> Replay: <b>${e.replay}</b> · Freeze: ${e.freeze} · Approval: ${e.approve}.${ENV==='Production'?' <b style="color:var(--missing)">Production alignment = migration / change-control, not interface replay — raise a CR to Eshan (Risk 9 / CI-…).</b>':''}</div>
+    <div class="note"><b>Environment deltas.</b> Replay: <b>${e.replay}</b> · Freeze: ${e.freeze} · Approval: ${e.approve}.${ENV==='Production'?' <b style="color:var(--missing)">Production alignment = migration / change-control, not interface replay — raise a CR to Eshan (Risk 9 — standing-refresh capability).</b>':''}</div>
     <div class="note"><b>Basis — best-effort planning model, tune before committing.</b> Ellipse calls/record from File Mechanisms (sequential screen services; employee create up to ~54 calls/record over 12 screens). Human rates are planning assumptions: create ${HUMAN.Missing}h, modify ${HUMAN.Stale}h, event-history / Class D per-case with Gary ${HUMAN.Event}h, orphan disposition ${HUMAN.Orphaned}h per record; reconcile 0.02h/record + ${fixedSum}h fixed overhead. Human effort is analysis / monitoring / triage — the interface does the writes, not a person. The lock window is the elapsed Ellipse run to agree with Hitachi (Risk 4 / CI-11), not additional person-time. Env factor reflects governance overhead only.</div>`;
   const hpd=document.getElementById('a_hpd'), cpm=document.getElementById('a_cpm');
   hpd.onchange=ev=>{ASSUME.hoursPerDay=parseFloat(ev.target.value)||8;renderEffort();};
@@ -383,7 +383,7 @@ const EMIT={
       Orphaned:{op:'delimit',files:'#09 + #04',svc:'PosnHierarchy.modPosition / MSM870B',extra:()=>({superior:'DeletedCOR',occupancyStatus:'D'})}},
  emp:{Missing:{op:'create',files:'#11',svc:'Employee.create'},
       Stale:{op:'modify',files:'#12',svc:'Employee.modify',changedOnly:true},
-      Event:{op:'transferPosition',files:'#13',svc:'Employee.transferPosition',changedOnly:true,extra:r=>({newPosition:(r.rec||{}).positionId,eventReason:'<<REQUIRED: Gary>>'}),needs:'event reason'}}
+      Event:{op:'transferPosition',files:'#13',svc:'Employee.transferPosition',keyOnly:true,extra:r=>({newPosition:(r.rec||{}).positionId,eventReason:'<<REQUIRED: Gary>>'}),needs:'event reason'}}
 };
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function buildMessages(){
@@ -394,7 +394,8 @@ function buildMessages(){
       const cfg=(EMIT[o.id]||{})[r.cls], rec=r.rec||{};
       if(!cfg){ msgs.push({obj:o.name,iface:o.iface,rankObj:oi,rank:9,cls:r.cls,op:'manual',files:route(o.id,r.cls,r).files,svc:'—',key:r.key,payload:null,note:route(o.id,r.cls,r).guard}); return; }
       const payload={}; payload[o.key]=r.key;
-      if(cfg.changedOnly && r.diffs && r.diffs.length){ r.diffs.forEach(f=>payload[f]=rec[f]); }
+      if(cfg.keyOnly){ /* key + verb-specific extras only (e.g. transfer) */ }
+      else if(cfg.changedOnly && r.diffs && r.diffs.length){ r.diffs.forEach(f=>payload[f]=rec[f]); }
       else { o.compare.forEach(f=>payload[f]=rec[f]); }
       if(cfg.extra) Object.assign(payload,cfg.extra(r));
       let files=cfg.files; if(o.id==='emp'&&r.cls==='Missing'&&r._cw){files='#11 + #21'; payload.referenceCodes='(CW)';}
@@ -424,7 +425,7 @@ GET ${esc(ec)}/odata/v2/<span class="v">EmpEmployment</span>
     &$expand=empJobNav,personNav&$format=json
 Authorization: Basic ****</pre>
 <pre class="tmpl"><span class="c"># ③ TARGET — push one routed message via SAP IS iFlow → Ellipse EWS</span>
-POST ${esc(is)}/http/<span class="v">${sample?sample.iface.toLowerCase():'acute-001'}/${sample?sample.op:'Employee.create'}</span>
+POST ${esc(is)}/http/<span class="v">${sample?sample.iface.toLowerCase():'acute-001'}/${sample?esc(sample.svc):'Employee.create'}</span>
 Content-Type: application/json
 ${sample?esc(JSON.stringify(sample.payload,null,2)):'{ }'}</pre>`;
   const rows=auto.map(m=>`<tr><td>${m.seq}</td><td>${m.iface}</td><td><span class="pill ${classNamePill(m.cls)}">${m.cls}</span></td><td><b>${m.op}</b></td><td><code>${m.files}</code></td><td><code>${esc(m.key)}</code></td><td class="wrap"><code>${esc(JSON.stringify(m.payload))}</code>${m.needs?' <span class="pill p-hold">needs '+m.needs+'</span>':''}</td></tr>`).join('');
