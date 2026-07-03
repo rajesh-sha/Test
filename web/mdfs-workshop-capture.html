@@ -123,6 +123,47 @@
     width:100%; min-height:130px; border:1px solid #cbd5e1; border-radius:6px; padding:10px 12px;
     font-family:inherit; font-size:12.5px; line-height:1.6; resize:vertical;
   }
+
+  /* ---------- Per-field comments / discussion ---------- */
+  .cbtn{
+    display:inline-flex; align-items:center; gap:4px; margin-top:6px;
+    background:#fff; border:1px solid #cbd5e1; color:#5a6472; border-radius:12px;
+    padding:2px 9px; font-size:11px; font-weight:600; cursor:pointer;
+  }
+  .cbtn:hover{ background:#eef2f7; border-color:#9fb0c3; color:#1F4E79; }
+  .cbtn.has{ background:#fff4d6; border-color:#e6c65c; color:#8a6d1f; }
+  .cbtn.unresolved{ background:#fee2e2; border-color:#f0a9a9; color:#b23b3b; }
+  .cbtn .cnum{ font-variant-numeric:tabular-nums; }
+  .cbackdrop{ position:fixed; inset:0; background:rgba(20,30,48,.35); z-index:40; display:none; }
+  .cbackdrop.open{ display:block; }
+  .cdrawer{
+    position:fixed; top:0; right:0; height:100%; width:min(400px,92vw); background:#fff; z-index:50;
+    box-shadow:-6px 0 24px rgba(20,30,48,.2); transform:translateX(100%); transition:transform .2s ease;
+    display:flex; flex-direction:column;
+  }
+  .cdrawer.open{ transform:translateX(0); }
+  .cdrawer .chead{ background:var(--navy); color:#fff; padding:14px 16px; }
+  .cdrawer .chead .ctitle{ font-size:12px; opacity:.8; }
+  .cdrawer .chead .cfield{ font-family:"Consolas",monospace; font-size:14px; font-weight:700; word-break:break-word; margin-top:2px; }
+  .cdrawer .cclose{ position:absolute; top:12px; right:14px; background:transparent; border:none; color:#fff; font-size:20px; cursor:pointer; }
+  .cbody{ flex:1; overflow-y:auto; padding:14px 16px; background:#f7f9fc; }
+  .cempty{ color:#8a94a3; font-size:12.5px; text-align:center; padding:26px 8px; }
+  .citem{ background:#fff; border:1px solid #e4e8ee; border-radius:8px; padding:10px 12px; margin-bottom:10px; }
+  .citem.resolved{ opacity:.6; }
+  .citem .cmeta{ display:flex; align-items:center; gap:8px; font-size:11px; color:#8a94a3; margin-bottom:4px; }
+  .citem .cauthor{ font-weight:700; color:#1F4E79; font-size:12px; }
+  .citem .ctext{ font-size:13px; line-height:1.5; white-space:pre-wrap; word-break:break-word; }
+  .citem .ctext .men{ color:#1F4E79; font-weight:600; background:#eaf1fb; border-radius:4px; padding:0 3px; }
+  .citem .cacts{ display:flex; gap:12px; margin-top:7px; }
+  .citem .cacts button{ background:none; border:none; padding:0; font-size:11px; font-weight:600; color:#5a6472; cursor:pointer; }
+  .citem .cacts button:hover{ color:#1F4E79; text-decoration:underline; }
+  .citem.resolved .cacts .cresolve{ color:#16A34A; }
+  .cfoot{ border-top:1px solid #e4e8ee; padding:12px 16px; background:#fff; }
+  .cfoot textarea{ width:100%; min-height:60px; border:1px solid #cbd5e1; border-radius:8px; padding:8px 10px; font-family:inherit; font-size:13px; resize:vertical; }
+  .cfoot .crow{ display:flex; gap:8px; align-items:center; margin-top:8px; }
+  .cfoot .cname{ flex:1; border:1px solid #cbd5e1; border-radius:8px; padding:7px 9px; font-size:12px; }
+  .cfoot .cpost{ background:var(--navy2); color:#fff; border:1px solid var(--navy2); border-radius:8px; padding:8px 16px; font-weight:600; cursor:pointer; }
+  .cfoot .cpost:hover{ opacity:.9; }
 </style>
 </head>
 <body>
@@ -141,7 +182,8 @@
     </div>
     <div><label>Workshop date</label><input id="wsDate" type="date" style="width:130px;"></div>
     <div><label>Facilitator</label><input id="facilitator" placeholder="Name" style="width:120px;"></div>
-    <div><label>Attendees</label><input id="attendees" placeholder="Names, comma-sep" style="width:200px;"></div>
+    <div><label>Attendees</label><input id="attendees" placeholder="Names, comma-sep" style="width:180px;"></div>
+    <div><label>Your name (for comments)</label><input id="commenter" placeholder="You" style="width:120px;"></div>
     <div style="display:flex; gap:8px; align-items:flex-end;">
       <button id="exportAllExcel" class="primary" title="Export all three mapping tabs + worksheet as one Excel file — a sheet per canonical (Service Order, Procurement, Stock Consumption, Future Integration)">&#11015; Excel (all tabs)</button>
       <button id="exportAllJson" title="Export the whole mapping (all tabs + captured MDFS fields + sample values) as one file to re-import later">&#11015; Save file</button>
@@ -387,6 +429,24 @@
 
 </div><!-- /tabWorksheet -->
 
+<!-- Per-field comments / discussion drawer -->
+<div class="cbackdrop" id="cBackdrop"></div>
+<aside class="cdrawer" id="cDrawer" aria-hidden="true">
+  <div class="chead">
+    <button class="cclose" id="cClose" title="Close">&times;</button>
+    <div class="ctitle">Discussion &middot; <span id="cModule"></span></div>
+    <div class="cfield" id="cField"></div>
+  </div>
+  <div class="cbody" id="cBody"></div>
+  <div class="cfoot">
+    <textarea id="cInput" placeholder="Add a comment… use @name to mention someone"></textarea>
+    <div class="crow">
+      <input class="cname" id="cAuthor" placeholder="Your name">
+      <button class="cpost" id="cPost">Comment</button>
+    </div>
+  </div>
+</aside>
+
 
 <script>
 const ROWS = [{"jams": "messageID", "c21": "`header.sourceMessageId`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": "`header.sourceMessageId`", "t22": "string", "m22": "Yes", "cm22": "All"}, {"jams": "fsmSystem", "c21": "`header.sourceSystem`", "t21": "string enum", "m21": "Yes", "cm21": "All", "c22": "`header.sourceSystemTag`", "t22": "string", "m22": "Yes", "cm22": "All"}, {"jams": "messageType", "c21": "`header.sourceMessageType`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": "All"}, {"jams": "jobID", "c21": "`header.fsmJobNumber`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "refNo", "c21": "`header.clientJobNumber`", "t21": "string", "m21": "Conditional", "cm21": "CREATE_SO", "c22": "`header.clientJobNumber`", "t22": "string", "m22": "Yes", "cm22": "PROJECT"}, {"jams": "contractID", "c21": "`header.clientContractId`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": "`header.clientContractId`", "t22": "string", "m22": "Yes", "cm22": "All"}, {"jams": "department", "c21": "`header.serviceHierarchy`", "t21": "string", "m21": "Conditional", "cm21": "CREATE_SO", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "jobType", "c21": "`item.serviceHierarchy2`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "rateCardCustomerID", "c21": "`header.customerRegion`", "t21": "string", "m21": "Conditional", "cm21": "CREATE_SO", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "rateCardSubbieID", "c21": "`item.subbieRegion`", "t21": "string", "m21": "Conditional", "cm21": "RCTI", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "costDetailID (for SORs)\nresID (for resources, plant,  stock and labor)", "c21": "`items[].lineNumber`", "t21": "int", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "stockNo if message type is MATERIALS_USAGE\nsorID if message type is RCTI; REQUEST_PO; CLAIM", "c21": "`items[].product`", "t21": "code", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "qty", "c21": "`items[].quantity`", "t21": "decimal", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "uom", "c21": "`items[]. quantityUnit`", "t21": "code", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TimeBooking = N/A JAMS will not send labor time booking.\nCustomerService = If the customer claim canonical is being used this value will be set\nEquipment = N/A JAMS will not send labor time booking.\nSubcontractorProcurement = Trajce will include messageType field in the payload if this this message type  value is RCTI and the procurement canonical is being used set this field to SubcontractorProcurement\nIndirectProcurement = Trajce will include messageType field in the payload if this this message type  value is REQUEST_PO and the procurement canonical is being used set this field to IndirectProcurement. If the sorID field in this payload is empy or is not there then use the generic material XXXX and overwrite the description, UOM, price etc.\nVanStockConsumption =  If the stock consumption canonical is being used(message type = MATERIALS_USAGE) set the value of this field to VanStockConsumption. The plant will be determined based on the remote plant assigned to the contract.\nWarehouseStockReservation = This scenario is not relevant for JAMS", "c21": "`items[].lineType`", "t21": "enum", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TBC", "c21": "`items[].isBillable`", "t21": "boolean", "m21": "Yes", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TBC\nCost Plus = Might not be relevant for JAMS pattern 1.1 or 1.3. Karan will confirm with the business if the contracts map to this scenarios is mapped correctly.\nBack to Back = Not something that JAMS does.\nNon-Back to Back = Will only come through at point of customer claim\nFixed Price = Will need to chekc with the business\nFixed Fee = Will need to chekc with the business", "c21": "`items[].pricingMode`", "t21": "enum", "m21": "Yes", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TimeBooking = N/A\nCustomerService = Based on the contract mapping table\nEquipment = Based on the contract mapping table\nSubcontractorProcurement = Based on the contract mapping table\nIndirectProcurement = Based on the contract mapping table\nVanStockConsumption = Based on the contract mapping table\nWarehouseStockReservation = N/A", "c21": "`items[].plant`", "t21": "string", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "warehouseId", "c21": "`items[].vanID`", "t21": "string", "m21": "Conditional", "cm21": "MATERIALS_USAGE", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "rctiId", "c21": "`items[].RCTIReference`", "t21": "string", "m21": "Conditional", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "supplierId", "c21": "`items[].supplier`", "t21": "code", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "woId", "c21": "`items[].activity`", "t21": "string", "m21": "Optional", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TBC", "c21": "`items[].pricingElements[]`", "t21": "array", "m21": "Conditional", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "PROJREF", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].parentProjectElement`", "t22": "string", "m22": "Yes", "cm22": null}, {"jams": "WBSREF/jobID", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].ProjectElement`", "t22": "string", "m22": "No", "cm22": null}, {"jams": "jobDesc", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].projectElementDescription`", "t22": "string(40)", "m22": "Yes", "cm22": null}, {"jams": "TBC", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].isBillingElement`", "t22": "boolean", "m22": "Yes", "cm22": null}, {"jams": "TBC", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].doaApproverLevel1`", "t22": "string", "m22": "No", "cm22": null}, {"jams": "TBC", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].doaApproverLevel2`", "t22": "string", "m22": "No", "cm22": null}]
@@ -457,6 +517,89 @@ const STATUS_OPTS = [
   {v:"N/A", label:"N/A", cls:"tbc"},
 ];
 
+/* ===================== Per-field comments / discussion ===================== */
+const COMMENTS_KEY = 'apollo_fsm_comments_v1';
+function loadComments(){ try{ const r=localStorage.getItem(COMMENTS_KEY); return r?JSON.parse(r):{}; }catch(e){ return {}; } }
+let commentsStore = loadComments();          // { key: [ {author, text, ts, resolved} ] }
+const commentMeta = {};                       // key -> { module, label }
+let currentCKey = null;
+function saveComments(){ try{ localStorage.setItem(COMMENTS_KEY, JSON.stringify(commentsStore)); }catch(e){} }
+function escHtml(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function linkMentions(t){ return escHtml(t).replace(/@([A-Za-z][\w.\-]*)/g,'<span class="men">@$1</span>'); }
+function fmtTime(iso){ try{ return new Date(iso).toLocaleString([], {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}); }catch(e){ return ''; } }
+
+// Small comment pill rendered into a row; label is shown in the drawer title.
+function commentBtn(key, moduleName, label){
+  commentMeta[key] = { module: moduleName, label: label };
+  const arr = commentsStore[key] || [];
+  const n = arr.length, unresolved = arr.some(c=>!c.resolved);
+  const cls = 'cbtn' + (n ? (unresolved ? ' unresolved' : ' has') : '');
+  const title = n ? (n + ' comment' + (n>1?'s':'') + (unresolved?' (open)':' (resolved)')) : 'Add a comment / discussion';
+  return `<button type="button" class="${cls}" data-ckey="${key}" title="${title}">&#128172;<span class="cnum">${n||''}</span></button>`;
+}
+function refreshBtn(key){
+  document.querySelectorAll('.cbtn[data-ckey="'+key+'"]').forEach(btn=>{
+    const arr = commentsStore[key]||[]; const n=arr.length, unresolved=arr.some(c=>!c.resolved);
+    btn.className = 'cbtn' + (n ? (unresolved ? ' unresolved' : ' has') : '');
+    const s = btn.querySelector('.cnum'); if(s) s.textContent = n||'';
+  });
+}
+function refreshAllBtns(){ const seen=new Set(); document.querySelectorAll('.cbtn').forEach(b=>{ if(!seen.has(b.dataset.ckey)){ seen.add(b.dataset.ckey); refreshBtn(b.dataset.ckey); } }); }
+
+function openComments(key){
+  currentCKey = key;
+  const meta = commentMeta[key] || {module:'', label:''};
+  document.getElementById('cModule').textContent = meta.module || '';
+  document.getElementById('cField').textContent = meta.label || '';
+  const au = document.getElementById('cAuthor');
+  if(!au.value){ const c=document.getElementById('commenter'); au.value = (c&&c.value) || (document.getElementById('facilitator')||{}).value || ''; }
+  renderThread();
+  document.getElementById('cBackdrop').classList.add('open');
+  document.getElementById('cDrawer').classList.add('open');
+  document.getElementById('cInput').focus();
+}
+function closeComments(){
+  document.getElementById('cBackdrop').classList.remove('open');
+  document.getElementById('cDrawer').classList.remove('open');
+  currentCKey = null;
+}
+function renderThread(){
+  const arr = commentsStore[currentCKey] || [];
+  const body = document.getElementById('cBody');
+  if(!arr.length){ body.innerHTML = '<div class="cempty">No comments yet.<br>Capture the discussion or open question for this field — e.g. a decision still pending, or an @owner to confirm.</div>'; return; }
+  body.innerHTML = arr.map((c,i)=>`
+    <div class="citem ${c.resolved?'resolved':''}">
+      <div class="cmeta"><span class="cauthor">${escHtml(c.author||'Anon')}</span><span>${fmtTime(c.ts)}</span>${c.resolved?'<span style="color:#16A34A;font-weight:600;margin-left:auto">&#10003; resolved</span>':''}</div>
+      <div class="ctext">${linkMentions(c.text)}</div>
+      <div class="cacts">
+        <button type="button" class="cresolve" data-ci="${i}">${c.resolved?'Reopen':'Resolve'}</button>
+        <button type="button" class="cdel" data-ci="${i}">Delete</button>
+      </div>
+    </div>`).join('');
+}
+function postComment(){
+  const inp = document.getElementById('cInput'); const text = inp.value.trim();
+  if(!text || !currentCKey) return;
+  const author = document.getElementById('cAuthor').value.trim() || 'Anon';
+  const c = document.getElementById('commenter'); if(c) c.value = author;   // remember for next time
+  (commentsStore[currentCKey] = commentsStore[currentCKey] || []).push({ author, text, ts:new Date().toISOString(), resolved:false });
+  inp.value = ''; saveComments(); renderThread(); refreshBtn(currentCKey);
+}
+// wiring (drawer elements already in the DOM)
+document.addEventListener('click', (e)=>{ const b=e.target.closest('.cbtn'); if(b){ e.preventDefault(); openComments(b.dataset.ckey); } });
+document.getElementById('cClose').addEventListener('click', closeComments);
+document.getElementById('cBackdrop').addEventListener('click', closeComments);
+document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && currentCKey) closeComments(); });
+document.getElementById('cPost').addEventListener('click', postComment);
+document.getElementById('cInput').addEventListener('keydown', (e)=>{ if((e.ctrlKey||e.metaKey) && e.key==='Enter') postComment(); });
+document.getElementById('cBody').addEventListener('click', (e)=>{
+  const r=e.target.closest('.cresolve'), d=e.target.closest('.cdel');
+  const arr=commentsStore[currentCKey]; if(!arr) return;
+  if(r){ const i=+r.dataset.ci; arr[i].resolved=!arr[i].resolved; saveComments(); renderThread(); refreshBtn(currentCKey); }
+  if(d){ const i=+d.dataset.ci; if(confirm('Delete this comment?')){ arr.splice(i,1); if(!arr.length) delete commentsStore[currentCKey]; saveComments(); renderThread(); refreshBtn(currentCKey); } }
+});
+/* =========================================================================== */
+
 const tbody = document.getElementById('tbody');
 const STORAGE_KEY = 'apollo_fsm_capture_draft_mdfs_v1';
 
@@ -486,7 +629,7 @@ function buildRows(){
     html += `<td><select class="status-select tbc" id="st_${rowId}">`;
     STATUS_OPTS.forEach(o => html += `<option value="${o.v}">${o.label}</option>`);
     html += `</select></td>`;
-    html += `<td><input class="notes-input" id="nt_${rowId}" placeholder="Notes / caveat..." /></td>`;
+    html += `<td><input class="notes-input" id="nt_${rowId}" placeholder="Notes / caveat..." />${commentBtn('so:'+i,'Service Order · INT-21/22', r.c21||r.c22||r.jams)}</td>`;
     // INT-22 canonical field + stacked definition
     html += canonCell(r.c22, r.t22, r.m22, r.cm22, defOf(DEF22, r.c22));
     html += `</tr>`;
@@ -729,7 +872,7 @@ function procInRowHtml(row, idx, fsmField, status, notes, sampleValue){
     <td class="meta">${transform}</td>
     <td><select class="status-select ${status==='TBC'?'tbc':status.toLowerCase()}" id="ps_${idx}">
       ${STATUS_OPTS.map(o=>`<option value="${o.v}" ${o.v===status?'selected':''}>${o.label}</option>`).join("")}
-    </select></td>
+    </select>${commentBtn('prin:'+idx,'Procurement · INT-23', canon)}</td>
     <td class="meta">${rule}</td>
   </tr>`;
 }
@@ -740,7 +883,7 @@ function procOutRowHtml(row, idx, transport){
     <td class="canon-col">${canon}</td>
     <td class="meta">${transform}</td>
     <td class="meta">${rule}</td>
-    <td><input class="field-input" id="pot_${idx}" placeholder="Capture transport..." value="${(transport||'').replace(/"/g,'&quot;')}"></td>
+    <td><input class="field-input" id="pot_${idx}" placeholder="Capture transport..." value="${(transport||'').replace(/"/g,'&quot;')}">${commentBtn('prout:'+idx,'Procurement · INT-23 (out)', canon)}</td>
   </tr>`;
 }
 
@@ -921,7 +1064,7 @@ function stockOutRowHtml(row, idx, transport){
     <td class="canon-col">${esc(canon)}</td>
     <td class="meta">${esc(transform)}</td>
     <td class="meta">${esc(rule)}</td>
-    <td><input class="field-input" id="kot_${idx}" placeholder="Capture transport..." value="${(transport||'').replace(/"/g,'&quot;')}"></td>
+    <td><input class="field-input" id="kot_${idx}" placeholder="Capture transport..." value="${(transport||'').replace(/"/g,'&quot;')}">${commentBtn('stout:'+idx,'Stock Consumption (out)', canon)}</td>
   </tr>`;
 }
 
@@ -939,7 +1082,7 @@ function stockRowHtml(row, idx, fsmField, status, sampleValue){
     <td class="meta">${esc(transform)}</td>
     <td><select class="status-select ${cls}" id="ks_${idx}">
       ${STATUS_OPTS.map(o=>`<option value="${o.v}" ${o.v===status?'selected':''}>${o.label}</option>`).join("")}
-    </select></td>
+    </select>${commentBtn('stin:'+idx,'Stock Consumption', canon)}</td>
     <td class="meta">${esc(rule)}</td>
   </tr>`;
 }
@@ -1306,6 +1449,7 @@ function collectAll(){
     serviceOrder: collectState(),        // meta + rows (incl. sampleValue) + soOut transports
     procurement: collectProcState(),     // inRows (incl. sampleValue) + outRows
     stock: collectStockState(),          // inRows (incl. sampleValue)
+    comments: commentsStore,             // per-field discussion threads
     worksheet:{ fipData, wbData, approach:_v('approachText'), keypoints:_v('keypointsText'), nextsteps:_v('nextstepsText') }
   };
 }
@@ -1315,6 +1459,7 @@ function applyAll(obj){
   else if(obj.meta){ _sv('fsmName',obj.meta.fsmName); _sv('wsDate',obj.meta.wsDate); _sv('facilitator',obj.meta.facilitator); _sv('attendees',obj.meta.attendees); }
   if(obj.procurement) applyProcState(obj.procurement);
   if(obj.stock) applyStockState(obj.stock);
+  if(obj.comments){ commentsStore = obj.comments || {}; saveComments(); refreshAllBtns(); }
   if(obj.worksheet){
     if(Array.isArray(obj.worksheet.fipData)) fipData = obj.worksheet.fipData;
     if(Array.isArray(obj.worksheet.wbData)) wbData = obj.worksheet.wbData;
@@ -1413,6 +1558,20 @@ function exportAllExcel(){
   [["FSM being mapped",fsm],["Workshop date",date],["Facilitator",_v('facilitator')],["Attendees",_v('attendees')]]
     .forEach(r=>infoBody += xlData(r,['lbl','cell']));
 
+  // --- Comments / discussion (one row per comment) ---
+  const cmtW = [150,210,110,120,340,80];
+  let cmtBody = xlHdr(["Module","Canonical / Field","Author","When","Comment","Status"]);
+  let cmtCount = 0;
+  Object.keys(commentsStore).forEach(k=>{
+    const meta = commentMeta[k] || {module:'', label:''};
+    (commentsStore[k]||[]).forEach(c=>{
+      cmtCount++;
+      cmtBody += xlData([meta.module, meta.label, c.author||'', fmtTime(c.ts), c.text||'', c.resolved?'Resolved':'Open'],
+        ['cell','mono','cell','cell','rule','cov']);
+    });
+  });
+  if(!cmtCount) cmtBody += xlData(["—","(no comments captured yet)","","","",""], null);
+
   const xml = '<?xml version="1.0"?>\n<?mso-application progid="Excel.Sheet"?>\n'
     + '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel">\n'
     + XL_STYLES + '\n'
@@ -1420,6 +1579,7 @@ function exportAllExcel(){
     + xlSheet("Procurement INT-23", ioW, prBody) + '\n'
     + xlSheet("Stock Consumption", ioW, stkBody) + '\n'
     + xlSheet("Future Integration", fipW, fipBodyX) + '\n'
+    + xlSheet("Comments", cmtW, cmtBody) + '\n'
     + xlSheet("Workshop Info", [170,340], infoBody) + '\n'
     + '</Workbook>';
 
