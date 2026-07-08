@@ -239,6 +239,20 @@
   .m-sel.m-na{ background:#f1f3f6; color:#9aa3af; border-color:#e2e6ec; }
   .m-sel.m-none{ background:#fff; color:#c2c8d0; }
   .mann{ font-size:9.5px; color:#9aa3af; text-align:center; margin-top:3px; min-height:11px; }
+  /* Canonical schema reference (collapsible) */
+  .schema-ref{ margin:0 24px 10px; border:1px solid var(--line); border-radius:6px; background:#f8fafc; font-size:12px; }
+  .schema-ref>summary{ cursor:pointer; padding:8px 12px; font-weight:700; color:#1F4E79; list-style:none; }
+  .schema-ref>summary::-webkit-details-marker{ display:none; }
+  .schema-ref>summary::before{ content:"\25B8  "; }
+  .schema-ref[open]>summary::before{ content:"\25BE  "; }
+  .schema-ref .schema-sub{ font-weight:400; color:#6b7280; }
+  .schema-body{ display:flex; gap:24px; padding:4px 16px 14px; flex-wrap:wrap; }
+  .schema-col{ flex:1; min-width:330px; }
+  .schema-col h4{ margin:8px 0 4px; color:#1a2230; font-size:12px; text-transform:uppercase; letter-spacing:.03em; }
+  .schema-col ul{ list-style:none; margin:0; padding:0; }
+  .schema-col li{ padding:2px 0; line-height:1.4; }
+  .schema-col code{ color:#1F4E79; font-weight:700; font-size:11.5px; }
+  .schema-col .sn{ color:#6b7280; }
 </style>
 </head>
 <body>
@@ -294,6 +308,60 @@
   <label><input type="checkbox" class="fmand"> Mandatory only</label>
   <span class="fcount"></span>
 </div>
+
+<details class="schema-ref">
+  <summary>Canonical Service Order schema (INT-21) <span class="schema-sub">— header + repeating items, neutral of any FSM source</span></summary>
+  <div class="schema-body">
+    <div class="schema-col">
+      <h4>header</h4>
+      <ul>
+        <li><code>canonicalServiceOrderId</code> <span class="sn">— UUID, canonical PK</span></li>
+        <li><code>sourceSystem</code> <span class="sn">— JAMS | ServiceNow ITSM | ServiceNow Defence | Sitetracker</span></li>
+        <li><code>sourceMessageId</code> <span class="sn">— FSM-supplied; idempotency key with sourceSystem</span></li>
+        <li><code>fsmJobNumber</code> <span class="sn">— FSM business key; custom field on the SAP header</span></li>
+        <li><code>clientJobNumber</code> <span class="sn">— client-facing job ref; custom field on the SAP header</span></li>
+        <li><code>clientContractId</code> <span class="sn">— custom field; drives the Contract Mapping lookup and INT-21/INT-22 pattern routing</span></li>
+        <li><code>serviceHierarchy</code> <span class="sn">— custom field on the SAP header</span></li>
+        <li><code>serviceOrderType</code> <span class="sn">— single constant → SAP ServiceOrderType</span></li>
+        <li><code>serviceOrganization</code> <span class="sn">— Contract Mapping → SAP ServiceOrganization</span></li>
+        <li><code>distributionChannel</code> <span class="sn">— Contract Mapping → ServiceDistributionChannel</span></li>
+        <li><code>division</code> <span class="sn">— Contract Mapping → Division</span></li>
+        <li><code>soldToParty</code> <span class="sn">— BP lookup: external-ID field first, then main BP number</span></li>
+        <li><code>employeeResponsible</code> <span class="sn">— Contract Mapping default; mandatory partner on the header</span></li>
+        <li><code>plannedStart / plannedEnd</code></li>
+        <li><code>referenceServiceOrder</code> <span class="sn">— sourceSystem + fsmJobNumber composite; NOT unique in SAP</span></li>
+        <li><code>contractAssignmentSuppressed</code> <span class="sn">— header default; per-item value derived from pricingMode</span></li>
+        <li><code>versionStamp</code> <span class="sn">— monotonic; supports out-of-order arrival via conditional update</span></li>
+        <li><code>status</code> <span class="sn">— canonical lifecycle</span></li>
+      </ul>
+    </div>
+    <div class="schema-col">
+      <h4>items[]</h4>
+      <ul>
+        <li><code>canonicalLineId</code> <span class="sn">— UUID</span></li>
+        <li><code>lineNumber</code> <span class="sn">— 10, 20, 30 …; line 10 reserved for Time Booking</span></li>
+        <li><code>lineType</code> <span class="sn">— TimeBooking | CustomerService | Equipment | SubcontractorProcurement | IndirectProcurement | VanStockConsumption | WarehouseStockReservation (primary scenario discriminator)</span></li>
+        <li><code>isBillable</code> <span class="sn">— boolean; true = base ServiceOrderItemCategory, false = the "N" variant</span></li>
+        <li><code>activity</code> <span class="sn">— FSM intermediate tier — custom field on the SAP item</span></li>
+        <li><code>pricingMode</code> <span class="sn">— SOR | CostPlusMargin | None — drives contractAssignmentSuppressed</span></li>
+        <li><code>product</code> <span class="sn">— service product / material ID; Equipment uses an equipment-representing product code</span></li>
+        <li><code>quantity / quantityUnit</code> <span class="sn">— UoM derived to the SAP ISO unit on the product master</span></li>
+        <li><code>profitCenter</code> <span class="sn">— Contract Mapping lookup</span></li>
+        <li><code>employeeResponsible</code> <span class="sn">— Contract Mapping default; van/warehouse = plant proxy BP</span></li>
+        <li><code>contractAssignmentSuppressed</code> <span class="sn">— per-item; derived from pricingMode via the SerOrdrPricingMode table</span></li>
+        <li><code>referenceServiceContract</code> <span class="sn">— when pricingMode = None and a contract must be assigned</span></li>
+        <li><code>pricingElements[]</code> <span class="sn">— when pricingMode = SOR or CostPlusMargin</span></li>
+        <li><code>plant</code> <span class="sn">— conditional — VanStockConsumption / WarehouseStockReservation</span></li>
+        <li><code>vanID</code> <span class="sn">— conditional — Van/Warehouse; custom field</span></li>
+        <li><code>reservedQuantity</code> <span class="sn">— conditional — WarehouseStockReservation</span></li>
+        <li><code>supplier</code> <span class="sn">— conditional — Subcontractor/Indirect Procurement; BP lookup</span></li>
+        <li><code>RCTIReference</code> <span class="sn">— conditional — patterns 1.1/1.3 + procurement lines; → FSMRCTIReference</span></li>
+        <li><code>isReleased</code> <span class="sn">— boolean; canonical default true — item created Released</span></li>
+        <li><code>itemStatus</code></li>
+      </ul>
+    </div>
+  </div>
+</details>
 
 <div class="wrap">
 <table id="mapTable">
@@ -561,7 +629,7 @@
 
 
 <script>
-const ROWS = [{"jams": "messageID", "c21": "`header.sourceMessageId`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": "`header.sourceMessageId`", "t22": "string", "m22": "Yes", "cm22": "All"}, {"jams": "fsmSystem", "c21": "`header.sourceSystem`", "t21": "string enum", "m21": "Yes", "cm21": "All", "c22": "`header.sourceSystemTag`", "t22": "string", "m22": "Yes", "cm22": "All"}, {"jams": "messageType", "c21": "`header.sourceMessageType`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": "All"}, {"jams": "jobID", "c21": "`header.fsmJobNumber`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "refNo", "c21": "`header.clientJobNumber`", "t21": "string", "m21": "Conditional", "cm21": "CREATE_SO", "c22": "`header.clientJobNumber`", "t22": "string", "m22": "Yes", "cm22": "PROJECT"}, {"jams": "contractID", "c21": "`header.clientContractId`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": "`header.clientContractId`", "t22": "string", "m22": "Yes", "cm22": "All"}, {"jams": "department", "c21": "`header.serviceHierarchy`", "t21": "string", "m21": "Conditional", "cm21": "CREATE_SO", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "jobType", "c21": "`item.serviceHierarchy2`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "rateCardCustomerID", "c21": "`header.customerRegion`", "t21": "string", "m21": "Conditional", "cm21": "CREATE_SO", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "rateCardSubbieID", "c21": "`item.subbieRegion`", "t21": "string", "m21": "Conditional", "cm21": "RCTI", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "costDetailID (for SORs)\nresID (for resources, plant,  stock and labor)", "c21": "`items[].lineNumber`", "t21": "int", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "stockNo if message type is MATERIALS_USAGE\nsorID if message type is RCTI; REQUEST_PO; CLAIM", "c21": "`items[].product`", "t21": "code", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "qty", "c21": "`items[].quantity`", "t21": "decimal", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "uom", "c21": "`items[]. quantityUnit`", "t21": "code", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TimeBooking = N/A JAMS will not send labor time booking.\nCustomerService = If the customer claim canonical is being used this value will be set\nEquipment = N/A JAMS will not send labor time booking.\nSubcontractorProcurement = Trajce will include messageType field in the payload if this this message type  value is RCTI and the procurement canonical is being used set this field to SubcontractorProcurement\nIndirectProcurement = Trajce will include messageType field in the payload if this this message type  value is REQUEST_PO and the procurement canonical is being used set this field to IndirectProcurement. If the sorID field in this payload is empy or is not there then use the generic material XXXX and overwrite the description, UOM, price etc.\nVanStockConsumption =  If the stock consumption canonical is being used(message type = MATERIALS_USAGE) set the value of this field to VanStockConsumption. The plant will be determined based on the remote plant assigned to the contract.\nWarehouseStockReservation = This scenario is not relevant for JAMS", "c21": "`items[].lineType`", "t21": "enum", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TBC", "c21": "`items[].isBillable`", "t21": "boolean", "m21": "Yes", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TBC\nCost Plus = Might not be relevant for JAMS pattern 1.1 or 1.3. Karan will confirm with the business if the contracts map to this scenarios is mapped correctly.\nBack to Back = Not something that JAMS does.\nNon-Back to Back = Will only come through at point of customer claim\nFixed Price = Will need to chekc with the business\nFixed Fee = Will need to chekc with the business", "c21": "`items[].pricingMode`", "t21": "enum", "m21": "Yes", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TimeBooking = N/A\nCustomerService = Based on the contract mapping table\nEquipment = Based on the contract mapping table\nSubcontractorProcurement = Based on the contract mapping table\nIndirectProcurement = Based on the contract mapping table\nVanStockConsumption = Based on the contract mapping table\nWarehouseStockReservation = N/A", "c21": "`items[].plant`", "t21": "string", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "warehouseId", "c21": "`items[].vanID`", "t21": "string", "m21": "Conditional", "cm21": "MATERIALS_USAGE", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "rctiId", "c21": "`items[].RCTIReference`", "t21": "string", "m21": "Conditional", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "supplierId", "c21": "`items[].supplier`", "t21": "code", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "woId", "c21": "`items[].activity`", "t21": "string", "m21": "Optional", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TBC", "c21": "`items[].pricingElements[]`", "t21": "array", "m21": "Conditional", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "PROJREF", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].parentProjectElement`", "t22": "string", "m22": "Yes", "cm22": null}, {"jams": "WBSREF/jobID", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].ProjectElement`", "t22": "string", "m22": "No", "cm22": null}, {"jams": "jobDesc", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].projectElementDescription`", "t22": "string(40)", "m22": "Yes", "cm22": null}, {"jams": "TBC", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].isBillingElement`", "t22": "boolean", "m22": "Yes", "cm22": null}, {"jams": "TBC", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].doaApproverLevel1`", "t22": "string", "m22": "No", "cm22": null}, {"jams": "TBC", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].doaApproverLevel2`", "t22": "string", "m22": "No", "cm22": null}]
+const ROWS = [{"jams": "messageID", "c21": "`header.sourceMessageId`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": "`header.sourceMessageId`", "t22": "string", "m22": "Yes", "cm22": "All"}, {"jams": "fsmSystem", "c21": "`header.sourceSystem`", "t21": "string enum", "m21": "Yes", "cm21": "All", "c22": "`header.sourceSystemTag`", "t22": "string", "m22": "Yes", "cm22": "All"}, {"jams": "messageType", "c21": "`header.sourceMessageType`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": "All"}, {"jams": "jobID", "c21": "`header.fsmJobNumber`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "refNo", "c21": "`header.clientJobNumber`", "t21": "string", "m21": "Conditional", "cm21": "CREATE_SO", "c22": "`header.clientJobNumber`", "t22": "string", "m22": "Yes", "cm22": "PROJECT"}, {"jams": "contractID", "c21": "`header.clientContractId`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": "`header.clientContractId`", "t22": "string", "m22": "Yes", "cm22": "All"}, {"jams": "department", "c21": "`header.serviceHierarchy`", "t21": "string", "m21": "Conditional", "cm21": "CREATE_SO", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "jobType", "c21": "`item.serviceHierarchy2`", "t21": "string", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "rateCardCustomerID", "c21": "`header.customerRegion`", "t21": "string", "m21": "Conditional", "cm21": "CREATE_SO", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "rateCardSubbieID", "c21": "`item.subbieRegion`", "t21": "string", "m21": "Conditional", "cm21": "RCTI", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "costDetailID (for SORs)\nresID (for resources, plant,  stock and labor)", "c21": "`items[].lineNumber`", "t21": "int", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "stockNo if message type is MATERIALS_USAGE\nsorID if message type is RCTI; REQUEST_PO; CLAIM", "c21": "`items[].product`", "t21": "code", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "qty", "c21": "`items[].quantity`", "t21": "decimal", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "uom", "c21": "`items[].quantityUnit`", "t21": "code", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TimeBooking = N/A JAMS will not send labor time booking.\nCustomerService = If the customer claim canonical is being used this value will be set\nEquipment = N/A JAMS will not send labor time booking.\nSubcontractorProcurement = Trajce will include messageType field in the payload if this this message type  value is RCTI and the procurement canonical is being used set this field to SubcontractorProcurement\nIndirectProcurement = Trajce will include messageType field in the payload if this this message type  value is REQUEST_PO and the procurement canonical is being used set this field to IndirectProcurement. If the sorID field in this payload is empy or is not there then use the generic material XXXX and overwrite the description, UOM, price etc.\nVanStockConsumption =  If the stock consumption canonical is being used(message type = MATERIALS_USAGE) set the value of this field to VanStockConsumption. The plant will be determined based on the remote plant assigned to the contract.\nWarehouseStockReservation = This scenario is not relevant for JAMS", "c21": "`items[].lineType`", "t21": "enum", "m21": "Yes", "cm21": "All", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TBC", "c21": "`items[].isBillable`", "t21": "boolean", "m21": "Yes", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TBC\nCost Plus = Might not be relevant for JAMS pattern 1.1 or 1.3. Karan will confirm with the business if the contracts map to this scenarios is mapped correctly.\nBack to Back = Not something that JAMS does.\nNon-Back to Back = Will only come through at point of customer claim\nFixed Price = Will need to chekc with the business\nFixed Fee = Will need to chekc with the business", "c21": "`items[].pricingMode`", "t21": "enum", "m21": "Yes", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TimeBooking = N/A\nCustomerService = Based on the contract mapping table\nEquipment = Based on the contract mapping table\nSubcontractorProcurement = Based on the contract mapping table\nIndirectProcurement = Based on the contract mapping table\nVanStockConsumption = Based on the contract mapping table\nWarehouseStockReservation = N/A", "c21": "`items[].plant`", "t21": "string", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "warehouseId", "c21": "`items[].vanID`", "t21": "string", "m21": "Conditional", "cm21": "MATERIALS_USAGE", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "rctiId", "c21": "`items[].RCTIReference`", "t21": "string", "m21": "Conditional", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "supplierId", "c21": "`items[].supplier`", "t21": "code", "m21": "Conditional", "cm21": "RCTI; REQUEST_PO", "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "woId", "c21": "`items[].activity`", "t21": "string", "m21": "Optional", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "TBC", "c21": "`items[].pricingElements[]`", "t21": "array", "m21": "Conditional", "cm21": null, "c22": null, "t22": null, "m22": null, "cm22": null}, {"jams": "PROJREF", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].parentProjectElement`", "t22": "string", "m22": "Yes", "cm22": null}, {"jams": "WBSREF/jobID", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].ProjectElement`", "t22": "string", "m22": "No", "cm22": null}, {"jams": "jobDesc", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].projectElementDescription`", "t22": "string(40)", "m22": "Yes", "cm22": null}, {"jams": "TBC", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].isBillingElement`", "t22": "boolean", "m22": "Yes", "cm22": null}, {"jams": "TBC", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].doaApproverLevel1`", "t22": "string", "m22": "No", "cm22": null}, {"jams": "TBC", "c21": null, "t21": null, "m21": null, "cm21": null, "c22": "`items[].doaApproverLevel2`", "t22": "string", "m22": "No", "cm22": null}]
 ;
 
 // ---- Validation seed: Service Order canonical mapped against the MDFS
@@ -608,30 +676,33 @@ const SO_SEED = [
 // Canonical-field definitions (Transformation + Business Rule) so the workshop
 // can see what each canonical field is for. Keyed by the field path (backticks
 // and spaces stripped) and looked up against each row's c21 / c22.
+// Canonical Service Order (INT-21) — header + repeating items, neutral of any
+// FSM source. Definitions aligned to the canonical schema (transformation +
+// business rule per canonical field).
 const DEF21 = {
   "header.sourceMessageId":["Pass-through","FSM-supplied. Idempotency key together with sourceSystem."],
-  "header.sourceSystem":["Pass-through","FSM-supplied. Idempotency key together with messageID."],
-  "header.sourceMessageType":["Routing","CREATE_SO = Route to Service Order or WBS creation canonical; RCTI = Procurement canonical; REQUEST_PO = Procurement canonical; MATERIALS_USAGE = Stock Consumption canonicals; MATERIAL_REQUEST = Stock Consumption canonicals; CLAIM = billing canonicals."],
-  "header.fsmJobNumber":["Pass-through",""],
-  "header.clientJobNumber":["Pass-through","Only required if the message type is CREATE_SO."],
-  "header.clientContractId":["Pass-through",""],
-  "header.serviceHierarchy":["Pass-through","Only required if the message type is CREATE_SO."],
-  "item.serviceHierarchy2":["Pass-through",""],
-  "header.customerRegion":["Pass-through","Only required if the message type is CREATE_SO."],
-  "item.subbieRegion":["Pass-through","Only required if the message type is RCTI."],
-  "items[].lineNumber":["Pass-through","Each new FSM line ID creates a new SAP line item, starting from 20 in increments of 10."],
-  "items[].product":["Pass-through","Only required if the message type is RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM."],
-  "items[].quantity":["Pass-through","Only required if the message type is RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM."],
-  "items[].quantityUnit":["Pass-through","Only required if the message type is RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM."],
-  "items[].lineType":["Derived","Each FSM option maps to one of: TimeBooking, CustomerService, Equipment, SubcontractorProcurement, IndirectProcurement, VanStockConsumption, WarehouseStockReservation."],
-  "items[].isBillable":["Derived","The FSM value needs to map to either TRUE or FALSE."],
-  "items[].pricingMode":["Derived","The FSM needs to indicate if the line is a SOR, Cost Plus Margin, or None-relevant line."],
-  "items[].plant":["Pass-through","Only required if the message type is RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM."],
-  "items[].vanID":["Pass-through","Only required if the message type is MATERIALS_USAGE."],
-  "items[].RCTIReference":["Pass-through","Custom field on the SO item. Only for contract patterns 1.1/1.3 where lineType = SubcontractorProcurement or IndirectProcurement. Passed to the SAP invoice/RCTI so payment can clear against this ID."],
-  "items[].supplier":["Pass-through","Only required if the message type is RCTI; REQUEST_PO."],
-  "items[].activity":["Pass-through","The FSM intermediate tier between Job and SOR tiers."],
-  "items[].pricingElements[]":["Derived","Based on the pricingMode from the FSM; if pricingMode = None this is not mandatory. Maps SOR / Cost Plus pricing amounts back to SAP pricing conditions."],
+  "header.sourceSystem":["Pass-through","One of JAMS | ServiceNow ITSM | ServiceNow Defence | Sitetracker. Identifies the FSM; idempotency key with sourceMessageId."],
+  "header.sourceMessageType":["Routing","Routing discriminator (not persisted on the canonical). CREATE_SO → Service Order / WBS; RCTI, REQUEST_PO → Procurement; MATERIALS_USAGE, MATERIAL_REQUEST → Stock Consumption; CLAIM → billing."],
+  "header.fsmJobNumber":["Pass-through","FSM business key. Custom field on the SAP Service Order header; resolves the order for later messages."],
+  "header.clientJobNumber":["Pass-through","Client-facing job reference. Custom field on the SAP header. Only required for CREATE_SO."],
+  "header.clientContractId":["Lookup","Custom field. Drives the Contract Mapping lookup (serviceOrganization, distributionChannel, division, plant, profitCenter…) and INT-21/INT-22 pattern routing."],
+  "header.serviceHierarchy":["Pass-through","Custom field on the SAP header. Only required for CREATE_SO."],
+  "item.serviceHierarchy2":["Pass-through","Item-level service hierarchy. Custom field on the SAP item."],
+  "header.customerRegion":["Lookup","Customer rate-card region, resolved via Contract Mapping. Only required for CREATE_SO."],
+  "item.subbieRegion":["Lookup","Subcontractor rate-card region. Only required for RCTI."],
+  "items[].lineNumber":["Derived","10, 20, 30 … in increments of 10; line 10 reserved for Time Booking. Each new FSM line ID creates a new SAP item."],
+  "items[].product":["Pass-through","Service product / material ID; Equipment uses an equipment-representing product code. Required for RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM."],
+  "items[].quantity":["Pass-through","Line quantity. Required for RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM."],
+  "items[].quantityUnit":["Derived","UoM derived to the SAP ISO unit on the product master. Required for RCTI; REQUEST_PO; MATERIALS_USAGE; CLAIM."],
+  "items[].lineType":["Derived","Primary scenario discriminator: TimeBooking | CustomerService | Equipment | SubcontractorProcurement | IndirectProcurement | VanStockConsumption | WarehouseStockReservation."],
+  "items[].isBillable":["Derived","Boolean. true = base ServiceOrderItemCategory; false = the 'N' (non-billable) variant."],
+  "items[].pricingMode":["Derived","SOR | CostPlusMargin | None. Drives contractAssignmentSuppressed via the SerOrdrPricingMode table."],
+  "items[].plant":["Lookup","Conditional — VanStockConsumption / WarehouseStockReservation. Resolved from the Contract Mapping table."],
+  "items[].vanID":["Pass-through","Conditional — VanStockConsumption / WarehouseStockReservation. Custom field on the SAP item."],
+  "items[].RCTIReference":["Pass-through","Conditional — contract patterns 1.1/1.3 + procurement lines (lineType = SubcontractorProcurement / IndirectProcurement). Maps to FSMRCTIReference so payment clears against this ID."],
+  "items[].supplier":["Lookup","Conditional — SubcontractorProcurement / IndirectProcurement. BP lookup for the supplier/subcontractor."],
+  "items[].activity":["Pass-through","FSM intermediate tier between Job and SOR. Custom field on the SAP item."],
+  "items[].pricingElements[]":["Derived","Populated when pricingMode = SOR or CostPlusMargin (not for None). Maps SOR / Cost-Plus amounts to SAP pricing conditions."],
 };
 const DEF22 = {
   "header.sourceMessageId":["Pass-through","FSM-supplied. Idempotency key together with sourceSystem."],
