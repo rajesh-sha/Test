@@ -35,6 +35,12 @@
   }
   .toolbar .stats{font-size:12px; color:#555; margin-right:auto; display:flex; gap:14px;}
   .stat{display:flex; align-items:center; gap:5px;}
+  .overall-status{font-size:12px; color:#555; display:flex; align-items:center; gap:6px; font-weight:600;}
+  .ov-select{font-size:12px; font-weight:700; border-radius:14px; padding:5px 10px; border:1px solid #cbd5e1; cursor:pointer; -webkit-appearance:none; appearance:none;}
+  .ov-select.ov-notstarted{background:#f1f3f6; color:#6b7280; border-color:#e2e6ec;}
+  .ov-select.ov-inprogress{background:#dbeafe; color:#1e56a0; border-color:#bcd4f5;}
+  .ov-select.ov-toreview{background:var(--amber); color:var(--amberText); border-color:#efe08f;}
+  .ov-select.ov-complete{background:var(--green); color:var(--greenText); border-color:#b6ecc9;}
   .dot{width:9px; height:9px; border-radius:50%; display:inline-block;}
   .dot.fit{background:var(--greenText);} .dot.partial{background:var(--amberText);}
   .dot.gap{background:var(--redText);} .dot.tbc{background:var(--greyText);}
@@ -269,6 +275,7 @@
 <div id="tabMapping" class="tabpage active">
 
 <div class="toolbar">
+  <label class="overall-status">Overall status <select id="soOverall" class="ov-select"></select></label>
   <div class="stats" id="stats"></div>
   <button id="loadDraftBtn" title="Reload the last autosaved draft for this browser tab">Restore last draft</button>
   <button id="exportCsv" class="primary">&#11015; Export Excel (this tab)</button>
@@ -335,6 +342,7 @@
 <div id="tabProc" class="tabpage">
 
 <div class="toolbar">
+  <label class="overall-status">Overall status <select id="procOverall" class="ov-select"></select></label>
   <div class="stats" id="procStats"></div>
   <button id="procLoadDraftBtn" title="Reload the last autosaved draft for this browser tab">Restore last draft</button>
   <button id="procExportCsv" class="primary">&#11015; Export Excel (this tab)</button>
@@ -389,6 +397,7 @@
 <div id="tabStock" class="tabpage">
 
 <div class="toolbar">
+  <label class="overall-status">Overall status <select id="stockOverall" class="ov-select"></select></label>
   <div class="stats" id="stockStats"></div>
   <button id="stockLoadDraftBtn" title="Reload the last autosaved draft for this browser tab">Restore last draft</button>
   <button id="stockExportCsv" class="primary">&#11015; Export Excel (this tab)</button>
@@ -681,6 +690,22 @@ const STATUS_OPTS = [
   {v:"N/A", label:"N/A", cls:"tbc"},
 ];
 
+// Per-canonical OVERALL status (a manual rollup for the whole tab).
+const OVERALL_OPTS = ["Not started","In progress","To review","Complete"];
+function ovCls(v){ return 'ov-'+String(v||'').toLowerCase().replace(/[^a-z]/g,''); }
+function setupOverall(id, def, saveFn){
+  const sel = document.getElementById(id); if(!sel) return;
+  sel.innerHTML = OVERALL_OPTS.map(o=>`<option value="${o}">${o}</option>`).join('');
+  sel.value = def;   // fresh default; a restored draft / import overrides this later
+  sel.className = 'ov-select ' + ovCls(sel.value);
+  sel.addEventListener('change', ()=>{ sel.className='ov-select '+ovCls(sel.value); if(saveFn) saveFn(); });
+}
+function setOverall(id, v){ const sel=document.getElementById(id); if(sel && v && OVERALL_OPTS.indexOf(v)>=0){ sel.value=v; sel.className='ov-select '+ovCls(v); } }
+// Seed the three tabs (Service Order has mappings → "To review"; the others start blank).
+setupOverall('soOverall', 'To review', ()=>autosave());
+setupOverall('procOverall', 'Not started', ()=>procAutosave());
+setupOverall('stockOverall', 'Not started', ()=>stockAutosave());
+
 /* ===================== Per-field comments / discussion ===================== */
 const COMMENTS_KEY = 'apollo_fsm_comments_v1';
 function loadComments(){ try{ const r=localStorage.getItem(COMMENTS_KEY); return r?JSON.parse(r):{}; }catch(e){ return {}; } }
@@ -884,6 +909,7 @@ function collectState(){
     wsDate: document.getElementById('wsDate').value,
     facilitator: document.getElementById('facilitator').value,
     attendees: document.getElementById('attendees').value,
+    overall: (document.getElementById('soOverall')||{}).value || '',
     rows,
     outRows
   };
@@ -896,6 +922,7 @@ function applyState(state){
   document.getElementById('facilitator').value = state.facilitator || "";
   document.getElementById('attendees').value = state.attendees || "";
   if(typeof applyFsmBranding==='function') applyFsmBranding(state.fsmName);
+  if(typeof setOverall==='function') setOverall('soOverall', state.overall);
   (state.rows||[]).forEach((row,i) => {
     const ff = document.getElementById('ff_r'+i);
     const st = document.getElementById('st_r'+i);
@@ -958,6 +985,7 @@ document.getElementById('exportCsv').addEventListener('click', () => {
   body += '<Row></Row>' + xlTitle("OUTBOUND — Service Order status callback (S4HC → FSM)", 6)
         + xlHdr(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport","Comments"]);
   SO_OUT_ROWS.forEach((r,i)=>body += xlData([r[0],r[1],r[2],r[3],state.outRows[i].transport,''], ['mono','mono','cell','rule','cap','rule']));
+  body += '<Row></Row>' + xlData(["Overall status", state.overall||''], ['lbl','cap']);
   downloadXls((`${fsm} Canonical Field Mapping - Service Order`).replace(/[\\/:*?"<>|]/g,'-')+'.xlsx',
     xlWorkbook(xlSheet("Service Order", W, body)));
 });
@@ -1100,10 +1128,12 @@ function collectProcState(){
     outRows: PROC_OUT_ROWS.map((r,i) => ({
       transport: document.getElementById('pot_'+i).value,
     })),
+    overall: (document.getElementById('procOverall')||{}).value || '',
   };
 }
 function applyProcState(state){
   if(!state) return;
+  if(typeof setOverall==='function') setOverall('procOverall', state.overall);
   (state.inRows||[]).forEach((row,i) => {
     const ff = document.getElementById('pf_'+i);
     const st = document.getElementById('ps_'+i);
@@ -1151,6 +1181,7 @@ document.getElementById('procExportCsv').addEventListener('click', () => {
   body += '<Row></Row>' + xlTitle("OUTBOUND — S4HC → Canonical → FSM callback",6)
         + xlHdr(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport","Comments"]);
   PROC_OUT_ROWS.forEach((r,i)=>body += xlData([r[0],r[1],r[2],r[3],state.outRows[i].transport,commentsText('prout:'+i)], ['mono','mono','cell','rule','cap','rule']));
+  body += '<Row></Row>' + xlData(["Overall status", state.overall||''], ['lbl','cap']);
   downloadXls((`${fsm} Canonical Field Mapping - Procurement`).replace(/[\\/:*?"<>|]/g,'-')+'.xlsx',
     xlWorkbook(xlSheet("Procurement", W, body)));
 });
@@ -1276,10 +1307,12 @@ function collectStockState(){
     outRows: STOCK_OUT_ROWS.map((r,i)=>({
       transport: document.getElementById('kot_'+i).value,
     })),
+    overall: (document.getElementById('stockOverall')||{}).value || '',
   };
 }
 function applyStockState(state){
   if(!state) return;
+  if(typeof setOverall==='function') setOverall('stockOverall', state.overall);
   (state.inRows||[]).forEach((row,i)=>{
     const ff=document.getElementById('kf_'+i); if(!ff) return;
     ff.value=row.fsmField||"";
@@ -1314,6 +1347,7 @@ document.getElementById('stockExportCsv').addEventListener('click', ()=>{
   body += '<Row></Row>' + xlTitle("OUTBOUND — S4HC → Canonical → FSM callback",6)
         + xlHdr(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport","Comments"]);
   STOCK_OUT_ROWS.forEach((r,i)=>body += xlData([r[0],r[1],r[2],r[3],state.outRows[i].transport,commentsText('stout:'+i)], ['mono','mono','cell','rule','cap','rule']));
+  body += '<Row></Row>' + xlData(["Overall status", state.overall||''], ['lbl','cap']);
   downloadXls((`${fsm} Canonical Field Mapping - Stock Consumption`).replace(/[\\/:*?"<>|]/g,'-')+'.xlsx',
     xlWorkbook(xlSheet("Stock Consumption", W, body)));
 });
@@ -1946,7 +1980,10 @@ function exportAllExcel(){
 
   // --- Workshop Info ---
   let infoBody = xlHdr(["Field","Value"]);
-  [["FSM being mapped",fsm],["Workshop date",date],["Facilitator",_v('facilitator')],["Attendees",_v('attendees')]]
+  [["FSM being mapped",fsm],["Workshop date",date],["Facilitator",_v('facilitator')],["Attendees",_v('attendees')],
+   ["Service Order — overall status", so.overall||''],
+   ["Procurement — overall status", pr.overall||''],
+   ["Stock Consumption — overall status", stk.overall||'']]
     .forEach(r=>infoBody += xlData(r,['lbl','cell']));
 
   // --- FSM Integration Pattern Matrix ---
@@ -2082,12 +2119,16 @@ function applyWorkbook(sheets){
   const applied = [];
   // workshop meta (keep current unless the sheet provides it)
   const meta = { fsmName:_v('fsmName'), wsDate:_v('wsDate'), facilitator:_v('facilitator'), attendees:_v('attendees') };
+  const ov = {};
   const info = sheets['Workshop Info'];
   if(info) info.forEach(r=>{ const k=_cell(r,0).trim(), v=_cell(r,1);
     if(k==='FSM being mapped') meta.fsmName=v;
     else if(k==='Workshop date'){ if(/^\d{4}-\d{2}-\d{2}/.test(v)) meta.wsDate=v.slice(0,10); }
     else if(k==='Facilitator') meta.facilitator=v;
     else if(k==='Attendees') meta.attendees=v;
+    else if(k==='Service Order — overall status') ov.so=v;
+    else if(k==='Procurement — overall status') ov.pr=v;
+    else if(k==='Stock Consumption — overall status') ov.stk=v;
   });
   // ---- Service Order (JAMS-style, INT-21/22)
   const so = sheets['Service Order'];
@@ -2128,6 +2169,7 @@ function applyWorkbook(sheets){
   }
   if(ioApply('Procurement', PROC_IN_ROWS, PROC_OUT_ROWS, applyProcState, 'ps_')) applied.push('Procurement');
   if(ioApply('Stock Consumption', STOCK_IN_ROWS, STOCK_OUT_ROWS, applyStockState, 'ks_')) applied.push('Stock Consumption');
+  if(typeof setOverall==='function'){ setOverall('soOverall', ov.so); setOverall('procOverall', ov.pr); setOverall('stockOverall', ov.stk); }
   return applied;
 }
 
