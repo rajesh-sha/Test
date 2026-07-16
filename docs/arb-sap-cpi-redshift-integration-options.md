@@ -119,6 +119,12 @@ For **extraction-style flows** (SAP → Redshift data replication), AppFlow's SA
 
 ---
 
+## Addendum — points raised in team discussion (validated)
+
+1. **"CPI supports a PostgreSQL data source" (screenshot of the Add JDBC Data Source dialog).** True but not sufficient: SAP's docs define "PostgreSQL (Cloud)" as **Amazon RDS for PostgreSQL**, not Redshift. Pointing a PostgreSQL data source at Redshift's Postgres-compatible endpoint is the workaround AWS explicitly labels **"not tested and not supported,"** and SAP support would likewise decline incidents because Redshift is not on the adapter's supported list. Redshift's wire protocol derives from PostgreSQL 8.0.2 — modern pgJDBC behavior can silently break. An architecture with no vendor support path on either side should not be put before the ARB.
+2. **The shared SAP Community blog ("Connect to AWS Redshift database from BI4", 2015) is about SAP BusinessObjects BI 4.1, not CPI.** It works by manually copying the Amazon Redshift JDBC .jar onto the BOBJ server's filesystem — possible there because you control the server. CPI's tenant accepts only MSSQL/Oracle/DB2/MariaDB driver uploads, so the technique does not transfer to CPI.
+3. **"Redshift in Servicestream is private by design; any SAP↔Redshift path needs a security-vetted, infrastructure-maintained jumphost."** This formally eliminates Option C (no public endpoint will exist) and adds a permanent ops/security tax to every JDBC-based path (A and D): a jumphost/Cloud Connector EC2 that must be vetted, patched, and owned — and Option A still fails on the driver blocker even after paying it. **Option B is the only option that satisfies this constraint with no jumphost:** the cluster stays private, CPI calls the regional AWS service endpoint over HTTPS with IAM auth, and an API Gateway + Lambda front-end provides exactly the "secure, vetted ingress" requested — as a managed, auditable service rather than a maintained server.
+
 ## Verification notes
 
 - Research method: 5 parallel search angles → 22 sources fetched → 20 falsifiable claims extracted → each claim adversarially verified by 3 independent checkers (2/3 refutes kill a claim). Result: **19 confirmed (3–0), 1 refuted** (the Data API quota figures), 0 unverified.
