@@ -618,6 +618,21 @@ SAM-2026-0142,Variation - additional works,CUST-0098,15600.00,AUD,P1,2026-04-30,
   <button id="wsExportCsv" class="primary">Export CSV (all sections)</button>
 </div>
 
+<details class="schema-ref" open>
+  <summary><span class="fsmLabel">MDFS</span> — Agreed integration approach <span class="schema-sub">— summary from the As-Is Integration &amp; Data Review session</span></summary>
+  <div class="payload-body" style="display:block;">
+    <ul style="margin:4px 0 6px; padding-left:20px; font-size:12.5px; line-height:1.6; color:#1a2230;">
+      <li><strong>Projects (SAM level)</strong> created <strong>manually</strong> in SAP as Project / WBS structures — no integration.</li>
+      <li><strong>Subcontractor claims</strong> in PIMS trigger SAP <strong>procurement</strong> (PO → Service Entry Sheet → Supplier Invoice / RCTI) at the <strong>payment-ready</strong> stage.</li>
+      <li>PIMS data sourced via <strong>database extract through CPI</strong> (pull) for this integration.</li>
+      <li>SAP returns <strong>payment status &amp; reference</strong> to PIMS via a <strong>file-based mechanism</strong> (FME / upload).</li>
+      <li><strong>Customer revenue</strong> continues via <strong>manual bulk upload</strong> into SAP (AR / journal posting — Billing / Sales Order).</li>
+      <li><strong>No integration</strong> required from PIMS for <strong>timesheets, materials, or equipment</strong>.</li>
+    </ul>
+    <div style="font-size:11.5px; color:#6b7280;">Applicable field-mapping tabs: <strong>Procurement (Services)</strong> and <strong>Billing – Sales Order</strong>. Service Order &amp; Stock are not in scope for PIMS. Next step: confirm the required data fields and extraction approach with the PIMS technical team.</div>
+  </div>
+</details>
+
 <div class="ws-section-title"><span class="fsmLabel">MDFS</span> — Future Integration Points</div>
 <div class="ws-section-sub">One row per process step. Add rows for additional steps as they come up in the session.</div>
 <div class="wrap scrollx">
