@@ -294,15 +294,14 @@
 </header>
 
 <div class="tabnav">
-  <button id="tabBtnMapping" class="active">Service Order Field Mapping</button>
-  <button id="tabBtnProc">Procurement Field Mapping</button>
-  <button id="tabBtnStock">Stock Consumption Field Mapping</button>
+  <button id="tabBtnMapping" style="display:none">Service Order Field Mapping</button>
+  <button id="tabBtnProc" class="active">Procurement Field Mapping</button>
+  <button id="tabBtnStock">Billing &ndash; Sales Order Field Mapping</button>
   <button id="tabBtnMatrix">Integration Matrix</button>
   <button id="tabBtnWorksheet"><span class="fsmLabel">MDFS</span> Explore Phase Working Sheet</button>
 </div>
 
-<div id="tabMapping" class="tabpage active">
-<div class="oos-banner">Not in scope for PIMS &mdash; projects are created manually in SAP and PIMS does not integrate this flow. Applicable PIMS integrations are Procurement (Services) and Billing (Sales Order / Revenue). See the PIMS Explore Phase Working Sheet. (Tab left available for reference.)</div>
+<div id="tabMapping" class="tabpage">
 
 <div class="toolbar">
   <label class="overall-status">Overall status <select id="soOverall" class="ov-select"></select></label>
@@ -423,7 +422,7 @@
 
 </div><!-- /tabMapping -->
 
-<div id="tabProc" class="tabpage">
+<div id="tabProc" class="tabpage active">
 
 <div class="toolbar">
   <label class="overall-status">Overall status <select id="procOverall" class="ov-select"></select></label>
@@ -522,7 +521,6 @@
 </div><!-- /tabProc -->
 
 <div id="tabStock" class="tabpage">
-<div class="oos-banner">Not in scope for PIMS &mdash; projects are created manually in SAP and PIMS does not integrate this flow. Applicable PIMS integrations are Procurement (Services) and Billing (Sales Order / Revenue). See the PIMS Explore Phase Working Sheet. (Tab left available for reference.)</div>
 
 <div class="toolbar">
   <label class="overall-status">Overall status <select id="stockOverall" class="ov-select"></select></label>
@@ -539,31 +537,20 @@
 </div>
 
 <details class="schema-ref" open>
-  <summary>Example payload <span class="schema-sub">— editable; MATERIALS_USAGE (Stock Consumption / Services request)</span></summary>
+  <summary>Example bulk upload <span class="schema-sub">— editable; PIMS revenue file (CSV) for Billing / Sales Order</span></summary>
   <div class="payload-body">
     <div class="payload-col">
-      <label>MATERIALS_USAGE</label>
-      <textarea class="payload-input" id="stockPayload" spellcheck="false">{
-  "messageType": "MATERIALS_USAGE",
-  "messageId":   "MU-2026-0042-msg",
-  "sourceSystem": "PIMS",
-  "payload": {
-    "contractId": "CTR-2026-007",
-    "jobId":      "JOB-20260401-0042",
-    "woId":       "WO-20260415-0088",
-    "items": [
-      { "stockNo": "MAT-HVC-16MM",   "qty": 35.5, "uom": "EA", "warehouseId": "WH-SOUTH-01" },
-      { "stockNo": "MAT-CONDUIT-20", "qty": 10,   "uom": "EA", "warehouseId": "WH-SOUTH-01", "batch": 221 },
-      { "stockNo": "MAT-GLAND-M20",  "qty": 4,    "uom": "EA", "warehouseId": "WH-CENTRAL",  "serial": [111232, 111233, 111234, 111235] }
-    ]
-  }
-}</textarea>
+      <label>Bulk upload &mdash; revenue file (CSV)</label>
+      <textarea class="payload-input" id="stockPayload" spellcheck="false">ProjectID,Description,Customer,Amount,Currency,TaxCode,PostingDate,GLAccount
+SAM-2026-0142,April milestone revenue,CUST-0098,125000.00,AUD,P1,2026-04-30,410000
+SAM-2026-0187,Design and mobilisation,CUST-0102,48250.50,AUD,P1,2026-04-30,410000
+SAM-2026-0142,Variation - additional works,CUST-0098,15600.00,AUD,P1,2026-04-30,410000</textarea>
     </div>
   </div>
 </details>
 
-<div class="ws-section-title">Canonical Stock Consumption / Services (inbound: FSM &rarr; Canonical &rarr; S4HC)</div>
-<div class="ws-section-sub">Stock-consumption confirmation (SVR1 line + SCS1 confirmation) for SubcontractorVan / EmployeeVan / WarehouseRequest. Capture the MDFS field and a sample value against each canonical field. Only contract patterns 1.1&ndash;1.4 route here. Example payload above is editable.</div>
+<div class="ws-section-title">Canonical Billing &ndash; Sales Order / Revenue (inbound: PIMS bulk upload &rarr; Canonical &rarr; S4HC)</div>
+<div class="ws-section-sub">PIMS customer revenue is posted to SAP via a manual bulk file upload (AR / journal / Sales Order). Capture the bulk-file column against each canonical field. Example bulk upload above is editable.</div>
 <div class="wrap">
 <table id="stockTable">
   <thead>
@@ -580,7 +567,7 @@
 </table>
 </div>
 
-<div class="ws-section-title">Canonical Stock Consumption / Services (outbound: S4HC &rarr; Canonical &rarr; FSM callback)</div>
+<div class="ws-section-title">Canonical Billing &ndash; Sales Order / Revenue (outbound: S4HC &rarr; Canonical &rarr; PIMS callback)</div>
 <div class="ws-section-sub">Status &amp; error callback fields returned to the FSM. The stock-availability pre-check returns stockCheckStatus / stockCheckMessage only when NotAvailable. Capture the confirmed transport per FSM (REST callback, Platform Event, file drop).</div>
 <div class="wrap">
 <table id="stockOutTable">
@@ -1379,50 +1366,37 @@ try{
 const STOCK_STORAGE_KEY = 'apollo_fsm_stock_draft_v1_pims';
 // [ Canonical, Type, Mandatory for Canonical, Required From FSM, S4HC Field, Transformation, Business Rule ]
 const STOCK_IN_ROWS = [
-  ["`header.canonicalStockConsumptionId`","UUID","Yes","No","Not required in S4HC","Derived","Canonical primary key. Generated by CPI on first arrival."],
-  ["`header.sourceSystem`","string enum","Yes","No","Not required in S4HC","Derived","FSM identifier (JAMS / ServiceNow ITSM / ServiceNow Defence / Sitetracker). Identified by the relevant API called or used by the canonical."],
-  ["`header.sourceMessageId`","string","Yes","Yes","Not required in S4HC","Pass-through","FSM-supplied. Idempotency key together with sourceSystem."],
-  ["`header.fsmJobNumber`","string","Yes","Yes","`A_ServiceOrder.YY1_fsmJobNumber`","Pass-through","FSM business key. Resolves the existing SAP Service Order via the INT-21 cross-reference. Custom field on the Service Order header."],
-  ["`header.clientJobNumber`","string","No","Yes","`A_ServiceOrder.YY1_clientJobNumber`","Pass-through","Client-facing job reference; carried for traceability. Custom field on the Service Order header."],
-  ["`header.clientContractId`","string","Yes","Yes","`A_ServiceOrder.YY1_clientContractId`","Lookup","Drives the CustomTable - Contract Mapping lookup. Only patterns 1.1-1.4 route to this canonical; other patterns route to INT-106a. Custom field on the Service Order header. Very important field to determine other canonical values and process flows."],
-  ["`header.sapServiceOrder`","string","Yes","No","`A_ServiceConfirmation.ReferenceServiceOrder`","Derived","The canonical must find the SAP service order whose client-contract field corresponds to header.clientContractId. Resolved from fsmJobNumber via the INT-21 cross-reference. Set as the confirmation header ReferenceServiceOrder."],
-  ["`header.consumptionType`","string enum","Yes","Yes","Not required in S4HC (drives routing)","Derived","SubcontractorVan / EmployeeVan / WarehouseRequest. Primary discriminator (section 4.6). All three resolve to the same SAP shape (SVR1 line + SCS1 confirmation); the value governs van-ID presence and plant type."],
-  ["`header.versionStamp`","integer","No","No","Not required in S4HC","Derived","Monotonic version; supports out-of-order arrival via conditional processing."],
-  ["`header.status`","string enum","No","No","Not required in S4HC","Derived","Canonical lifecycle status, maintained by CPI."],
-  ["`stockLine.canonicalLineId`","UUID","Yes","No","Not required in S4HC","Derived","Line UUID generated by CPI."],
-  ["`stockLine.product`","string","Yes","Yes","`A_ServiceConfirmationItem.Product` (+ SO item Product via INT-21)","Pass-through","Product / material code for the line. Must be a real stock-managed material; service-only products are rejected for the SVR1 / SCS1 stock categories."],
-  ["`stockLine.quantity`","decimal","Yes","Yes","`A_ServiceConfirmationItem.Quantity`","Pass-through","Quantity captured for the service in the FSM. Consumed (van) or requested (warehouse) quantity. Posted on the confirmation item against the SO line."],
-  ["`stockLine.quantityUnit`","string","Yes","Yes","`A_ServiceConfirmationItem.QuantityUnit`","Format","The unit of measure must match a valid UoM on the product master. Resolve to the SAP ISO unit of measure based on the unit provided."],
-  ["`stockLine.serialNumber`","string","No","Conditional (serial-managed stock)","`api_whse_physstockprod _SerialNumber.EWMSerialNumber` (pre-check filter only)","Pass-through","Optional. If provided, the availability pre-check (step 0) issues $expand=_SerialNumber and verifies EWMSerialNumber appears in the expanded collection. A mismatch returns StockNotAvailable to the FSM immediately. Not written to SAP; consumed only by the pre-check."],
-  ["`stockLine.batch`","string","No","Conditional (batch-managed stock)","`api_whse_physstockprod WarehousePhysicalStockProducts.Batch` (pre-check filter only)","Pass-through","Optional. If provided, the availability pre-check adds a Batch filter. A zero-result returns StockNotAvailable to the FSM. Not written to SAP; consumed only by the pre-check."],
-  ["`stockLine.ServiceRefObjectSequenceNumber`","string","Conditional (serialized materials)","Conditional (serialized materials)","`A_ServiceConfirmationItem.ServiceRefObjectSequenceNumber`","Pass-through","If the SO item is a serialized material, a serial number for each item must be passed from FSM for service confirmation."],
-  ["`stockLine.serialnumber`","string","Conditional (serialized materials)","Conditional (serialized materials)","`A_ServiceConfirmationItem.SerialNumber`","Pass-through","If the SO item is a serialized material, a serial number for each item must be passed from FSM for service confirmation."],
-  ["`stockLine.plant`","string","Yes","Yes","Not required on confirmation (SO line / EWM derive storage)","Lookup","Relevant and mandatory for Van plant (van scenarios) or warehouse plant (WarehouseRequest). Used to derive the employee responsible for the plant, populated into stockLine.employeeResponsible. Derivation rule TBC pending FSM format. Drives SAP plant/storage determination via Employee Responsible (SSCUI 102883)."],
-  ["`stockLine.vanID`","string","Conditional (van scenarios)","Conditional (van scenarios)","`A_ServiceConfirmationItem.YY1_vanID_SRI` (+ SO item YY1_vanID_SRI via INT-21)","Pass-through","Van identifier for SubcontractorVan / EmployeeVan; absent for WarehouseRequest. Max length 20. Set on the SO line by INT-21; the SAP BAdI copies it onto the outbound-delivery storage bin."],
-  ["`stockLine.employeeResponsible`","string","Yes","No","SO item Employee-Responsible partner (function 00000014) via INT-21","Lookup","Business partner that proxies the van / warehouse. Drives SAP plant and storage-location determination on the SO line."],
-  ["`stockLine.executingEmployee`","string","Yes","Yes","`A_ServiceConfirmationItem.ExecutingServiceEmployee`","Pass-through","Executing employee on the confirmation item."],
-  ["`stockLine.sapServiceOrderItem`","string","Yes","No","`A_ServiceConfirmationItem.ReferenceServiceOrderItem`","Derived","The SVR1 SO line key from the INT-21 create outcome. Links the confirmation item to the originating Service Order line."],
-  ["(constant) Service Confirmation Type","string","Yes","No","`A_ServiceConfirmation.ServiceConfirmationType`","Constant","Constant SVC1 (SAP transaction type for the stock-consumption confirmation)."],
-  ["(constant) Confirmation Item Category","string","Yes","No","`A_ServiceConfirmationItem.ServiceConfItemCategory`","Constant","Constant SCS1 (Stock Service Part; pairs with SO item category SVR1)."],
-  ["(constant) Final Confirmation flag","string","Yes","No","`A_ServiceConfirmation.ServiceConfirmationIsFinal`","Constant","Constant N (final confirmation = false)."],
-  ["(constant) Completed flag - header + item","string","Yes","No","`A_ServiceConfirmation.ServiceConfirmationIsCompleted` + `A_ServiceConfirmationItem.ServiceConfItemIsCompleted`","Constant","Constant X on BOTH header and item, set in the create deep-insert. This triggers SAP to create the outbound delivery. Cannot be set by a later PATCH (HTTP 406); must be at create."],
-  ["(derived) Sales org / Dist. channel / Division / Sold-to","string","Yes","No","`A_ServiceConfirmation` SalesOrganization / DistributionChannel / Division / SoldToParty","Derived","Look up the ServiceOrg in the Contract Mapping Table based on header.clientContractId in the FSM payload."],
-  ["`stockLine.vanID` -> warehouse-task source bin","string","Conditional (van scenarios)","Conditional (van scenarios)","`api_warehouse_order_task_2.WarehouseTask.SourceStorageBin`","Pass-through","On the pick warehouse task for the outbound-delivery item (delivery document at item level, EWMDelivery + EWMDeliveryItem). The van is the source storage bin. Not used for WarehouseRequest."],
-  ["(derived) outbound delivery + item","string","Conditional (van scenarios)","No","`api_warehouse_order_task_2.WarehouseTask.EWMDelivery` / `EWMDeliveryItem`","Derived","The EWM outbound delivery order + item created by the Service Confirmation; resolved before creating the pick task."],
-  ["(constant) Direct task confirmation","boolean","Conditional (van scenarios)","No","`ConfirmWarehouseTaskProduct.DirectWhseTaskConfIsAllowed`","Constant","Constant true - confirms the pick task without assigning a warehouse order to a resource. All action parameters are mandatory (send empty/0/false for unused)."],
-  ["(derived) goods issue","action","Conditional (van scenarios)","No","`api_warehouse_odo_2.WhseOutboundDeliveryOrderHead/PostGoodsIssue`","Derived","Parameterless bound action on the outbound-delivery head (If-Match = head ETag); final step for van consumption. ODO entity sets are read-only; writes are via bound actions."],
+  ["`header.canonicalBillingId`","UUID","Yes","No","Not required in S4HC","Derived","Canonical primary key. Generated by CPI on first arrival; immutable for the lifetime of the message."],
+  ["`header.sourceSystem`","string enum","Yes","Yes","Not required in S4HC","Derived","FSM identifier (PIMS). Partitions the idempotency key."],
+  ["`header.sourceMessageId`","string","Yes","Yes","Not required in S4HC","Pass-through","Upload batch / file reference. Idempotency key together with sourceSystem."],
+  ["`header.sourceMessageType`","string","Yes","Yes","Not required in S4HC","Derived","REVENUE_POSTING. Indicates the customer-revenue bulk upload for Billing / Sales Order posting."],
+  ["`header.projectId`","string","Yes","Yes","`ProjectElement / WBS` (read)","Lookup","PIMS Project ID (SAM). Resolves the SAP Project / WBS element the revenue posts against."],
+  ["`header.customer`","code","Yes","Yes","`SalesOrder.SoldToParty` / `AR customer`","Lookup","Customer / sold-to party. BP lookup on the PIMS customer reference."],
+  ["`header.companyCode`","code","Yes","No","`CompanyCode`","Lookup","Resolved from the Project / contract mapping. Mandatory posting field."],
+  ["`header.currency`","code","Yes","Conditional","`TransactionCurrency`","Lookup","Document currency (defaults AUD). Item-level currency required whenever an amount is set."],
+  ["`header.documentReference`","string","Yes","Yes","`Header text / reference`","Pass-through","Revenue file name / upload batch reference, carried for traceability."],
+  ["`header.postingDate`","date","Yes","Yes","`PostingDate` / `DocumentDate`","Pass-through","Posting / document date for the revenue posting."],
+  ["`header.billingType`","code","Yes","No","`BillingDocumentType` / `AR doc type`","Derived","Derived posting type (revenue upload → AR / journal, or Sales-Order billing where applicable)."],
+  ["`header.versionStamp`","integer","Yes","No","Not required in S4HC","Derived","Monotonic version counter; supports out-of-order arrival via conditional update."],
+  ["`header.status`","string enum","Yes","No","Not required in S4HC","Derived","Canonical lifecycle status maintained by CPI."],
+  ["`items[].canonicalLineId`","UUID","Yes","No","Not required in S4HC","Derived","Generated by CPI per revenue line."],
+  ["`items[].lineNumber`","int","Yes","Yes","`Item number`","Derived + Constant","Canonical-controlled line number (10, 20, 30 …)."],
+  ["`items[].projectElement`","string","Yes","Yes","`WBSElementExternalID`","Pass-through","Project / WBS element the revenue line posts against (from ProjectID)."],
+  ["`items[].description`","string","Yes","Yes","`Item text`","Pass-through","Revenue line description."],
+  ["`items[].amount`","decimal","Yes","Yes","`Amount` (+ currency)","Pass-through","Net revenue amount for the line. Sent as a JSON/number value; requires an item currency."],
+  ["`items[].taxcode`","code","Yes","Yes","`TaxCode`","Derived","Based on the tax code in the file, the relevant SAP tax code is determined."],
+  ["`items[].glAccount`","code","Conditional","Conditional","`GLAccount`","Pass-through","Revenue G/L account for the AR / journal posting; derived where blank via account determination."],
+  ["`items[].profitCenter`","code","Conditional","No","`ProfitCenter`","Lookup","Resolved from the Project / WBS master for the revenue posting."],
+  ["`items[].itemStatus`","string enum","Yes","No","Not required in S4HC","Derived","Canonical line lifecycle status maintained by CPI."],
 ];
 const stockBody = document.getElementById('stockBody');
 
 // Outbound (S4HC -> Canonical -> FSM callback): [ S4HC, Canonical, Transformation, Business Rule ]
 const STOCK_OUT_ROWS = [
-  ["`api_whse_physstockprod WarehousePhysicalStockProducts` (pre-check)","`header.stockCheckStatus` (error callback)","Derived","Available (check passed, flow continues — not in the success callback) or NotAvailable (check failed, flow stopped). Only returned to the FSM when NotAvailable; the FSM receives this instead of the normal success fields."],
-  ["`api_whse_physstockprod` (pre-check mismatch detail)","`header.stockCheckMessage` (error callback)","Derived","Human-readable mismatch explanation, e.g. 'Serial SN-001 not found in bin CL-AREA for product UFY10041760FSN'. Only present when stockCheckStatus = NotAvailable."],
-  ["`A_ServiceOrder.ServiceOrder`","`header.sapServiceOrder` (callback)","Pass-through","The Service Order the stock line belongs to. Returned to the FSM on success."],
-  ["`A_ServiceConfirmation.ServiceConfirmation`","`header.sapServiceConfirmation` (callback)","Pass-through","The Service Confirmation number issued by SAP (e.g. 9000000004). Returned to the FSM on success."],
-  ["`A_ServiceConfirmation.ServiceConfirmationIsFinal`","`header.sapIsFinal` (callback)","Pass-through","Returned as N (not final) for these scenarios."],
-  ["`WhseOutboundDeliveryOrderHead.EWMOutboundDeliveryOrder`","`header.sapOutboundDelivery` (callback)","Pass-through","The EWM outbound delivery order created by the confirmation."],
-  ["Goods-issue posted flag","`header.sapGoodsIssued` (callback)","Derived","True once the canonical posts the goods issue (van consumption only - SCN-L-001 / SCN-L-002)."],
+  ["`A_BillingDocument.BillingDocument`","`header.sapBillingDocument` (callback)","Pass-through","Billing document created by the upload (when a Sales-Order / billing path is used). Returned to PIMS on success."],
+  ["`AccountingDocument / A_OperationalAcctgDocItem`","`header.sapAccountingDocument` (callback)","Pass-through","AR / journal accounting document reference posted from the revenue upload. Returned to PIMS."],
+  ["`SalesOrder.SalesOrder`","`header.sapSalesOrder` (callback)","Pass-through","Sales Order number, when the revenue is posted via a Sales-Order billing path rather than a direct AR journal."],
+  ["Posting status","`header.postingStatus` (callback)","Derived","Posted / Error status of each revenue line, returned to PIMS so the batch can be reconciled."],
 ];
 const stockOutBody = document.getElementById('stockOutBody');
 
@@ -1532,9 +1506,9 @@ document.getElementById('stockExportCsv').addEventListener('click', ()=>{
   STOCK_OUT_ROWS.forEach((r,i)=>body += xlData([r[0],r[1],r[2],r[3],state.outRows[i].transport,commentsText('stout:'+i)], ['mono','mono','cell','rule','cap','rule']));
   body += '<Row></Row>' + xlData(["Overall status", state.overall||''], ['lbl','cap']);
   body += '<Row></Row>' + xlTitle("Example payload (editable)", 4) + xlHdr(["Message","Payload"]);
-  body += xlData(["MATERIALS_USAGE", state.payload||''], ['lbl','mono']);
-  downloadXls((`${fsm} Canonical Field Mapping - Stock Consumption`).replace(/[\\/:*?"<>|]/g,'-')+'.xlsx',
-    xlWorkbook(xlSheet("Stock Consumption", W, body)));
+  body += xlData(["Bulk upload (revenue file)", state.payload||''], ['lbl','mono']);
+  downloadXls((`${fsm} Canonical Field Mapping - Billing - Sales Order`).replace(/[\\/:*?"<>|]/g,'-')+'.xlsx',
+    xlWorkbook(xlSheet("Billing - Sales Order", W, body)));
 });
 renderStock();
 (function(){ const el=document.getElementById('stockPayload'); if(el) el.addEventListener('input', stockAutosave); })();
@@ -2199,9 +2173,8 @@ function exportAllExcel(){
   const xml = '<?xml version="1.0"?>\n<?mso-application progid="Excel.Sheet"?>\n'
     + '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel">\n'
     + XL_STYLES + '\n'
-    + xlSheet("Service Order", soW, soBody) + '\n'
     + xlSheet("Procurement", ioW, prBody) + '\n'
-    + xlSheet("Stock Consumption", ioW, stkBody) + '\n'
+    + xlSheet("Billing - Sales Order", ioW, stkBody) + '\n'
     + xlSheet("Integration Matrix", mtxW, mtxBody) + '\n'
     + xlSheet("Comments", cmtW, cmtBody) + '\n'
     + xlSheet("Workshop Info", [170,340], infoBody) + '\n'
@@ -2358,7 +2331,7 @@ function applyWorkbook(sheets){
     applyFn({inRows, outRows}); return true;
   }
   if(ioApply('Procurement', PROC_IN_ROWS, PROC_OUT_ROWS, applyProcState, 'ps_')) applied.push('Procurement');
-  if(ioApply('Stock Consumption', STOCK_IN_ROWS, STOCK_OUT_ROWS, applyStockState, 'ks_')) applied.push('Stock Consumption');
+  if(ioApply('Billing - Sales Order', STOCK_IN_ROWS, STOCK_OUT_ROWS, applyStockState, 'ks_')) applied.push('Billing - Sales Order');
   if(typeof setOverall==='function'){ setOverall('soOverall', ov.so); setOverall('procOverall', ov.pr); setOverall('stockOverall', ov.stk); }
   return applied;
 }
