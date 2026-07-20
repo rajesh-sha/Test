@@ -253,6 +253,13 @@
   .schema-col li{ padding:2px 0; line-height:1.4; }
   .schema-col code{ color:#1F4E79; font-weight:700; font-size:11.5px; }
   .schema-col .sn{ color:#6b7280; }
+  /* editable example payloads */
+  .payload-body{ display:flex; gap:16px; padding:4px 16px 14px; flex-wrap:wrap; }
+  .payload-col{ flex:1; min-width:340px; display:flex; flex-direction:column; }
+  .payload-col label{ font-size:11px; font-weight:700; color:#1F4E79; margin:4px 0; text-transform:uppercase; letter-spacing:.03em; }
+  .payload-input{ width:100%; box-sizing:border-box; font-family:Consolas,"Courier New",monospace; font-size:11.5px; line-height:1.45;
+    border:1px solid #cbd5e1; border-radius:5px; padding:8px 10px; background:#fff; white-space:pre; overflow:auto; min-height:190px; resize:vertical; tab-size:2; }
+  .payload-input:focus{ outline:2px solid var(--navy2); border-color:var(--navy2); }
 </style>
 </head>
 <body>
@@ -430,8 +437,51 @@
   <span class="fcount"></span>
 </div>
 
+<details class="schema-ref" open>
+  <summary>Example payloads <span class="schema-sub">— editable; RCTI &amp; REQUEST_PO (JAMS → Canonical Procurement)</span></summary>
+  <div class="payload-body">
+    <div class="payload-col">
+      <label>RCTI (SubcontractorClaim)</label>
+      <textarea class="payload-input" id="procPayloadRCTI" spellcheck="false">{
+  "messageType": "RCTI",
+  "messageId":   "RCTI-2026-00451-msg",
+  "sourceSystem": "JAMS",
+  "payload": {
+    "contractId":   "CTR-2026-007",
+    "rctiId":       "RCTI-2026-00451",
+    "supplierId":   "SUP-00087",
+    "description":  "April maintenance works",
+    "approvedBy":   "jsmith",
+    "approvedDate": "2026-04-25",
+    "items": [
+      { "jobId": "JOB-0042", "sorId": "SOR-EXCAV-M3",   "sorDescription": "Excavation", "uom": "M3", "rate": 85.00, "qty": 12,  "rateCardSubbieID": "NSW", "taxcode": "P1" },
+      { "jobId": "JOB-0043", "sorId": "SOR-BACKFILL-M3", "sorDescription": "Backfill",   "uom": "M3", "rate": 45.00, "qty": 8.5, "rateCardSubbieID": "NSW", "taxcode": "P1" }
+    ]
+  }
+}</textarea>
+    </div>
+    <div class="payload-col">
+      <label>REQUEST_PO (ProcurementInitiation)</label>
+      <textarea class="payload-input" id="procPayloadPO" spellcheck="false">{
+  "messageType": "REQUEST_PO",
+  "messageId":   "REQPO-2026-0042-msg",
+  "sourceSystem": "JAMS",
+  "payload": {
+    "contractId":  "CTR-2026-007",
+    "jobId":       "JOB-20260401-0042",
+    "supplierId":  "SUP-00087",
+    "description": "Hire of elevated work platform",
+    "items": [
+      { "itemDescription": "EWP hire per day", "uom": "DAY", "rate": 320.00, "qty": 3, "rateCardSubbieID": "NSW", "taxcode": "P1" }
+    ]
+  }
+}</textarea>
+    </div>
+  </div>
+</details>
+
 <div class="ws-section-title">INT-23 — Canonical Procurement (inbound: FSM → Canonical → S4HC)</div>
-<div class="ws-section-sub">No JAMS or any other FSM mapping is confirmed yet for Procurement — there's no reference column here, unlike the Service Order/WBS tab. Capture live against the canonical field catalogue.</div>
+<div class="ws-section-sub">Seeded from the JAMS → Canonical Procurement mapping (screen field + status per canonical field). Confirm each mapping and capture the technical field / sample value live. Example payloads above are editable.</div>
 <div class="wrap">
 <table id="procTable">
   <thead>
@@ -1287,11 +1337,15 @@ function collectProcState(){
       transport: document.getElementById('pot_'+i).value,
     })),
     overall: (document.getElementById('procOverall')||{}).value || '',
+    payloadRCTI: (document.getElementById('procPayloadRCTI')||{}).value || '',
+    payloadPO: (document.getElementById('procPayloadPO')||{}).value || '',
   };
 }
 function applyProcState(state){
   if(!state) return;
   if(typeof setOverall==='function') setOverall('procOverall', state.overall);
+  if(typeof state.payloadRCTI==='string'){ const el=document.getElementById('procPayloadRCTI'); if(el) el.value=state.payloadRCTI; }
+  if(typeof state.payloadPO==='string'){ const el=document.getElementById('procPayloadPO'); if(el) el.value=state.payloadPO; }
   (state.inRows||[]).forEach((row,i) => {
     const ff = document.getElementById('pf_'+i);
     const st = document.getElementById('ps_'+i);
@@ -1342,11 +1396,15 @@ document.getElementById('procExportCsv').addEventListener('click', () => {
         + xlHdr(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport","Comments"]);
   PROC_OUT_ROWS.forEach((r,i)=>body += xlData([r[0],r[1],r[2],r[3],state.outRows[i].transport,commentsText('prout:'+i)], ['mono','mono','cell','rule','cap','rule']));
   body += '<Row></Row>' + xlData(["Overall status", state.overall||''], ['lbl','cap']);
+  body += '<Row></Row>' + xlTitle("Example payloads (editable)", 4) + xlHdr(["Message","Payload"]);
+  body += xlData(["RCTI", state.payloadRCTI||''], ['lbl','mono']);
+  body += xlData(["REQUEST_PO", state.payloadPO||''], ['lbl','mono']);
   downloadXls((`${fsm} Canonical Field Mapping - Procurement`).replace(/[\\/:*?"<>|]/g,'-')+'.xlsx',
     xlWorkbook(xlSheet("Procurement", W, body)));
 });
 
 renderProc();
+['procPayloadRCTI','procPayloadPO'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input', procAutosave); });
 try{
   const rawProc = localStorage.getItem(PROC_STORAGE_KEY);
   if(rawProc) applyProcState(JSON.parse(rawProc));
