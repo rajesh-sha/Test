@@ -535,8 +535,32 @@
   <span class="fcount"></span>
 </div>
 
+<details class="schema-ref" open>
+  <summary>Example payload <span class="schema-sub">— editable; MATERIALS_USAGE (Stock Consumption / Services request)</span></summary>
+  <div class="payload-body">
+    <div class="payload-col">
+      <label>MATERIALS_USAGE</label>
+      <textarea class="payload-input" id="stockPayload" spellcheck="false">{
+  "messageType": "MATERIALS_USAGE",
+  "messageId":   "MU-2026-0042-msg",
+  "sourceSystem": "JAMS",
+  "payload": {
+    "contractId": "CTR-2026-007",
+    "jobId":      "JOB-20260401-0042",
+    "woId":       "WO-20260415-0088",
+    "items": [
+      { "stockNo": "MAT-HVC-16MM",   "qty": 35.5, "uom": "EA", "warehouseId": "WH-SOUTH-01" },
+      { "stockNo": "MAT-CONDUIT-20", "qty": 10,   "uom": "EA", "warehouseId": "WH-SOUTH-01", "batch": 221 },
+      { "stockNo": "MAT-GLAND-M20",  "qty": 4,    "uom": "EA", "warehouseId": "WH-CENTRAL",  "serial": [111232, 111233, 111234, 111235] }
+    ]
+  }
+}</textarea>
+    </div>
+  </div>
+</details>
+
 <div class="ws-section-title">Canonical Stock Consumption / Services (inbound: FSM &rarr; Canonical &rarr; S4HC)</div>
-<div class="ws-section-sub">Stock-consumption confirmation (SVR1 line + SCS1 confirmation) for SubcontractorVan / EmployeeVan / WarehouseRequest. Capture the MDFS field and a sample value against each canonical field. Only contract patterns 1.1&ndash;1.4 route here.</div>
+<div class="ws-section-sub">Stock-consumption confirmation (SVR1 line + SCS1 confirmation) for SubcontractorVan / EmployeeVan / WarehouseRequest. Capture the MDFS field and a sample value against each canonical field. Only contract patterns 1.1&ndash;1.4 route here. Example payload above is editable.</div>
 <div class="wrap">
 <table id="stockTable">
   <thead>
@@ -1524,11 +1548,13 @@ function collectStockState(){
       transport: document.getElementById('kot_'+i).value,
     })),
     overall: (document.getElementById('stockOverall')||{}).value || '',
+    payload: (document.getElementById('stockPayload')||{}).value || '',
   };
 }
 function applyStockState(state){
   if(!state) return;
   if(typeof setOverall==='function') setOverall('stockOverall', state.overall);
+  if(typeof state.payload==='string'){ const el=document.getElementById('stockPayload'); if(el) el.value=state.payload; }
   (state.inRows||[]).forEach((row,i)=>{
     const ff=document.getElementById('kf_'+i); if(!ff) return;
     ff.value=row.fsmField||"";
@@ -1566,10 +1592,13 @@ document.getElementById('stockExportCsv').addEventListener('click', ()=>{
         + xlHdr(["S4HC Field","Canonical Field","Transformation","Business Rule","FSM transport","Comments"]);
   STOCK_OUT_ROWS.forEach((r,i)=>body += xlData([r[0],r[1],r[2],r[3],state.outRows[i].transport,commentsText('stout:'+i)], ['mono','mono','cell','rule','cap','rule']));
   body += '<Row></Row>' + xlData(["Overall status", state.overall||''], ['lbl','cap']);
+  body += '<Row></Row>' + xlTitle("Example payload (editable)", 4) + xlHdr(["Message","Payload"]);
+  body += xlData(["MATERIALS_USAGE", state.payload||''], ['lbl','mono']);
   downloadXls((`${fsm} Canonical Field Mapping - Stock Consumption`).replace(/[\\/:*?"<>|]/g,'-')+'.xlsx',
     xlWorkbook(xlSheet("Stock Consumption", W, body)));
 });
 renderStock();
+(function(){ const el=document.getElementById('stockPayload'); if(el) el.addEventListener('input', stockAutosave); })();
 try{ const rawStock=localStorage.getItem(STOCK_STORAGE_KEY); if(rawStock) applyStockState(JSON.parse(rawStock)); }catch(e){}
 
 
