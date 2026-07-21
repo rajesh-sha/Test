@@ -295,10 +295,10 @@
 <div class="tabnav">
   <button id="tabBtnD4CM" class="active">D4C Maintenance</button>
   <button id="tabBtnD4CC">D4C Construction</button>
-  <button id="tabBtnEP">Enterprise Project</button>
-  <button id="tabBtnWC">Work Confirmation</button>
+  <button id="tabBtnEP">Work Creation &ndash; Enterprise Project</button>
+  <button id="tabBtnWC">Stock Confirmation &ndash; Service Order</button>
   <button id="tabBtnMapping" style="display:none">Service Order Field Mapping</button>
-  <button id="tabBtnProc">Procurement (PO/SES) Field Mapping</button>
+  <button id="tabBtnProc">Procurement &ndash; Services</button>
   <button id="tabBtnBL">Billing &ndash; Service Orders</button>
   <button id="tabBtnStock" style="display:none">Stock Consumption Field Mapping</button>
   <button id="tabBtnMatrix">Integration Matrix</button>
@@ -328,7 +328,7 @@
 <div id="tabEP" class="tabpage">
 <div class="toolbar"><div class="stats" style="margin-right:auto; font-size:12px; color:#555;">Construction only — Project &amp; WBS creation/update. Validated per session as ↑API for Construction; N/A for Maintenance.</div>
   <button id="epExport" class="primary">&#11015; Export Excel (this tab)</button></div>
-<div class="ws-section-title">Canonical Enterprise Project / WBS (ETF-893, &uarr;API) — Construction</div>
+<div class="ws-section-title">Work Creation &ndash; Enterprise Project (ETF-893) — Construction</div>
 <div class="wrap"><table id="epTable"><thead><tr>
 <th style="width:14%;">D4C Field <span class="badge">capture</span></th>
 <th style="width:12%;">Sample value <span class="badge">extract</span></th>
@@ -339,7 +339,7 @@
 <div id="tabWC" class="tabpage">
 <div class="toolbar"><div class="stats" style="margin-right:auto; font-size:12px; color:#555;">SES / service confirmation + labour time posting to WBS. Validated per session as ↑API for both Maintenance and Construction.</div>
   <button id="wcExport" class="primary">&#11015; Export Excel (this tab)</button></div>
-<div class="ws-section-title">Canonical Work Confirmation / Stock Confirmation – Service Order (ETF-905, &uarr;API) — Maintenance &amp; Construction</div>
+<div class="ws-section-title">Stock Confirmation &ndash; Service Order (ETF-905) — Maintenance &amp; Construction</div>
 <div class="wrap"><table id="wcTable"><thead><tr>
 <th style="width:14%;">D4C Field <span class="badge">capture</span></th>
 <th style="width:12%;">Sample value <span class="badge">extract</span></th>
@@ -350,7 +350,7 @@
 <div id="tabBL" class="tabpage">
 <div class="toolbar"><div class="stats" style="margin-right:auto; font-size:12px; color:#555;">Work billing / progress claim -> SAP billing. Validated per session as ↑API for Construction; N/A for Maintenance.</div>
   <button id="blExport" class="primary">&#11015; Export Excel (this tab)</button></div>
-<div class="ws-section-title">Canonical Billing – Service Orders (ETF-876, &uarr;API) — Construction</div>
+<div class="ws-section-title">Billing &ndash; Service Orders (ETF-876) — Construction</div>
 <div class="wrap"><table id="blTable"><thead><tr>
 <th style="width:14%;">D4C Field <span class="badge">capture</span></th>
 <th style="width:12%;">Sample value <span class="badge">extract</span></th>
