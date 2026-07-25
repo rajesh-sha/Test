@@ -4143,8 +4143,9 @@
             </sc-if>
             <sc-if value="{{ reviewCleared }}" hint-placeholder-val="{{ true }}">
               <button onClick="{{ reviewToSignoff }}" style="display:inline-flex;align-items:center;gap:7px;background:var(--accent,#4F46E5);border:none;color:#fff;font-weight:600;font-size:13px;padding:10px 17px;border-radius:9px;cursor:pointer">Continue to Sign-off →</button>
+              <button onClick="{{ reviewToBuild }}" style="display:inline-flex;align-items:center;gap:7px;background:#0E1525;border:none;color:#fff;font-weight:600;font-size:13px;padding:10px 15px;border-radius:9px;cursor:pointer">Open Build Readiness →</button>
               <button onClick="{{ reRunReview }}" style="background:#fff;border:1px solid #D8DEE8;color:#3A4252;font-weight:600;font-size:13px;padding:10px 15px;border-radius:9px;cursor:pointer">Re-run</button>
-              <button onClick="{{ closeReview }}" style="background:transparent;border:none;color:#8A93A3;font-weight:600;font-size:13px;padding:10px 8px;border-radius:9px;cursor:pointer">Close</button>
+              <button onClick="{{ closeReview }}" style="background:transparent;border:none;color:#8A93A3;font-weight:600;font-size:13px;padding:10px 8px;cursor:pointer">Close</button>
             </sc-if>
           </div>
         </div>
@@ -4462,14 +4463,22 @@
 
         <div style="height:1px;background:#EEF1F6;margin:20px 0"></div>
 
-        <!-- sample exchange -->
+        <!-- seed exchange — live from engagement state; hidden once the user chats -->
+        <sc-if value="{{ showSeedChat }}" hint-placeholder-val="{{ true }}">
         <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-          <div style="max-width:78%;background:var(--accent,#4F46E5);color:#fff;font-size:12.5px;line-height:1.5;padding:10px 13px;border-radius:13px 13px 4px 13px">What's blocking sign-off on Order-to-Cash?</div>
+          <div style="max-width:78%;background:var(--accent,#4F46E5);color:#fff;font-size:12.5px;line-height:1.5;padding:10px 13px;border-radius:13px 13px 4px 13px">{{ seedChatQuestion }}</div>
         </div>
         <div style="display:flex;gap:9px;margin-bottom:8px">
           <div style="width:24px;height:24px;border-radius:7px;background:var(--accent-soft-bg,#EEF0FF);display:flex;align-items:center;justify-content:center;flex:none;margin-top:2px"><svg width="13" height="13" viewBox="0 0 24 24" fill="var(--accent,#4F46E5)" stroke="none"><path d="M12 2l1.9 5.1L19 9l-5.1 1.9L12 16l-1.9-5.1L5 9l5.1-1.9z"/></svg></div>
-          <div style="max-width:82%;background:var(--surface,#F4F6F9);border:1px solid #EEF1F6;color:#33394A;font-size:12.5px;line-height:1.55;padding:11px 13px;border-radius:13px 13px 13px 4px">Two items: <b style="color:#BE123C">O2C-034</b> is a potential clean-core breach (route to BTP), and <b style="color:#B45309">O2C-021</b> pricing scored 74% — below the 80% threshold. Both are in the Quality &amp; Risk Review with Fix-in links.</div>
+          <div style="max-width:82%;background:var(--surface,#F4F6F9);border:1px solid #EEF1F6;color:#33394A;font-size:12.5px;line-height:1.55;padding:11px 13px;border-radius:13px 13px 13px 4px">
+            <div style="font-size:13px;font-weight:700;color:#131826;margin-bottom:7px">{{ seedChatTitle }}</div>
+            <sc-for list="{{ seedChatBullets }}" as="b" hint-placeholder-count="3">
+              <div style="display:flex;gap:7px;margin-bottom:5px"><span style="color:var(--accent,#4F46E5);flex:none">•</span><span><b style="color:#1B2230;font-weight:600">{{ b.b }}</b> {{ b.t }}</span></div>
+            </sc-for>
+            <div onClick="{{ seedChatGo }}" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;font-weight:600;color:var(--accent,#4F46E5);cursor:pointer">{{ seedChatAction }} <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+          </div>
         </div>
+        </sc-if>
 
         <sc-for list="{{ chat }}" as="m" hint-placeholder-count="0">
           <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
@@ -4962,7 +4971,7 @@
 <dc-import name="FeedbackToast" accent="#6366F1" soft="rgba(99,102,241,.12)" hint-size="0,0"></dc-import></x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1380,&quot;height&quot;:860},&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Iris&quot;,&quot;Teal&quot;,&quot;Violet&quot;,&quot;Royal&quot;],&quot;default&quot;:&quot;Iris&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;shell&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Ink&quot;,&quot;Slate&quot;,&quot;Graphite&quot;],&quot;default&quot;:&quot;Ink&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;surface&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Cool&quot;,&quot;Warm&quot;,&quot;Bright&quot;],&quot;default&quot;:&quot;Cool&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
 class Component extends DCLogic {
-  state = { screen: 'dashboard', ctLens: 'process', sel: 'O2C-021', ws: 'integration', specDoc: 'fs', fa: 'Finance (R2R)', settingsOpen: false, role: 'Administrator', roleMenuOpen: false, openGroups: { design: true }, navCollapsed: { 'hcm:DESIGN':true, 'hcm:BUILD':true, 'hcm:INTEGRATE':true, 'hcm:ASSURE':true, 'hcm:VALUE':true, 'roster:DESIGN':true, 'roster:INTEGRATE':true, 'roster:ASSURE':true, 'roster:VALUE':true }, solution: 's4', solnOpen: false, copilotOpen: false, notifOpen: false, authed: !!(this.props && this.props.boot === 'dashboard'), loginRole: 'Consultant', loginProduct: 'Cognixa', capRouted: {}, emailModal: null, riskOpen: (function(){ try{ return localStorage.getItem('dl_cgx_risk_closed')!=='1'; }catch(e){ return true; } })() , notifAllRead: false, designLocked: !!(function(){ try{ return localStorage.getItem('dl_cgx_design_locked')==='1'; }catch(e){ return false; } })(), blueprintSigned: !!(function(){ try{ return localStorage.getItem('dl_cgx_blueprint_signed')==='1'; }catch(e){ return false; } })(), aiKey: (function(){ try{ return localStorage.getItem('dl_cgx_ai_key')||sessionStorage.getItem('dl_cgx_ai_key')||''; }catch(e){ return ''; } })(), aiRemember: !!(function(){ try{ return !!localStorage.getItem('dl_cgx_ai_key'); }catch(e){ return false; } })(), aiConnected: !!(function(){ try{ return !!(localStorage.getItem('dl_cgx_ai_key')||sessionStorage.getItem('dl_cgx_ai_key')); }catch(e){ return false; } })(), deploy: (function(){ try{ const raw=localStorage.getItem('dl_cgx_deploy'); const base={ cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, cfgTrCbc:null, cfgTrBc:null, cfgExported:false, cfgImportedTest:false, cfgAlmApproved:false, cfgCurrentPending:3, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; if(!raw) return base; return Object.assign(base, JSON.parse(raw)); }catch(e){ return { cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, cfgTrCbc:null, cfgTrBc:null, cfgExported:false, cfgImportedTest:false, cfgAlmApproved:false, cfgCurrentPending:3, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; } })() };
+  state = { screen: 'dashboard', ctLens: 'process', sel: 'O2C-021', ws: 'integration', specDoc: 'fs', fa: 'Finance (R2R)', settingsOpen: false, role: 'Administrator', roleMenuOpen: false, openGroups: { design: true }, navCollapsed: { 'hcm:DESIGN':true, 'hcm:BUILD':true, 'hcm:INTEGRATE':true, 'hcm:ASSURE':true, 'hcm:VALUE':true, 'roster:DESIGN':true, 'roster:INTEGRATE':true, 'roster:ASSURE':true, 'roster:VALUE':true }, solution: 's4', solnOpen: false, copilotOpen: false, notifOpen: false, authed: !!(this.props && this.props.boot === 'dashboard'), loginRole: 'Consultant', loginProduct: 'Cognixa', capRouted: {}, emailModal: null, riskOpen: (function(){ try{ return localStorage.getItem('dl_cgx_risk_closed')!=='1'; }catch(e){ return true; } })() , notifAllRead: false, designLocked: !!(function(){ try{ return localStorage.getItem('dl_cgx_design_locked')==='1'; }catch(e){ return false; } })(), blueprintSigned: !!(function(){ try{ return localStorage.getItem('dl_cgx_blueprint_signed')==='1'; }catch(e){ return false; } })(), reviewResolved: !!(function(){ try{ return localStorage.getItem('dl_cgx_review_resolved')==='1' || localStorage.getItem('dl_cgx_blueprint_signed')==='1'; }catch(e){ return false; } })(), reviewCompleted: false, aiKey: (function(){ try{ return localStorage.getItem('dl_cgx_ai_key')||sessionStorage.getItem('dl_cgx_ai_key')||''; }catch(e){ return ''; } })(), aiRemember: !!(function(){ try{ return !!localStorage.getItem('dl_cgx_ai_key'); }catch(e){ return false; } })(), aiConnected: !!(function(){ try{ return !!(localStorage.getItem('dl_cgx_ai_key')||sessionStorage.getItem('dl_cgx_ai_key')); }catch(e){ return false; } })(), deploy: (function(){ try{ const raw=localStorage.getItem('dl_cgx_deploy'); const base={ cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, cfgTrCbc:null, cfgTrBc:null, cfgExported:false, cfgImportedTest:false, cfgAlmApproved:false, cfgCurrentPending:3, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; if(!raw) return base; return Object.assign(base, JSON.parse(raw)); }catch(e){ return { cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, cfgTrCbc:null, cfgTrBc:null, cfgExported:false, cfgImportedTest:false, cfgAlmApproved:false, cfgCurrentPending:3, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; } })() };
   closeRisk(){ try{ localStorage.setItem('dl_cgx_risk_closed','1'); }catch(e){} this.setState({ riskOpen:false }); }
   openRisk(){ try{ localStorage.removeItem('dl_cgx_risk_closed'); }catch(e){} this.setState({ riskOpen:true }); }
 
@@ -5240,12 +5249,44 @@ class Component extends DCLogic {
   runReview(){
     if(this._rvT){ this._rvT.forEach(clearTimeout); }
     this._rvT=[]; var self=this; var N=8;
-    this.setState({ reviewRun:{ i:0, done:false }, reviewResolved:false });
+    var parkedKeep=!!this.state.reviewResolved;
+    var busy={
+      'Fit-Gap Agent':{busy:true, act:'Re-scoring O2C steps vs Best-Practice v2408…'},
+      'Deliverable Agent':{busy:true, act:'Checking FS-118 open items & deliverable coverage…'},
+      'Quality & Risk Agent':{busy:true, act:'Walking every sign-off dependency feed…'},
+      'System Intelligence Agent':{busy:false, act:'Scanned 4,820 custom objects · 62% dormant'},
+      'Cutover Agent':{busy:false, act:'Sequenced 142 cutover tasks'}
+    };
+    // Close chat so the dependency modal is the focus; agents keep updating under the hood
+    this.setState({ reviewRun:{ i:0, done:false }, agentsScanning:true, agentLive:Object.assign({}, this.state.agentLive||{}, busy), reviewLastRun:Date.now(), copilotOpen:false });
+    if(['dashboard','spec','trace','review','build','integrations','mapping','analyse','capture','config'].indexOf(this.state.screen)<0){ this.go('review'); }
     for(var k=1;k<N;k++){ (function(k){ self._rvT.push(setTimeout(function(){ self.setState(function(st){ return st.reviewRun?{reviewRun:Object.assign({},st.reviewRun,{i:k})}:null; }); }, k*470)); })(k); }
-    this._rvT.push(setTimeout(function(){ self.setState(function(st){ return st.reviewRun?{reviewRun:Object.assign({},st.reviewRun,{done:true})}:null; }); }, N*470+240));
+    this._rvT.push(setTimeout(function(){
+      var parked=!!self.state.reviewResolved || parkedKeep;
+      var al={
+        'Fit-Gap Agent':{busy:false, act:'318 steps scored · 78% fit · 2 true gaps'},
+        'Deliverable Agent':{busy:false, act: parked ? 'FS-118 parked in RAID · 5 deliverables clear' : 'FS-118 open item blocks sign-off'},
+        'Quality & Risk Agent':{busy:false, act: parked ? 'Gates ready for sign-off · 2 warnings remain' : '1 hard blocker · 2 warnings · 7 flags'},
+        'System Intelligence Agent':{busy:false, act:'Scanned 4,820 custom objects · 62% dormant'},
+        'Cutover Agent':{busy:false, act:'Sequenced 142 cutover tasks'}
+      };
+      self.setState(function(st){
+        if(!st.reviewRun) return { agentLive:al, agentsScanning:false, reviewCompleted:true };
+        return { reviewRun:Object.assign({},st.reviewRun,{done:true}), agentLive:al, agentsScanning:false, reviewCompleted:true };
+      });
+      self.showToast(parked
+        ? 'Review complete — FS-118 parked. Continue to Sign-off, then Build Readiness → Configure via CBC.'
+        : 'Review complete — FS-118 is the hard blocker. Park it with an owner, then sign off.',
+        'AI Quality & Risk Review');
+    }, N*470+240));
   }
-  closeReview(){ if(this._rvT){ this._rvT.forEach(clearTimeout); } this.setState({ reviewRun:null }); }
-  resolveBlocker(){ const signed=!!(this.state.blueprintSigned||this.state.signCleared); this.setState(s=>({ reviewResolved:true, signCleared: signed ? true : s.signCleared })); this.showToast(signed ? 'FS-118 parked — Explore → Realize conditions accepted. Open Build Readiness, then Configure via CBC.' : 'FS-118 open item assigned to the Process Owner with a decide-by date — tracked in RAID, held from sign-off until it closes','parking the blocker'); }
+  closeReview(){ if(this._rvT){ this._rvT.forEach(clearTimeout); } this.setState({ reviewRun:null, agentsScanning:false }); }
+  resolveBlocker(){
+    const signed=!!(this.state.blueprintSigned||this.state.signCleared);
+    try{ localStorage.setItem('dl_cgx_review_resolved','1'); }catch(e){}
+    this.setState(s=>({ reviewResolved:true, signCleared: signed ? true : s.signCleared, agentLive:Object.assign({}, s.agentLive||{}, { 'Deliverable Agent':{busy:false, act:'FS-118 parked in RAID · 5 deliverables clear'}, 'Quality & Risk Agent':{busy:false, act:'Gates ready for sign-off · 2 warnings remain'} }) }));
+    this.showToast(signed ? 'FS-118 parked — Explore → Realize conditions accepted. Open Build Readiness, then Configure via CBC.' : 'FS-118 open item assigned to the Process Owner with a decide-by date — tracked in RAID. Sign the cleared deliverables, then Build Readiness.','parking the blocker');
+  }
   resyncSpec(){ this.setState({ specSynced:true }); this.showToast('§3.3 re-synced from mapping O2C-021 — the 74% pricing re-score and its CBC note are now reflected in the draft. Drift cleared.','re-syncing the spec'); }
   killerAct(idx){
     const KS = Object.assign({}, this.state.killerState||{});
@@ -5262,7 +5303,7 @@ class Component extends DCLogic {
     } else if(cur==='routed'){
       KS[idx]='decided';
       const patch = { killerState: KS };
-      if(meta.key==='rebate'){ patch.specSynced=true; patch.reviewResolved=true; }
+      if(meta.key==='rebate'){ patch.specSynced=true; patch.reviewResolved=true; try{ localStorage.setItem('dl_cgx_review_resolved','1'); }catch(e){} }
       this.setState(patch);
       this.showToast('Decision recorded: '+meta.ruling+'. Propagated → '+meta.prop, 'closing the loop');
     } else {
@@ -5283,8 +5324,9 @@ class Component extends DCLogic {
     this.setState({ intelAppr: ap, intelDispEdit:null });
     this.showToast(id+' sign-off recalled — back to AI-proposed, held from Build until re-approved.');
   }
-  signCleared(){ if(this._rvT){ this._rvT.forEach(clearTimeout); } this.setState({ reviewRun:null }); this.showToast('Signing the 4 cleared deliverables — FS-118 stays held until its open item closes'); var s=this.state.screen; if(s==='hcm'){ this.goHcmTab('sign'); } else if(s==='roster'){ this.goRosterTab('sign'); } else { this.go('review'); } }
-  reviewToSignoff(){ if(this._rvT){ this._rvT.forEach(clearTimeout); } this.setState({ reviewRun:null }); var s=this.state.screen; if(s==='hcm'){ this.goHcmTab('sign'); } else if(s==='roster'){ this.goRosterTab('sign'); } else { this.go('review'); } }
+  signCleared(){ if(this._rvT){ this._rvT.forEach(clearTimeout); } this.setState({ reviewRun:null, agentsScanning:false }); this.showToast(this.state.reviewResolved ? 'Signing cleared deliverables — open Build Readiness after multi-party sign-off' : 'Signing the 4 cleared deliverables — FS-118 stays held until its open item closes'); var s=this.state.screen; if(s==='hcm'){ this.goHcmTab('sign'); } else if(s==='roster'){ this.goRosterTab('sign'); } else { this.go('review'); } }
+  reviewToSignoff(){ if(this._rvT){ this._rvT.forEach(clearTimeout); } this.setState({ reviewRun:null, agentsScanning:false }); this.showToast('Opening Quality & Sign-off — stamp the blueprint, then Build Readiness (Explore → Realize)'); var s=this.state.screen; if(s==='hcm'){ this.goHcmTab('sign'); } else if(s==='roster'){ this.goRosterTab('sign'); } else { this.go('review'); } }
+  reviewToBuild(){ if(this._rvT){ this._rvT.forEach(clearTimeout); } this.setState({ reviewRun:null, agentsScanning:false }); this.proceedToBuild(); }
   requestFeedback(ctx){ try{ if(sessionStorage.getItem('dl_cgx_fb_shown')==='1') return; sessionStorage.setItem('dl_cgx_fb_shown','1'); }catch(e){} if(this._fbT) clearTimeout(this._fbT); this.setState({ feedback: ctx||'this' }); this._fbT = setTimeout(()=>this.setState(s=>(s.feedback?{ feedback:null }:null)), 7000); }
   dismissFeedback(){ if(this._fbT) clearTimeout(this._fbT); this.setState({ feedback: null }); }
   sendFeedback(){ if(this._fbT) clearTimeout(this._fbT); this.setState({ feedback: null }); this.showToast('Thanks — your feedback was sent to the Cognixa team'); }
@@ -5508,7 +5550,7 @@ class Component extends DCLogic {
   exportBuildReadiness(){ this.showToast('Exporting Build Readiness pack — gate, plan, tracks & environments (demo)', 'the Build Readiness export'); }
   goBuildFromReview(){ this.go('build'); this.showToast('Build Readiness — confirm the Explore → Realize gate before CBC writes'); }
   goConfigFromBuild(){ if(!this.state.blueprintSigned && !this.state.signCleared){ this.showToast('Sign the blueprint in Quality & Sign-off before Configure'); this.go('review'); return; } this.go('config'); this.showToast('Configure S/4HANA — deploy signed design via CBC to DEV customizing'); }
-  markBlueprintSigned(){ try{ localStorage.setItem('dl_cgx_blueprint_signed','1'); localStorage.setItem('dl_cgx_design_locked','1'); }catch(e){} this.setState({ blueprintSigned:true, designLocked:true, signCleared:true, reviewResolved:true }); this.showToast('Blueprint marked signed — Build Readiness and Configure are unlocked','blueprint sign-off'); }
+  markBlueprintSigned(){ try{ localStorage.setItem('dl_cgx_blueprint_signed','1'); localStorage.setItem('dl_cgx_design_locked','1'); localStorage.setItem('dl_cgx_review_resolved','1'); }catch(e){} this.setState({ blueprintSigned:true, designLocked:true, signCleared:true, reviewResolved:true }); this.showToast('Blueprint marked signed — Build Readiness and Configure are unlocked','blueprint sign-off'); }
   proceedToBuild(){ const open=this.openSignConditions()||[]; if(open.length){ this.showToast('Clear open sign-off conditions before Proceed to Build Readiness'); return; } if(!this.state.reviewResolved){ this.showToast('Park hard blockers (e.g. FS-118) before Proceed to Build Readiness'); return; } if(!this.state.blueprintSigned && !this.state.signCleared){ this.showToast('Sign the blueprint first — then Proceed to Build Readiness'); return; } this.goBuildFromReview(); }
   toggleWaveForm(){ this.setState(s=>({showWaveForm:!s.showWaveForm, waveForm:s.showWaveForm?s.waveForm:{}})); }
   setWaveField(k,e){ var v=e&&e.target?e.target.value:e; this.setState(s=>({waveForm:Object.assign({},s.waveForm,{[k]:v})})); }
@@ -5609,16 +5651,36 @@ class Component extends DCLogic {
       {b:'In-core mods:', t:'3 remaining; target zero before cutover.'},
       {b:'Dormant objects:', t:'62% of custom Z-objects unused in 12 months — safe to retire.'}
     ], 'Open Fit-to-Standard', 'mapping');
-    if(/sign.?off|block|approv|gate/.test(s)) return A('What’s blocking sign-off', [
-      {b:'FS-118 (O2C):', t:'1 open item — 4-tier rebate schedule unconfirmed. Hard blocker.'},
-      {b:'O2C-021 pricing:', t:'fit 74%, below the 80% gate.'},
-      {b:'Run review:', t:'parks or clears each before approval — ≈€240k / 17 days of rework avoided.'}
-    ], 'Open Quality & Sign-off', 'review');
-    if(/open item|fs.?118|rebate|parking/.test(s)) return A('FS-118 open item', [
-      {b:'Item:', t:'4-tier rebate schedule unconfirmed; owner = Process Owner.'},
-      {b:'Why it matters:', t:'signing with it open surfaces in Build (~12 days, ≈€180k).'},
-      {b:'Do:', t:'park it (owner + decide-by) so it can’t slip, then sign the rest.'}
-    ], 'Run the dependency review', 'review');
+    if(/sign.?off|what.?s blocking|blocker|blocking sign|quality.?gate/.test(s) || (/(order.?to.?cash|o2c)/.test(s) && /block|sign|gate/.test(s))){
+      const parked=!!this.state.reviewResolved; const signed=!!(this.state.blueprintSigned||this.state.signCleared);
+      if(signed && parked) return A('Sign-off clear — next is Build → Configure', [
+        {b:'Blueprint:', t:'signed. Explore → Realize gate is ready on Build Readiness.'},
+        {b:'FS-118:', t:'parked in RAID with owner + decide-by — no longer a hard blocker.'},
+        {b:'Next:', t:'clear Build Readiness, then Map specs → CBC activities on Configure.'}
+      ], 'Open Build Readiness', 'build');
+      if(parked) return A('What’s blocking sign-off', [
+        {b:'FS-118:', t:'parked with Process Owner · decide-by Fri 27 Jun — visible in RAID, not silent.'},
+        {b:'Still open:', t:'multi-party signatures (you + Controller + Test Lead) and 2 warnings (EC↔S/4 seam, test data).'},
+        {b:'Do:', t:'Sign my row on Quality & Sign-off, then Proceed to Build Readiness.'}
+      ], 'Open Quality & Sign-off', 'review');
+      return A('What’s blocking sign-off on Order-to-Cash', [
+        {b:'FS-118 (O2C):', t:'1 open item — 4-tier rebate schedule unconfirmed. Hard blocker.'},
+        {b:'O2C-021 pricing:', t:'fit 74%, below the 80% gate (architect confirm or re-score).'},
+        {b:'Do:', t:'Run the review → park FS-118 with an owner → sign the cleared deliverables.'}
+      ], 'Run the review', 'review');
+    }
+    if(/open item|fs.?118|rebate|parking/.test(s)){
+      if(this.state.reviewResolved) return A('FS-118 — parked', [
+        {b:'Status:', t:'assigned to Process Owner · decide-by Fri 27 Jun · tracked in RAID.'},
+        {b:'Sign-off:', t:'no longer a hard blocker — sign the cleared deliverables.'},
+        {b:'Next:', t:'Build Readiness (Explore → Realize), then Configure via CBC.'}
+      ], 'Open Build Readiness', 'build');
+      return A('FS-118 open item', [
+        {b:'Item:', t:'4-tier rebate schedule unconfirmed; owner = Process Owner.'},
+        {b:'Why it matters:', t:'signing with it open surfaces in Build (~12 days, ≈€180k).'},
+        {b:'Do:', t:'Ask me to “Park the FS-118 blocker” — owner + decide-by, then sign the rest.'}
+      ], 'Park the FS-118 blocker', 'review');
+    }
     if(/spec|deliverable|\bfs\b|sad|brd|document|draft/.test(s)) return A('Deliverables', [
       {b:'Drafted:', t:'SAD, BRD, FS-118, Config worklist, Integration spec — 5 of 6.'},
       {b:'Traceable:', t:'every gap has an FS; every decision logged, req→design→test linked.'},
@@ -5629,10 +5691,13 @@ class Component extends DCLogic {
       {b:'Cause:', t:'local variants not in SAP Best-Practice v2408.'},
       {b:'Fix:', t:'re-run Fit-Gap to reclassify, or design as a true gap.'}
     ], 'Open Analyse', 'analyse');
-    if(/risk|flag|raid|quality/.test(s)) return A('Risk & RAID', [
-      {b:'7 flags:', t:'2 clean-core, 3 SoD conflicts, 2 data-quality.'},
-      {b:'Blockers:', t:'1 (FS-118 open item); the rest are tracked with owners + dates.'}
-    ], 'Open Quality & Sign-off', 'review');
+    if(/risk|flag|raid|quality/.test(s)){
+      const parked=!!this.state.reviewResolved;
+      return A(parked ? 'Risk & RAID — FS-118 parked' : 'Risk & RAID', [
+        {b: parked ? '6 flags:' : '7 flags:', t: parked ? '2 clean-core, 2 SoD, 2 data-quality — FS-118 owned in RAID.' : '2 clean-core, 3 SoD conflicts, 2 data-quality.'},
+        {b:'Blockers:', t: parked ? '0 hard blockers — FS-118 parked with Process Owner · Fri 27 Jun.' : '1 (FS-118 open item); the rest are tracked with owners + dates.'}
+      ], parked ? 'Open Quality & Sign-off' : 'Run the review', 'review');
+    }
     if(/integration|interface|\bec\b|ecp|successfactor|seam|idoc|replicat/.test(s)) return A('Integration — EC ↔ S/4', [
       {b:'Seam:', t:'cost-centre + org replication SuccessFactors → S/4; one shared contract.'},
       {b:'Status:', t:'signed S/4 side; awaiting SuccessFactors lead counter-sign.'},
@@ -5691,11 +5756,14 @@ class Component extends DCLogic {
       {b:'Waves:', t:'gaps sequenced with dependencies; effort in days per task.'},
       {b:'Environments:', t:'Dev / Test / Prod readiness tracked per track.'}
     ], 'Open Build', 'build');
-    if(/status|where|overview|health|summary|progress|how.?are/.test(s)) return A('Engagement status — Meridian Foods', [
-      {b:'Phase:', t:'Explore. 318 of 430 process steps mapped (74%).'},
-      {b:'Fit:', t:'72% to SAP standard across 12 workstreams; 24 gaps routed to BTP.'},
-      {b:'Gate:', t:'7 items awaiting sign-off; 1 blocker (FS-118 open item).'}
-    ], 'Open Control Tower', 'dashboard');
+    if(/status|where|overview|health|summary|progress|how.?are/.test(s)){
+      const parked=!!this.state.reviewResolved; const signed=!!(this.state.blueprintSigned||this.state.signCleared);
+      return A('Engagement status — Meridian Foods', [
+        {b:'Phase:', t: signed ? 'Explore signed — Realize next (Build → Configure).' : 'Explore. 318 of 430 process steps mapped (74%).'},
+        {b:'Fit:', t:'72% to SAP standard across 12 workstreams; 24 gaps routed to BTP.'},
+        {b:'Gate:', t: signed && parked ? 'Blueprint signed · FS-118 parked — clear Build Readiness, then CBC.' : (parked ? 'FS-118 parked · finish multi-party sign-off.' : '7 items awaiting sign-off; 1 hard blocker (FS-118 open item).')}
+      ], signed ? 'Open Build Readiness' : 'Open Control Tower', signed ? 'build' : 'dashboard');
+    }
     // ---- real-world SAP S/4HANA challenge library (practitioner playbook) ----
     const lib = this.copilotLib();
     for(const e of lib){ if(e.k.test(s)) return A(e.t, e.b, e.a||'Ask a follow-up', e.s||null); }
@@ -5811,14 +5879,42 @@ class Component extends DCLogic {
   copilotAct(q){
     const s = (q||'').toLowerCase();
     const D = (title, bullets, action, screen)=>({ title, bullets, action:action||null, screen:screen||null, done:true });
-    // RUN THE REVIEW — actually trigger the super-agents
-    if(/\b(run|start|trigger|kick.?off|launch)\b.{0,14}\breview\b/.test(s)){
-      if(['dashboard','spec','trace','review','build','integrations'].indexOf(this.state.screen)<0){ this.go('review'); }
+    const parkedNow=!!this.state.reviewResolved;
+    const signedNow=!!(this.state.blueprintSigned||this.state.signCleared);
+    // RUN THE REVIEW — actually trigger the super-agents + dependency modal
+    if(/\b(run|start|trigger|kick.?off|launch)\b.{0,14}\breview\b/.test(s) || /^run the review$/.test(s)){
       setTimeout(()=>{ try{ this.runReview(); }catch(e){} }, 140);
       return D('Running the review now ✓', [
-        {b:'Live:', t:'Fit-Gap, Deliverable, Quality & System-Intelligence agents are scoring the engagement.'},
-        {b:'Result:', t:'flags land on Quality & Sign-off as they’re found — ≈€240k / 17 days of rework caught here.'}
-      ], 'Watch it on Quality & Sign-off', 'review');
+        {b:'Live:', t:'Fit-Gap, Deliverable & Quality agents are walking every sign-off dependency feed.'},
+        {b:'Modal:', t:'the dependency check opens — watch each feed PASS / WARN / BLOCK.'},
+        {b:'Chain:', t: parkedNow
+          ? 'FS-118 already parked — Continue to Sign-off → Build Readiness → Configure via CBC.'
+          : 'Park FS-118 with an owner → Sign-off → Build Readiness → Configure via CBC.'}
+      ], parkedNow ? (signedNow ? 'Proceed to Build Readiness' : 'Open Quality & Sign-off') : 'Park the FS-118 blocker', 'review');
+    }
+    // PARK FS-118 BLOCKER
+    if(/park.{0,20}(fs.?118|blocker|open item)|assign owner|resolve blocker|clear.{0,12}fs.?118/.test(s)){
+      setTimeout(()=>{ try{ this.resolveBlocker(); }catch(e){} }, 80);
+      return D('FS-118 parked ✓', [
+        {b:'Owner:', t:'Process Owner · decide-by Fri 27 Jun · tracked in RAID.'},
+        {b:'Sign-off:', t:'hard blocker cleared — sign the remaining deliverables.'},
+        {b:'Chain:', t:'Sign-off → Build Readiness (Explore → Realize) → Configure S/4HANA via CBC.'}
+      ], signedNow ? 'Proceed to Build Readiness' : 'Open Quality & Sign-off', signedNow ? 'build' : 'review');
+    }
+    // PROCEED TO BUILD / CONFIGURE
+    if(/proceed to build|open build readiness|clear.{0,20}realize|explore.{0,12}realize/.test(s)){
+      setTimeout(()=>{ try{ this.proceedToBuild(); this.toggleCopilot(false); }catch(e){} }, 120);
+      return D('Opening Build Readiness ✓', [
+        {b:'Gate:', t:'Explore → Realize quality gate — backlog, plan, environments before CBC writes.'},
+        {b:'Then:', t:'Configure S/4HANA — map signed specs → CBC activities → DEV customizing.'}
+      ], 'Open Configure S/4HANA', 'config');
+    }
+    if(/open configure|configure s\/?4|map specs|cbc activit/.test(s)){
+      setTimeout(()=>{ try{ this.goConfigFromBuild(); this.toggleCopilot(false); }catch(e){} }, 120);
+      return D('Opening Configure S/4HANA ✓', [
+        {b:'Path:', t:'signed specs → CBC activities → DEV customizing → Export / Import Collection.'},
+        {b:'Guard:', t:'design must be signed in Quality & Sign-off first.'}
+      ], null, null);
     }
     // APPROVE THE DRAFT
     if(/\bapprove\b.{0,18}\b(draft|process|map)/.test(s) || /\baccept the draft\b/.test(s)){
@@ -5974,6 +6070,8 @@ class Component extends DCLogic {
     var clientKey=this.state.client||'meridian';
     var CN=CLINAMES[clientKey]||'Meridian Foods';
     var IND=INDUSTRY[clientKey]||'enterprise';
+    // don't clobber an in-flight dependency review with a tenant scan
+    if(this.state.reviewRun && !this.state.reviewRun.done) return;
     // already loaded for this tenant and not forced → skip
     if(!force && this.state.agentLiveClient===clientKey && this.state.agentLive && !this.state.agentsScanning) return;
     var online = (typeof window!=='undefined' && window.claude && window.claude.complete);
@@ -6238,29 +6336,33 @@ class Component extends DCLogic {
     ].concat(this.state.extraValue||[]).map(r=>({area:r[0],pain:r[1],help:r[2],roi:r[3]}));
 
     // ===================== SUPER AGENTS + COPILOT =====================
+    const _rvLive = this.state.reviewRun;
+    const _reviewRunningLive = !!(_rvLive && !_rvLive.done);
+    const _reviewDoneLive = !!(_rvLive && _rvLive.done) || !!this.state.reviewCompleted;
+    const _fsParkedLive = !!this.state.reviewResolved;
     const agentsRaw = [
-      {name:'Fit-Gap Agent', status:'Running', act:'Re-scoring 23 steps vs SAP Best-Practice v2408', live:true},
-      {name:'Deliverable Agent', status:'Idle', act:'Drafted Functional Spec FS-118 · 9m ago', live:false},
-      {name:'Quality & Risk Agent', status:'Running', act:'7 flags raised pre-sign-off', live:true},
+      {name:'Fit-Gap Agent', status: _reviewRunningLive?'Running':(_reviewDoneLive?'Idle':'Running'), act: _reviewDoneLive?'318 steps scored · 78% fit · 2 true gaps':'Re-scoring 23 steps vs SAP Best-Practice v2408', live: _reviewRunningLive || !_reviewDoneLive},
+      {name:'Deliverable Agent', status: _reviewRunningLive?'Running':'Idle', act: _fsParkedLive?'FS-118 parked in RAID · 5 deliverables clear':(_reviewDoneLive?'FS-118 open item blocks sign-off':'Drafted Functional Spec FS-118 · 9m ago'), live: _reviewRunningLive},
+      {name:'Quality & Risk Agent', status: _reviewRunningLive?'Running':(_fsParkedLive?'Idle':'Running'), act: _reviewRunningLive?'Walking every sign-off dependency feed…':(_fsParkedLive?'Gates ready for sign-off · 2 warnings remain':'7 flags raised pre-sign-off · FS-118 hard blocker'), live: _reviewRunningLive || !_fsParkedLive},
       {name:'System Intelligence Agent', status:'Idle', act:'Scanned 4,820 custom objects · 62% dormant', live:false},
       {name:'Cutover Agent', status:'Idle', act:'Sequenced 142 cutover tasks', live:false}
     ];
     const agentLiveMap = this.state.agentLive || {};
-    const agentsScanning = !!this.state.agentsScanning;
+    const agentsScanning = !!this.state.agentsScanning || _reviewRunningLive;
     const aiOnline = (typeof window!=='undefined' && window.claude && window.claude.complete);
     const agents = agentsRaw.map(a=>{
       const ov = agentLiveMap[a.name];
-      const busy = !!(ov && ov.busy);
-      const act = busy ? ('Scanning the '+clientName+' tenant…') : ((ov && ov.act) ? ov.act : a.act);
-      const status = busy ? 'Scanning' : a.status;
-      const isLive = a.live && !!(ov && ov.act);
-      const dot = busy ? '#6366F1' : (a.live ? '#16A34A' : '#C2C8D2');
-      const stColor = busy ? '#4F46E5' : (a.live ? '#15803D' : '#8A93A3');
-      const stBg = busy ? '#EEF0FF' : (a.live ? '#F0FBF4' : '#F4F6F9');
-      const stBd = busy ? '#DEE0FF' : (a.live ? '#CDEBD7' : '#E5E9F0');
+      const busy = !!(ov && ov.busy) || (_reviewRunningLive && (a.name==='Fit-Gap Agent'||a.name==='Deliverable Agent'||a.name==='Quality & Risk Agent'));
+      const act = busy ? ((ov && ov.act) || a.act) : ((ov && ov.act) ? ov.act : a.act);
+      const status = busy ? 'Running' : a.status;
+      const isLive = busy || a.live;
+      const dot = busy ? '#6366F1' : (isLive ? '#16A34A' : '#C2C8D2');
+      const stColor = busy ? '#4F46E5' : (isLive && status==='Running' ? '#15803D' : '#8A93A3');
+      const stBg = busy ? '#EEF0FF' : (isLive && status==='Running' ? '#F0FBF4' : '#F4F6F9');
+      const stBd = busy ? '#DEE0FF' : (isLive && status==='Running' ? '#CDEBD7' : '#E5E9F0');
       return { ...a, dot, stColor, stBg, stBd, act, status, busy, isLive };
     });
-    const liveAgents = agentsRaw.filter(a=>a.live).length;
+    const liveAgents = agents.filter(a=>a.busy || a.status==='Running').length;
     const agentsLiveBadge = aiOnline ? (agentsScanning ? 'SCANNING TENANT' : 'LIVE · CLAUDE') : 'DEMO';
     const agentsLiveOn = aiOnline;
     const agentsBadgeColor = aiOnline ? (agentsScanning ? '#4F46E5' : '#15803D') : '#8A93A3';
@@ -6285,15 +6387,21 @@ class Component extends DCLogic {
     const promptList = promptSets[screen] || promptSets.dashboard;
     const prompts = promptList.map(t=>({ t, go:()=>this.sendAsk(t) }));
     // agentic commands — the copilot doesn't just answer, it acts
+    const _signedLive = !!(this.state.blueprintSigned||this.state.signCleared);
+    const _nextAfterReview = _fsParkedLive
+      ? (_signedLive ? 'Proceed to Build Readiness' : 'Open Quality & Sign-off')
+      : 'Park the FS-118 blocker';
     const actionSets = {
       analyse:[ 'Run the review', 'Draft the next FS section' ],
       capture:[ 'Run the review', 'Draft the next FS section' ],
       intel:[ 'Retire the dormant objects', 'Run the review' ],
       mapping:[ 'Run the review', 'Draft the next FS section' ],
-      spec:[ 'Draft the next FS section', 'Run the review' ],
-      review:[ 'Run the review', 'Open Quality & Sign-off' ],
-      build:[ 'Run the review', 'Open Settings' ],
-      _default:[ 'Run the review', 'Take a tour' ]
+      spec:[ 'Run the review', 'Draft the next FS section' ],
+      review:[ 'Run the review', _nextAfterReview ],
+      build:[ 'Proceed to Build Readiness', 'Open Configure S/4HANA' ],
+      config:[ 'Open Configure S/4HANA', 'Run the review' ],
+      dashboard:[ 'Run the review', _nextAfterReview ],
+      _default:[ 'Run the review', _fsParkedLive && _signedLive ? 'Proceed to Build Readiness' : 'Take a tour' ]
     };
     const actionList = actionSets[screen] || actionSets._default;
     const actionPrompts = actionList.map(t=>({ t, go:()=>this.sendAsk(t) }));
@@ -8735,7 +8843,7 @@ class Component extends DCLogic {
     return {
       reviewOn, reviewDone, reviewRunning: reviewOn && !reviewDone, reviewChecks, reviewVerdict, reviewCanSign, reviewCount: RV_BASE.length,
       reviewBlocked, reviewCleared: !reviewBlocked, resolveBlocker:()=>this.resolveBlocker(), signCleared:()=>this.signCleared(),
-      closeReview:()=>this.closeReview(), reviewToSignoff:()=>this.reviewToSignoff(), reRunReview:()=>this.runReview(),
+      closeReview:()=>this.closeReview(), reviewToSignoff:()=>this.reviewToSignoff(), reviewToBuild:()=>this.reviewToBuild(), reRunReview:()=>this.runReview(),
       isDashboard:on('dashboard'), isBuild:on('build'), isConfig:on('config'), isRemediate:on('remediate'), isConvert:on('convert'),
       isCapture:on('capture'), isIntel:on('intel'), isAnalyse:on('analyse'), isMapping:on('mapping'), isSpec:on('spec'), isTrace:on('trace'), isReview:on('review'), isValue:on('value'), isIntegrations:on('integrations'),
       bGate, bGatePct, bGatePctColor, bGatePctSub, bGateBadgeLabel, bGateBadgeColor, bGateBadgeBg, bGateBadgeBd, bGateBadgeDot, bWaves, bSched, bSprints, bTracks, bEnv, envReady, envAttention, refreshEnv:()=>this.showToast('Polling landscape — RISE provisioning API, Cloud Connector heartbeat & IdP federation status (demo)'),
@@ -8757,11 +8865,11 @@ class Component extends DCLogic {
       houseTag: screen==='roster' ? 'AI rostering & award compliance' : (screen==='hcm' ? 'AI-powered SuccessFactors delivery' : 'AI-powered SAP delivery'),
       aiOn: !!this.state.aiRun, aiLabel: this.state.aiRun ? this.state.aiRun.steps[this.state.aiRun.i] : '', aiStepNum: this.state.aiRun ? (this.state.aiRun.i+1) : 0, aiStepTotal: this.state.aiRun ? this.state.aiRun.steps.length : 0,
       goDashboard:()=>this.go('dashboard'), goBuild:()=>this.go('build'), goConfig:()=>this.go('config'), goRemediate:()=>this.go('remediate'), goConvert:()=>this.go('convert'), goBuildFromReview:()=>this.goBuildFromReview(), goConfigFromBuild:()=>this.goConfigFromBuild(), markBlueprintSigned:()=>this.markBlueprintSigned(), proceedToBuild:()=>this.proceedToBuild(),
-      reviewProceedOk: !!( (this.state.blueprintSigned||this.state.signCleared) && !signConditional && !reviewBlocked ),
-      reviewProceedHint: (!(this.state.blueprintSigned||this.state.signCleared) ? 'Sign the blueprint first — then clear the Explore → Realize gate on Build Readiness.' : (signConditional ? 'Clear open sign-off conditions before Proceed to Build Readiness.' : (reviewBlocked ? 'Park hard blockers (e.g. FS-118) before Proceed to Build Readiness.' : 'Blueprint signed — open Build Readiness to clear the Explore → Realize gate.'))),
-      reviewProceedBg: ( (this.state.blueprintSigned||this.state.signCleared) && !signConditional && !reviewBlocked ) ? 'var(--accent,#4F46E5)' : '#9AA4B2',
-      reviewProceedCursor: ( (this.state.blueprintSigned||this.state.signCleared) && !signConditional && !reviewBlocked ) ? 'pointer' : 'not-allowed',
-      reviewProceedOpacity: ( (this.state.blueprintSigned||this.state.signCleared) && !signConditional && !reviewBlocked ) ? '1' : '.55',
+      reviewProceedOk: !!( (this.state.blueprintSigned||this.state.signCleared) && !signConditional && !reviewBlocked && !!this.state.reviewResolved ),
+      reviewProceedHint: (!(this.state.blueprintSigned||this.state.signCleared) ? 'Sign the blueprint first — then clear the Explore → Realize gate on Build Readiness.' : (!this.state.reviewResolved || reviewBlocked ? 'Park hard blockers (e.g. FS-118) before Proceed to Build Readiness.' : (signConditional ? 'Clear open sign-off conditions before Proceed to Build Readiness.' : 'Blueprint signed — open Build Readiness to clear the Explore → Realize gate.'))),
+      reviewProceedBg: ( (this.state.blueprintSigned||this.state.signCleared) && !signConditional && !reviewBlocked && !!this.state.reviewResolved ) ? 'var(--accent,#4F46E5)' : '#9AA4B2',
+      reviewProceedCursor: ( (this.state.blueprintSigned||this.state.signCleared) && !signConditional && !reviewBlocked && !!this.state.reviewResolved ) ? 'pointer' : 'not-allowed',
+      reviewProceedOpacity: ( (this.state.blueprintSigned||this.state.signCleared) && !signConditional && !reviewBlocked && !!this.state.reviewResolved ) ? '1' : '.55',
       ctNextTitle, ctNextSub, ctNextCta, ctNextGo, flowReviewBg, flowBuildBg, flowConfigBg, buildNextLabel, reviewFlowNote, cfgFlowNote, goReview:()=>this.go('review'),
       cfgGenerate:()=>this.cfgGenerateRun(),
       cfgConnect:()=>this.cfgRunConnect(),
@@ -8918,7 +9026,17 @@ class Component extends DCLogic {
       goReconcileGap:()=>{ this.setState({ killerBacklogOpen:true }); this.showToast('17 shadow processes — observed live but undocumented. Each is tracked in the killer backlog and routed to an owner before sign-off.'); },
       askText: this.state.askText||'', setAsk:(e)=>this.setAsk(e.target.value), sendAsk:()=>this.sendAsk(), quickAsk:(t)=>this.sendAsk(t),
       onAskKey:(e)=>{ if(e.key==='Enter'){ e.preventDefault(); this.sendAsk(); } },
-      chat: (this.state.chat||[]).map(t=>{ const sc=t.ans&&t.ans.screen; const a=t.ans||{}; return Object.assign({}, t, { ans: Object.assign({}, a, { hasAction: !!(a&&a.action), isThinking: !!a.thinking, isLive: !!a.live, hasTitle: !!a.title, go: sc ? (()=>{ this.toggleCopilot(false); this.go(sc); }) : (()=>{}) }) }); }),
+      chat: (this.state.chat||[]).map(t=>{ const sc=t.ans&&t.ans.screen; const a=t.ans||{}; const actLbl=(a.action||''); return Object.assign({}, t, { ans: Object.assign({}, a, { hasAction: !!(a&&a.action), isThinking: !!a.thinking, isLive: !!a.live, hasTitle: !!a.title, go: ()=>{ const L=actLbl.toLowerCase(); if(/run the review/.test(L)){ this.runReview(); return; } if(/park/.test(L)){ this.resolveBlocker(); return; } if(/build readiness|proceed to build/.test(L)){ this.toggleCopilot(false); this.proceedToBuild(); return; } if(/configure/.test(L)){ this.toggleCopilot(false); this.goConfigFromBuild(); return; } if(/quality|sign-?off/.test(L)){ this.toggleCopilot(false); this.go('review'); return; } if(sc){ this.toggleCopilot(false); this.go(sc); } } }) }); }),
+      showSeedChat: !((this.state.chat||[]).length),
+      seedChatQuestion: (_fsParkedLive && (this.state.blueprintSigned||this.state.signCleared)) ? 'What’s next after sign-off?' : 'What’s blocking sign-off on Order-to-Cash?',
+      seedChatTitle: (_fsParkedLive && (this.state.blueprintSigned||this.state.signCleared)) ? 'Sign-off clear — next is Build → Configure' : (_fsParkedLive ? 'What’s blocking sign-off' : 'What’s blocking sign-off on Order-to-Cash'),
+      seedChatBullets: (_fsParkedLive && (this.state.blueprintSigned||this.state.signCleared))
+        ? [{b:'Blueprint:', t:'signed. Explore → Realize gate is ready on Build Readiness.'},{b:'FS-118:', t:'parked in RAID — no longer a hard blocker.'},{b:'Next:', t:'Map signed specs → CBC activities on Configure.'}]
+        : (_fsParkedLive
+          ? [{b:'FS-118:', t:'parked with Process Owner · decide-by Fri 27 Jun — visible in RAID.'},{b:'Still open:', t:'multi-party signatures and 2 warnings (EC↔S/4 seam, test data).'},{b:'Do:', t:'Sign my row, then Proceed to Build Readiness.'}]
+          : [{b:'FS-118 (O2C):', t:'1 open item — 4-tier rebate schedule unconfirmed. Hard blocker.'},{b:'O2C-021 pricing:', t:'fit 74%, below the 80% gate.'},{b:'Do:', t:'Run the review → park FS-118 → sign cleared deliverables.'}]),
+      seedChatAction: (_fsParkedLive && (this.state.blueprintSigned||this.state.signCleared)) ? 'Open Build Readiness' : (_fsParkedLive ? 'Open Quality & Sign-off' : 'Run the review'),
+      seedChatGo: ()=>{ if(_fsParkedLive && (this.state.blueprintSigned||this.state.signCleared)){ this.toggleCopilot(false); this.proceedToBuild(); } else if(_fsParkedLive){ this.toggleCopilot(false); this.go('review'); } else { this.sendAsk('Run the review'); } },
       stepQ: this.state.stepQ||'', setStepQ:(e)=>this.setStepQ(e.target.value), stepClsLabel, cycleStepCls:()=>this.cycleStepCls(), rowsEmpty,
       lenses, advisorWatch,
       advisorBusy, advisorReviewedLabel, advisorConfPct, advisorRerunLabel, advisorBtnLock, advisorSpin, advisorRerun:()=>this.rerunAdvisor(),
