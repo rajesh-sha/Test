@@ -2733,7 +2733,7 @@
             </button>
             <sc-if value="{{ cfgIsOnPremEdition }}" hint-placeholder-val="{{ false }}">
             <button onClick="{{ openCfgBotGui }}" style="display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #E8D4B0;color:#7A4B12;font-weight:600;font-size:12.5px;padding:9px 15px;border-radius:10px;cursor:pointer" style-hover="background:#FFF8EB">
-              Residual SAP GUI bot (no BC Set / no API)
+              Live tiny example · SAP GUI bot (A4H · Rajesh1)
             </button>
             </sc-if>
           </div>
@@ -3151,6 +3151,18 @@
                         <div style="font-size:10px;color:#8A93A3;font-weight:600;margin-bottom:4px">{{ cfgBotOpen.targetLabel }}</div>
                         <div style="border:1.5px solid #D8DEE8;background:#fff;border-radius:7px;padding:8px 11px;font-size:12px;color:#131826;font-family:'IBM Plex Mono',monospace">{{ cfgBotOpen.targetValue }}</div>
                       </div>
+                      <sc-if value="{{ cfgBotOpen.showGuiClient }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                        <div>
+                          <div style="font-size:10px;color:#8A93A3;font-weight:600;margin-bottom:4px">CLIENT</div>
+                          <div style="border:1.5px solid {{ cfgBotLgClientBd }};background:{{ cfgBotLgClientBg }};border-radius:7px;padding:8px 11px;font-size:12px;color:#131826;font-family:'IBM Plex Mono',monospace;min-height:16px">{{ cfgBotLgClientVal }}</div>
+                        </div>
+                        <div>
+                          <div style="font-size:10px;color:#8A93A3;font-weight:600;margin-bottom:4px">LANGUAGE</div>
+                          <div style="border:1.5px solid {{ cfgBotLgLangBd }};background:{{ cfgBotLgLangBg }};border-radius:7px;padding:8px 11px;font-size:12px;color:#131826;font-family:'IBM Plex Mono',monospace;min-height:16px">{{ cfgBotLgLangVal }}</div>
+                        </div>
+                      </div>
+                      </sc-if>
                       <div>
                         <div style="font-size:10px;color:#8A93A3;font-weight:600;margin-bottom:4px">{{ cfgBotOpen.userLabel }}</div>
                         <div style="border:1.5px solid {{ cfgBotLgUserBd }};background:{{ cfgBotLgUserBg }};border-radius:7px;padding:8px 11px;font-size:12px;color:#131826;font-family:'IBM Plex Mono',monospace;min-height:16px">{{ cfgBotLgUserVal }}</div>
@@ -3159,11 +3171,17 @@
                         <div style="font-size:10px;color:#8A93A3;font-weight:600;margin-bottom:4px">{{ cfgBotOpen.credLabel }}</div>
                         <div style="border:1.5px solid {{ cfgBotLgPassBd }};background:{{ cfgBotLgPassBg }};border-radius:7px;padding:8px 11px;font-size:12px;color:#131826;font-family:'IBM Plex Mono',monospace;letter-spacing:2px;min-height:16px">{{ cfgBotLgPassVal }}</div>
                       </div>
+                      <sc-if value="{{ cfgBotOpen.showPwPrompt }}" hint-placeholder-val="{{ false }}">
+                      <div style="background:#FFF8EB;border:1px solid #F0E2CC;border-radius:8px;padding:10px 11px">
+                        <div style="font-size:11px;color:#7A4B12;line-height:1.45;margin-bottom:8px">Enter password for this browser session only — not saved to git or localStorage.</div>
+                        <input type="password" id="cgx-sap-gui-pw" placeholder="SAP GUI password" autocomplete="off" style="width:100%;box-sizing:border-box;border:1.5px solid #E8D4B0;border-radius:7px;padding:8px 11px;font-size:12px;font-family:'IBM Plex Mono',monospace" />
+                        <button onClick="{{ cfgBotOpen.savePw }}" style="margin-top:8px;width:100%;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;color:#fff;background:#B45309;cursor:pointer">Use password for this run</button>
+                      </div>
+                      </sc-if>
                       <button style="margin-top:4px;border:none;border-radius:8px;padding:10px;font-size:12.5px;font-weight:700;color:#fff;background:{{ cfgBotOpen.lgBtnBg }};cursor:default">{{ cfgBotOpen.lgBtnLabel }}</button>
                     </div>
                   </div>
-                </div>
-                <div style="font-size:10.5px;color:#6B7488;line-height:1.5;margin-top:12px">{{ cfgBotOpen.loginHint }}</div>
+                                <div style="font-size:10.5px;color:#6B7488;line-height:1.5;margin-top:12px">{{ cfgBotOpen.loginHint }}</div>
                 </sc-if>
 
                 <sc-if value="{{ cfgBotOpen.showForm }}" hint-placeholder-val="{{ false }}">
@@ -5612,8 +5630,40 @@ class Component extends DCLogic {
     if(mode==='bcset' || mode==='cbc') return mode;
     return onprem ? 'bcset' : 'cbc';
   }
+  _sapGuiLiveProfile(){
+    return {
+      name:'S4HANA2023 SHARED GUI',
+      sid:'A4H',
+      host:'115.245.150.98',
+      instance:'18',
+      client:'800',
+      user:'Rajesh1',
+      language:'EN',
+      product:'S/4HANA ON PREMISE 2023',
+      server:'s42023_A4H_18',
+      tcode:'SPRO',
+      exampleCc:'CGX1',
+      exampleName:'Cognixa Demo AU'
+    };
+  }
   openCfgBot(mode){ if(this._botT){ clearInterval(this._botT); this._botT=null; } const m=this._cfgBotMode(mode); this.setState({ cfgBot:{ step:0, playing:false, done:false, mode:m } }); }
-  openCfgBotGui(){ this.openCfgBot('gui'); }
+  openCfgBotGui(){
+    const p=this._sapGuiLiveProfile();
+    this._setDeploy({ s4Edition:'onprem', cfgPath:'fit' });
+    if(this._botT){ clearInterval(this._botT); this._botT=null; }
+    this.setState({ cfgBot:{ step:0, playing:false, done:false, mode:'gui', live:true } });
+    this.showToast('Live tiny example ready — '+p.name+' · '+p.sid+' / '+p.host+' · inst '+p.instance+' · client '+p.client+' · user '+p.user+'. Enter password in the bot (session only), then Run.','SAP GUI bot');
+  }
+  saveSapGuiPw(){
+    try{
+      const el=document.getElementById('cgx-sap-gui-pw');
+      const v=(el && el.value || '').trim();
+      if(!v){ this.showToast('Enter the SAP GUI password for this session — it is not saved to disk'); return; }
+      if(el) el.value='';
+      this.setState({ sapGuiPwSet:true });
+      this.showToast('Password held in browser memory for this Cognixa session only — not written to git or localStorage','SAP GUI bot');
+    }catch(e){ this.showToast('Could not read password field'); }
+  }
   _cfgBotSyncDeploy(n, done){
     const d=this.state.deploy||this._deployDefaults();
     const onprem=(d.s4Edition||'public')==='onprem';
@@ -5648,16 +5698,17 @@ class Component extends DCLogic {
       if(n>=14){ if(this._botT){ clearInterval(this._botT); this._botT=null; }
         this._cfgBotSyncDeploy(14,true);
         this.setState({ cfgBot:{ step:14, playing:false, done:true, mode:m } });
-        const pb = m==='gui' ? 'CFG-BOT/GUI/FI/0001' : (m==='bcset' ? 'CFG-BOT/BCSET/FI/0001' : 'CFG-BOT/CBC/FI/0001');
+        const pb = m==='gui' ? 'CFG-BOT/GUI/FI/CGX1' : (m==='bcset' ? 'CFG-BOT/BCSET/FI/0001' : 'CFG-BOT/CBC/FI/0001');
+        const act = m==='gui' ? 'Define Company Code CGX1 (A4H live tiny example)' : 'Define Company Code AU01';
         const rules=this._compoundIpRuleset([{
           playbook: pb,
-          activity: 'Define Company Code AU01',
+          activity: act,
           decision: m==='gui' ? 'residual-gui-apply' : (m==='bcset' ? 'bcset-activate' : 'cbc-confirm'),
           clause: 'ORG-STR-001 §2.1',
           source: 'configuration-bot'
         }]);
         const toast = m==='gui'
-          ? 'Residual GUI bot complete — playbook '+pb+' → IP ruleset ('+rules.length+' rules). Prefer BC Sets next.'
+          ? 'Tiny A4H GUI example complete — CGX1 staged in demo · playbook '+pb+' → IP ('+rules.length+'). Prefer BC Sets next.'
           : (m==='bcset'
             ? 'Bot complete — BC Sets → CTS · '+pb+' compounded ('+rules.length+' IP rules). Forward to PRD when ready.'
             : 'Bot complete — CBC pipeline · '+pb+' compounded ('+rules.length+' IP rules). Forward to PROD when ready.');
@@ -5676,10 +5727,10 @@ class Component extends DCLogic {
     let d=this._deployDefaults();
     try{ d=Object.assign(d, JSON.parse(localStorage.getItem('dl_cgx_deploy')||'{}')); }catch(e){}
     const onprem=(d.s4Edition||'public')==='onprem';
-    const pb = mode==='gui' ? 'CFG-BOT/GUI/FI/0001' : (mode==='bcset' ? 'CFG-BOT/BCSET/FI/0001' : 'CFG-BOT/CBC/FI/0001');
+    const pb = mode==='gui' ? 'CFG-BOT/GUI/FI/CGX1' : (mode==='bcset' ? 'CFG-BOT/BCSET/FI/0001' : 'CFG-BOT/CBC/FI/0001');
     const rules=this._compoundIpRuleset([{
       playbook: pb,
-      activity: 'Define Company Code AU01',
+      activity: mode==='gui' ? 'Define Company Code CGX1 (A4H live tiny example)' : 'Define Company Code AU01',
       decision: mode==='gui' ? 'residual-gui-apply' : (mode==='bcset' ? 'bcset-activate' : 'cbc-confirm'),
       clause: 'ORG-STR-001 §2.1',
       source: 'configuration-bot',
@@ -8406,27 +8457,35 @@ class Component extends DCLogic {
         'CTS release (SE09/STMS) — transport released from DEV',
         'STMS import → QAS · Cloud ALM Feature Deployment gate recorded'
       ];
+      const LIVE = this._sapGuiLiveProfile ? this._sapGuiLiveProfile() : {name:'S4HANA2023 SHARED GUI',sid:'A4H',host:'115.245.150.98',instance:'18',client:'800',user:'Rajesh1',language:'EN',exampleCc:'CGX1',exampleName:'Cognixa Demo AU',product:'S/4HANA ON PREMISE 2023'};
       const LOG_GUI = [
-        'LAST RESORT — no BC Set / no API for this residual IMG step…',
-        'Launching SAP GUI scripting host (Desktop Agent / Build Process Automation)',
-        'SAP Logon → system DEV · client 100',
-        'Logging on as CGX_CFG_BOT (scripting flag sapgui/user_scripting=TRUE)',
-        'SAP GUI session open — theme/scripting fragile · DEV only',
-        'Transaction SPRO → Enterprise Structure → Define Company Code',
-        'Opening IMG activity (manual path — not BC Set)',
-        'Entering Company Code = AU01',
-        'Entering Company Name = Meridian Foods Pty Ltd',
+        'Tiny live example — residual GUI path on your S/4HANA 2023 On-Prem (A4H)…',
+        'SAP Logon 800 → select “'+LIVE.name+'” · SID '+LIVE.sid+' · '+LIVE.host+' · inst '+LIVE.instance,
+        'Log On → Client '+LIVE.client+' · User '+LIVE.user+' · Language '+LIVE.language+' (password from this Cognixa session)',
+        'Session open on '+LIVE.sid+' · product S/4HANA ON PREMISE 2023 · scripting host ready',
+        'Transaction SPRO → Customizing: Execute Project → SAP Reference IMG',
+        'Display IMG → Enterprise Structure → Definition → Financial Accounting',
+        'Execute IMG activity: Define, copy, delete, check company code (tiny example)',
+        'Entering Company Code = '+LIVE.exampleCc,
+        'Entering Company Name = '+LIVE.exampleName,
         'Entering City = Perth · Country = AU',
         'Entering Currency = AUD · Language = EN',
-        'Saving IMG · assigning to customizing request DEVK*',
-        'CTS release from DEV',
-        'STMS import → QAS · prefer BC Sets for the next bulk wave'
+        'Save → assign customizing request on '+LIVE.sid+' client '+LIVE.client,
+        'Release CTS from A4H (demo gate) — prefer BC Sets for the next bulk wave',
+        'Evidence + IP ruleset write-back · playbook CFG-BOT/GUI/FI/CGX1'
       ];
       const LOG = mode==='gui' ? LOG_GUI : (mode==='bcset' ? LOG_BCSET : LOG_CBC);
       const steps = LOG.map((t,i)=>({ t, done: done || i<cur, active: !done && i===cur, pending: !done && i>cur,
         dot: (done||i<cur) ? '#16A34A' : (i===cur ? '#6366F1' : '#3A4358'),
         color: (done||i<=cur) ? '#E7ECF5' : '#6B7488' }));
-      const FLD = [
+      const FLD = mode==='gui' ? [
+        {k:'Company Code', v:LIVE.exampleCc, at:7},
+        {k:'Company Name', v:LIVE.exampleName, at:8},
+        {k:'City', v:'Perth', at:9},
+        {k:'Country', v:'AU', at:9},
+        {k:'Currency', v:'AUD', at:10},
+        {k:'Language', v:'EN', at:10}
+      ] : [
         {k:'Company Code', v:'AU01', at:7},
         {k:'Company Name', v:'Meridian Foods Pty Ltd', at:8},
         {k:'City', v:'Perth', at:9},
@@ -8451,39 +8510,42 @@ class Component extends DCLogic {
         {k:'Pipeline', v:'After DEV: CTS release → STMS import QAS → Cloud ALM/CAB gate → import PRD.'}
       ];
       const ctxGui = [
-        {k:'Runner', v:'SAP Build Process Automation / SAP GUI scripting Desktop Agent — only when no BC Set and no API exist.'},
-        {k:'Identity', v:'Dialog/technical user CGX_CFG_BOT with sapgui/user_scripting enabled. Fragile across themes & patches.'},
-        {k:'Reaches it', v:'SAP Logon → DEV → SPRO residual IMG node that cannot be activated via BC Set.'},
-        {k:'Pipeline', v:'Save to CTS → release → STMS QAS/PRD. Re-evaluate BC Set coverage before the next wave.'}
+        {k:'Runner', v:'Cognixa demo of SAP GUI scripting / Desktop Agent path. Browser simulates your Logon pad — a real agent would drive SAP GUI on your PC.'},
+        {k:'Identity', v:'User '+LIVE.user+' · client '+LIVE.client+' · EN. Password stays in this browser session only (never committed).'},
+        {k:'Reaches it', v:LIVE.name+' · '+LIVE.sid+' @ '+LIVE.host+' / '+LIVE.instance+' → SPRO → SAP Reference IMG → Define company code.'},
+        {k:'Tiny example', v:'Create company code '+LIVE.exampleCc+' (“'+LIVE.exampleName+'”) — smallest residual IMG write for the demo.'}
       ];
       const statusReady = mode==='gui' ? 'Ready · residual SAP GUI bot' : (mode==='bcset' ? 'Ready · BC Sets + CTS (preferred)' : 'Ready to run Public Cloud bot');
       const statusRun = mode==='gui' ? 'Bot running SAP GUI residual…' : (mode==='bcset' ? 'Bot running BC Set / CTS pipeline…' : 'Bot running CBC pipeline…');
       cfgBotOpen = { steps, fields, playing: !!_bot.playing, done, mode,
-        subtitle: mode==='gui' ? 'On-Prem · residual SAP GUI · SPRO Define Company Code AU01 → DEV' : (mode==='bcset' ? 'On-Prem · BC Set SCPR20 AU_ORG_FI → DEV · CTS' : 'Public Cloud · CBC activity Define Company Code AU01 → DEV customizing'),
-        productName: mode==='gui' ? 'SAP GUI · S/4HANA DEV' : (mode==='bcset' ? 'S/4HANA · BC Sets / IMG' : 'Central Business Configuration'),
-        targetLabel: mode==='cbc' ? 'PROJECT / TARGET' : 'SYSTEM / CLIENT',
-        targetValue: mode==='cbc' ? 'AU_SCOPE · DEV customizing 100' : 'DEV · client 100 · customizing',
-        userLabel: mode==='gui' ? 'USER (dialog / scripting)' : 'USER (technical)',
-        credLabel: mode==='cbc' ? 'CREDENTIAL (OAuth client secret)' : (mode==='gui' ? 'PASSWORD (SAP GUI logon)' : 'CREDENTIAL (RFC / SNC)'),
+        subtitle: mode==='gui' ? ('Live · '+LIVE.name+' · SPRO Define Company Code '+LIVE.exampleCc+' on '+LIVE.sid) : (mode==='bcset' ? 'On-Prem · BC Set SCPR20 AU_ORG_FI → DEV · CTS' : 'Public Cloud · CBC activity Define Company Code AU01 → DEV customizing'),
+        productName: mode==='gui' ? ('SAP GUI for HTML · '+LIVE.sid+' / '+LIVE.client) : (mode==='bcset' ? 'S/4HANA · BC Sets / IMG' : 'Central Business Configuration'),
+        targetLabel: mode==='gui' ? 'SAP LOGON ENTRY' : (mode==='cbc' ? 'PROJECT / TARGET' : 'SYSTEM / CLIENT'),
+        targetValue: mode==='gui' ? (LIVE.name+' · '+LIVE.sid+' · '+LIVE.host+' · '+LIVE.instance) : (mode==='cbc' ? 'AU_SCOPE · DEV customizing 100' : 'DEV · client 100 · customizing'),
+        userLabel: mode==='gui' ? 'USER *' : 'USER (technical)',
+        credLabel: mode==='cbc' ? 'CREDENTIAL (OAuth client secret)' : (mode==='gui' ? 'PASSWORD *' : 'CREDENTIAL (RFC / SNC)'),
+        showGuiClient: mode==='gui',
+        showPwPrompt: mode==='gui' && !done && !_bot.playing && !this.state.sapGuiPwSet && cur===0,
+        savePw: ()=>this.saveSapGuiPw(),
         loginHint: mode==='cbc'
           ? 'Shown for illustration. In reality there is no password screen — the agent presents an OAuth token to the CBC Communication Arrangement. Technical user only; CBC can deploy into DEV customizing, never straight to PROD.'
           : (mode==='bcset'
             ? 'Preferred On-Prem path: RFC + BC Set activation (SCPR20) + classic CTS. No SAP GUI login for the bulk of configuration.'
-            : 'Residual only: SAP GUI scripting / Build Process Automation when there is no BC Set and no API. Requires sapgui/user_scripting; breaks on theme/patch changes.'),
-        formTitle: mode==='gui' ? 'SPRO — Define Company Code (IMG)' : (mode==='bcset' ? 'SCPR20 — Activate BC Set AU_ORG_FI' : 'CBC — Define Company Code (SSCUI)'),
-        formMeta: 'DEV·100 · CGX_CFG_BOT',
-        formLead: mode==='gui' ? 'Residual IMG activity · values from signed config workbook (no BC Set available)' : (mode==='bcset' ? 'BC Set activation · values from Best Practices / signed workbook' : 'Configuration activity · values from signed BDCQ workbook'),
+            : 'Matches your SAP Logon pad. Cognixa walks the tiny SPRO example in-demo; a Desktop Agent would drive the real SAP GUI on your PC (sapgui/user_scripting). Password is session-only.'),
+        formTitle: mode==='gui' ? ('IMG — Define company code · '+LIVE.exampleCc) : (mode==='bcset' ? 'SCPR20 — Activate BC Set AU_ORG_FI' : 'CBC — Define Company Code (SSCUI)'),
+        formMeta: mode==='gui' ? (LIVE.sid+'·'+LIVE.client+' · '+LIVE.user) : 'DEV·100 · CGX_CFG_BOT',
+        formLead: mode==='gui' ? ('Tiny residual example on '+LIVE.product+' — Create '+LIVE.exampleCc+' then save to a customizing request') : (mode==='bcset' ? 'BC Set activation · values from Best Practices / signed workbook' : 'Configuration activity · values from signed BDCQ workbook'),
         simNote: mode==='gui'
-          ? 'Simulation of residual On-Prem GUI automation. Prefer BC Sets + CTS for the bulk; use GUI bot only for leftover no-API IMG steps — never as the primary deploy mechanism.'
+          ? ('Demo of your real path: SAP Logon → '+LIVE.sid+' → SPRO → SAP Reference IMG → Define company code '+LIVE.exampleCc+'. Prefer BC Sets for bulk; GUI bot is last resort.')
           : (mode==='bcset'
             ? 'Simulation of the preferred On-Prem path. BC Sets activate into DEV; CTS/STMS moves customizing DEV → QAS → PRD. Cloud ALM can orchestrate Feature Deployment.'
             : 'Simulation of the Public Cloud path. The bot confirms CBC activities into the DEV customizing tenant, then advances Export → Import Collection (TEST) under the Cloud ALM gate — never direct to PROD.'),
         contextTitle: mode==='gui' ? 'RUN CONTEXT — SAP GUI RESIDUAL (LAST RESORT)' : (mode==='bcset' ? 'RUN CONTEXT — ON-PREM BC SETS + CTS' : 'RUN CONTEXT — PUBLIC CLOUD CBC'),
         contextRows: mode==='gui' ? ctxGui : (mode==='bcset' ? ctxBc : ctxCbc),
         drivenTitle: mode==='gui' ? 'DRIVEN BY — SIGNED SCOPE → RESIDUAL SPRO' : (mode==='bcset' ? 'DRIVEN BY — SIGNED SCOPE → BC SETS' : 'DRIVEN BY — SIGNED SCOPE → CBC'),
-        drivenPlaybook: mode==='gui' ? 'Playbook CFG-BOT/GUI/FI/0001 · SPRO residual · Company Code' : (mode==='bcset' ? 'Playbook CFG-BOT/BCSET/FI/0001 · SCPR20 · Company Code' : 'Playbook CFG-BOT/CBC/FI/0001 · SSCUI · Company Code'),
+        drivenPlaybook: mode==='gui' ? ('Playbook CFG-BOT/GUI/FI/CGX1 · '+LIVE.sid+' · Define company code') : (mode==='bcset' ? 'Playbook CFG-BOT/BCSET/FI/0001 · SCPR20 · Company Code' : 'Playbook CFG-BOT/CBC/FI/0001 · SSCUI · Company Code'),
         drivenBody: mode==='gui'
-          ? 'Used only when no BC Set / API covers the IMG node. Values from the signed workbook; save to CTS, then STMS. Revisit BC Set coverage next sprint.'
+          ? ('Live tiny example for '+LIVE.user+' on client '+LIVE.client+': create '+LIVE.exampleCc+', save to CTS, compound IP ruleset. Revisit BC Set coverage before scaling.')
           : (mode==='bcset'
             ? 'Steps from Best Practices / Solution Builder; values from the signed IMG workbook. Activate BC Sets, release CTS, import QAS under Cloud ALM/CAB.'
             : 'Steps come from the Accelerator Library; values come from the signed BDCQ / config workbook. Bot confirms into CBC, deploys to DEV customizing, then walks Export → Import Collection under Cloud ALM.'),
@@ -8505,14 +8567,21 @@ class Component extends DCLogic {
         signoff: ()=>this.cfgBotSignoff() };
     }
     const _bcur = _bot ? (_bot.step||0) : 0; const _bdone = _bot && _bot.done;
-    const cfgBotLgUserVal = (_bdone || _bcur>=1) ? 'CGX_CFG_BOT' : '';
-    const cfgBotLgPassVal = (_bdone || _bcur>=2) ? '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022' : '';
+    const _liveP = (this._sapGuiLiveProfile ? this._sapGuiLiveProfile() : {user:'Rajesh1',client:'800',language:'EN',sid:'A4H',host:'115.245.150.98',instance:'18',name:'S4HANA2023 SHARED GUI'});
+    const cfgBotLgUserVal = (_bdone || _bcur>=1) ? (_botMode==='gui' ? _liveP.user : 'CGX_CFG_BOT') : '';
+    const cfgBotLgPassVal = (_bdone || _bcur>=2) ? '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022' : '';
     const cfgBotLgUserBd = (_bdone || _bcur>=1) ? '#CDEBD7' : '#D8DEE8';
     const cfgBotLgUserBg = (_bdone || _bcur>=1) ? '#F4FBF6' : '#fff';
     const cfgBotLgPassBd = (_bdone || _bcur>=2) ? '#CDEBD7' : '#D8DEE8';
     const cfgBotLgPassBg = (_bdone || _bcur>=2) ? '#F4FBF6' : '#fff';
-    const _bfull = _botMode==='cbc' ? 'https://cbc.eu10.sapcloud.services/ui#Project-home' : (_botMode==='gui' ? 'sapgui://DEV/100/SPRO' : 'rfc://CGX_DEV/100/SCPR20');
-    const cfgBotUrl = _bcur===0 ? (_botMode==='cbc' ? 'https://cbc.eu10.sapcloud.servic' : (_botMode==='gui' ? 'sapgui://DEV/100/SPR' : 'rfc://CGX_DEV/100/SCPR')) : _bfull;
+    const cfgBotLgClientVal = (_bdone || _bcur>=1) ? _liveP.client : '';
+    const cfgBotLgLangVal = (_bdone || _bcur>=1) ? _liveP.language : '';
+    const cfgBotLgClientBd = (_bdone || _bcur>=1) ? '#CDEBD7' : '#D8DEE8';
+    const cfgBotLgClientBg = (_bdone || _bcur>=1) ? '#F4FBF6' : '#fff';
+    const cfgBotLgLangBd = (_bdone || _bcur>=1) ? '#CDEBD7' : '#D8DEE8';
+    const cfgBotLgLangBg = (_bdone || _bcur>=1) ? '#F4FBF6' : '#fff';
+    const _bfull = _botMode==='cbc' ? 'https://cbc.eu10.sapcloud.services/ui#Project-home' : (_botMode==='gui' ? ('sapgui://'+_liveP.sid+'/'+_liveP.client+'/SPRO') : 'rfc://CGX_DEV/100/SCPR20');
+    const cfgBotUrl = _bcur===0 ? (_botMode==='cbc' ? 'https://cbc.eu10.sapcloud.servic' : (_botMode==='gui' ? ('SAP Logon · '+_liveP.name) : 'rfc://CGX_DEV/100/SCPR')) : _bfull;
     const cfgBotUrlTyping = _bcur===0;
 
     const showConvertNav = cfgIsOnPremEdition;
@@ -9606,7 +9675,7 @@ class Component extends DCLogic {
       cfgAlmApprove:()=>this.cfgAlmApprove(),
       cfgForwardProd:()=>this.cfgForwardProd(),
       cfgModuleAct:(m)=>this.setState({cfgWl: m==='Finance'?'finance': m==='Order to Cash'?'o2c': m==='Procurement'?'mm': null}),
-      cfgModules, cfgConn, cfgOrg, cfgWlOpen, cfgDocOpen, cfgDocFinColor, cfgDocFinBar, cfgDocO2cColor, cfgDocO2cBar, cfgPipeOpen, cfgBotOpen, cfgBotLgUserVal, cfgBotLgPassVal, cfgBotLgUserBd, cfgBotLgUserBg, cfgBotLgPassBd, cfgBotLgPassBg, cfgBotUrl, cfgBotUrlTyping, cfgBotNotDone: !!(cfgBotOpen && !cfgBotOpen.done), cfgBotRunLabel: (cfgBotOpen && cfgBotOpen.playing) ? 'Running…' : 'Run bot', openCfgBot:()=>this.openCfgBot(), openCfgBotGui:()=>this.openCfgBotGui(), cfgBotCta, cfgConnectResearchLead, cfgConnectBotWhen, cfgConnectResearchCards, cfgIpRuleCount, cfgIpRulesLead, cfgIpRulesPreview, exportCfgEvidence:()=>this.exportCfgEvidencePack(), cfgPipeToggleLabel: cfgPipeIsSpec ? 'View generated workbook →' : '← View signed spec', cfgShowSpec:()=>this.setState({cfgPipe:'spec'}), cfgShowBook:()=>this.setState({cfgPipe:'book'}), stopProp:(e)=>{ try{ e.stopPropagation(); }catch(_){} },
+      cfgModules, cfgConn, cfgOrg, cfgWlOpen, cfgDocOpen, cfgDocFinColor, cfgDocFinBar, cfgDocO2cColor, cfgDocO2cBar, cfgPipeOpen, cfgBotOpen, cfgBotLgUserVal, cfgBotLgPassVal, cfgBotLgUserBd, cfgBotLgUserBg, cfgBotLgPassBd, cfgBotLgPassBg, cfgBotLgClientVal, cfgBotLgLangVal, cfgBotLgClientBd, cfgBotLgClientBg, cfgBotLgLangBd, cfgBotLgLangBg, cfgBotUrl, cfgBotUrlTyping, cfgBotNotDone: !!(cfgBotOpen && !cfgBotOpen.done), cfgBotRunLabel: (cfgBotOpen && cfgBotOpen.playing) ? 'Running…' : 'Run bot', openCfgBot:()=>this.openCfgBot(), openCfgBotGui:()=>this.openCfgBotGui(), cfgBotCta, cfgConnectResearchLead, cfgConnectBotWhen, cfgConnectResearchCards, cfgIpRuleCount, cfgIpRulesLead, cfgIpRulesPreview, exportCfgEvidence:()=>this.exportCfgEvidencePack(), cfgPipeToggleLabel: cfgPipeIsSpec ? 'View generated workbook →' : '← View signed spec', cfgShowSpec:()=>this.setState({cfgPipe:'spec'}), cfgShowBook:()=>this.setState({cfgPipe:'book'}), stopProp:(e)=>{ try{ e.stopPropagation(); }catch(_){} },
       cfgHealthLabel, cfgHealthColor, cfgHealthBg, cfgConnectLabel, cfgPushLabel, cfgExportLabel, cfgImportLabel, cfgAlmLabel, cfgCanForwardProd, cfgForwardProdLabel, cfgTrPrimaryLabel, cfgTrSecondaryLabel, cfgTrCbcLabel, cfgTrBcLabel, cfgPipelineStatus, cfgCurrentNote,
       remConnectResearch, remDeployChip1, remDeployChip2, remDeployChip3,
       cfgPipeStep3Label, cfgPipeStep3Sub, cfgPipeStep3Bg, cfgPipeStep3Title, cfgPipeStep3Border, cfgPipeStep3Shadow, cfgPipeStep3Icon, cfgPipeStep3Act,
