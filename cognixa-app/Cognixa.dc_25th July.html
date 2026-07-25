@@ -538,11 +538,11 @@
               </div>
             </div>
           </div>
-          <div onClick="{{ gates.runClick }}" style="flex:none;width:330px;background:linear-gradient(120deg,var(--shell,#0E1320),var(--shell-grad-end,#211B5C));color:#fff;border-radius:14px;padding:16px 20px;cursor:pointer;display:flex;flex-direction:column;justify-content:center" style-hover="filter:brightness(1.08)">
+          <div onClick="{{ ctNextGo }}" style="flex:none;width:330px;background:linear-gradient(120deg,var(--shell,#0E1320),var(--shell-grad-end,#211B5C));color:#fff;border-radius:14px;padding:16px 20px;cursor:pointer;display:flex;flex-direction:column;justify-content:center" style-hover="filter:brightness(1.08)">
             <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="var(--accent-on-dark,#A5B4FC)" stroke="none"><path d="M12 2l1.9 5.1L19 9l-5.1 1.9L12 16l-1.9-5.1L5 9l5.1-1.9z"/></svg><span style="font-size:10px;letter-spacing:.07em;font-weight:700;color:var(--accent-on-dark,#A5B4FC)">YOUR NEXT STEP</span></div>
-            <div style="font-size:14px;font-weight:700;line-height:1.35">Run the review on the 7 deliverables awaiting sign-off</div>
-            <div style="font-size:11.5px;color:#B7BCE6;margin-top:4px">1 hard blocker (FS-118) clears first · ≈€240k / 17 days of rework caught here</div>
-            <div style="display:inline-flex;align-items:center;gap:6px;margin-top:11px;font-size:12.5px;font-weight:600;color:#fff">Run review<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+            <div style="font-size:14px;font-weight:700;line-height:1.35">{{ ctNextTitle }}</div>
+            <div style="font-size:11.5px;color:#B7BCE6;margin-top:4px">{{ ctNextSub }}</div>
+            <div style="display:inline-flex;align-items:center;gap:6px;margin-top:11px;font-size:12.5px;font-weight:600;color:#fff">{{ ctNextCta }}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
           </div>
         </div>
         <!-- metrics -->
@@ -1821,6 +1821,16 @@
       <div style="padding:26px 30px 40px;max-width:1320px">
         <div style="font-size:13px;color:#5A6473;line-height:1.6;max-width:900px;margin-bottom:16px">Explore produced signed designs. Build Readiness is the <b style="color:#1B2230;font-weight:600">Explore → Realize quality gate</b> — proving the backlog, build plan, environments and data are ready before configuration, extensions, interfaces and data loads begin. Cognixa drafts the plan &amp; dependencies; your team executes the build in SAP (clean core).</div>
 
+        <div style="display:flex;align-items:center;gap:0;background:#0E1525;border-radius:12px;padding:12px 14px;margin-bottom:14px;overflow-x:auto">
+          <div onClick="{{ goReview }}" style="flex:none;cursor:pointer;padding:6px 10px;border-radius:8px;background:{{ flowReviewBg }}"><div style="font-size:10px;color:#9DA8FF;font-weight:700">1 · DESIGN</div><div style="font-size:11.5px;color:#fff;font-weight:600;margin-top:2px">Sign-off</div></div>
+          <div style="flex:none;width:28px;height:2px;background:#3A4358"></div>
+          <div style="flex:none;padding:6px 10px;border-radius:8px;background:{{ flowBuildBg }}"><div style="font-size:10px;color:#9DA8FF;font-weight:700">2 · BUILD</div><div style="font-size:11.5px;color:#fff;font-weight:600;margin-top:2px">Readiness</div></div>
+          <div style="flex:none;width:28px;height:2px;background:#3A4358"></div>
+          <div onClick="{{ goConfigFromBuild }}" style="flex:none;cursor:pointer;padding:6px 10px;border-radius:8px;background:{{ flowConfigBg }}"><div style="font-size:10px;color:#9DA8FF;font-weight:700">3 · CONFIGURE</div><div style="font-size:11.5px;color:#fff;font-weight:600;margin-top:2px">CBC · Public Cloud</div></div>
+          <div style="flex:1"></div>
+          <button onClick="{{ goConfigFromBuild }}" style="flex:none;background:var(--accent,#4F46E5);border:none;color:#fff;font-weight:600;font-size:12px;padding:8px 12px;border-radius:9px;cursor:pointer">{{ buildNextLabel }}</button>
+        </div>
+
         <!-- provenance / source -->
         <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:#F4F6FB;border:1px solid #E5E9F0;border-radius:12px;padding:13px 16px;margin-bottom:22px">
           <div style="display:flex;align-items:flex-start;gap:11px;flex:1;min-width:260px">
@@ -2598,6 +2608,13 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.9 5.1L19 9l-5.1 1.9L12 16l-1.9-5.1L5 9l5.1-1.9z"/></svg>
             Map specs → CBC activities
           </button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#F4F6FB;border:1px solid #E5E9F0;border-radius:12px;padding:12px 14px;margin:10px 0 14px;width:100%">
+            <div style="font-size:12px;color:#5A6473;line-height:1.45"><b style="color:#1B2230">Linked from design:</b> {{ cfgFlowNote }}</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button onClick="{{ goReview }}" style="font-size:11.5px;font-weight:600;color:var(--accent,#4F46E5);background:#fff;border:1px solid #D8DEE8;border-radius:8px;padding:7px 10px;cursor:pointer">Quality &amp; Sign-off</button>
+              <button onClick="{{ goBuild }}" style="font-size:11.5px;font-weight:600;color:var(--accent,#4F46E5);background:#fff;border:1px solid #D8DEE8;border-radius:8px;padding:7px 10px;cursor:pointer">Build Readiness</button>
+            </div>
           </div>
           <div style="display:flex;justify-content:flex-end;width:100%;margin-top:-6px">
             <button onClick="{{ openCfgBot }}" style="display:inline-flex;align-items:center;gap:8px;background:#0E1525;border:none;color:#fff;font-weight:600;font-size:12.5px;padding:9px 15px;border-radius:10px;cursor:pointer" style-hover="background:#1B2440">
@@ -3855,6 +3872,14 @@
           <span style="font-size:11px;font-weight:600;background:var(--shell-line,#1C2333);color:#86EFAC;padding:4px 11px;border-radius:20px">Verified</span>
         </div>
 
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#EEF0FF;border:1px solid #DDE1FB;border-radius:12px;padding:12px 14px;margin-bottom:18px">
+          <div style="font-size:12.5px;color:#3730A3;line-height:1.45"><b style="color:#312E81">Delivery chain:</b> Sign the blueprint → Build Readiness gate → Configure S/4HANA (CBC). {{ reviewFlowNote }}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onClick="{{ markBlueprintSigned }}" style="font-size:11.5px;font-weight:600;color:#3A4252;background:#fff;border:1px solid #C7CBF0;border-radius:8px;padding:7px 10px;cursor:pointer">Mark signed (demo)</button>
+            <button onClick="{{ goBuildFromReview }}" style="font-size:11.5px;font-weight:600;color:#fff;background:var(--accent,#4F46E5);border:none;border-radius:8px;padding:7px 12px;cursor:pointer">Open Build Readiness →</button>
+          </div>
+        </div>
+
         <!-- Cognixa Advisor -->
         <div style="background:#fff;border:1px solid #E5E9F0;border-radius:14px;overflow:hidden;margin-bottom:20px">
           <div style="display:flex;align-items:center;gap:11px;padding:16px 20px;background:linear-gradient(100deg,var(--shell,#0E1320) 35%,var(--shell-deep,#211B5C));color:#fff">
@@ -4920,14 +4945,14 @@
 <dc-import name="FeedbackToast" accent="#6366F1" soft="rgba(99,102,241,.12)" hint-size="0,0"></dc-import></x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1380,&quot;height&quot;:860},&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Iris&quot;,&quot;Teal&quot;,&quot;Violet&quot;,&quot;Royal&quot;],&quot;default&quot;:&quot;Iris&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;shell&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Ink&quot;,&quot;Slate&quot;,&quot;Graphite&quot;],&quot;default&quot;:&quot;Ink&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;surface&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Cool&quot;,&quot;Warm&quot;,&quot;Bright&quot;],&quot;default&quot;:&quot;Cool&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
 class Component extends DCLogic {
-  state = { screen: 'dashboard', ctLens: 'process', sel: 'O2C-021', ws: 'integration', specDoc: 'fs', fa: 'Finance (R2R)', settingsOpen: false, role: 'Administrator', roleMenuOpen: false, openGroups: { design: true }, navCollapsed: { 'hcm:DESIGN':true, 'hcm:BUILD':true, 'hcm:INTEGRATE':true, 'hcm:ASSURE':true, 'hcm:VALUE':true, 'roster:DESIGN':true, 'roster:INTEGRATE':true, 'roster:ASSURE':true, 'roster:VALUE':true }, solution: 's4', solnOpen: false, copilotOpen: false, notifOpen: false, authed: !!(this.props && this.props.boot === 'dashboard'), loginRole: 'Consultant', loginProduct: 'Cognixa', capRouted: {}, emailModal: null, riskOpen: (function(){ try{ return localStorage.getItem('dl_cgx_risk_closed')!=='1'; }catch(e){ return true; } })() , notifAllRead: false, aiKey: (function(){ try{ return localStorage.getItem('dl_cgx_ai_key')||sessionStorage.getItem('dl_cgx_ai_key')||''; }catch(e){ return ''; } })(), aiRemember: !!(function(){ try{ return !!localStorage.getItem('dl_cgx_ai_key'); }catch(e){ return false; } })(), aiConnected: !!(function(){ try{ return !!(localStorage.getItem('dl_cgx_ai_key')||sessionStorage.getItem('dl_cgx_ai_key')); }catch(e){ return false; } })(), deploy: (function(){ try{ const raw=localStorage.getItem('dl_cgx_deploy'); const base={ cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, cfgTrCbc:null, cfgTrBc:null, cfgExported:false, cfgImportedTest:false, cfgAlmApproved:false, cfgCurrentPending:3, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; if(!raw) return base; return Object.assign(base, JSON.parse(raw)); }catch(e){ return { cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, cfgTrCbc:null, cfgTrBc:null, cfgExported:false, cfgImportedTest:false, cfgAlmApproved:false, cfgCurrentPending:3, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; } })() };
+  state = { screen: 'dashboard', ctLens: 'process', sel: 'O2C-021', ws: 'integration', specDoc: 'fs', fa: 'Finance (R2R)', settingsOpen: false, role: 'Administrator', roleMenuOpen: false, openGroups: { design: true }, navCollapsed: { 'hcm:DESIGN':true, 'hcm:BUILD':true, 'hcm:INTEGRATE':true, 'hcm:ASSURE':true, 'hcm:VALUE':true, 'roster:DESIGN':true, 'roster:INTEGRATE':true, 'roster:ASSURE':true, 'roster:VALUE':true }, solution: 's4', solnOpen: false, copilotOpen: false, notifOpen: false, authed: !!(this.props && this.props.boot === 'dashboard'), loginRole: 'Consultant', loginProduct: 'Cognixa', capRouted: {}, emailModal: null, riskOpen: (function(){ try{ return localStorage.getItem('dl_cgx_risk_closed')!=='1'; }catch(e){ return true; } })() , notifAllRead: false, blueprintSigned: !!(function(){ try{ return localStorage.getItem('dl_cgx_blueprint_signed')==='1'; }catch(e){ return false; } })(), aiKey: (function(){ try{ return localStorage.getItem('dl_cgx_ai_key')||sessionStorage.getItem('dl_cgx_ai_key')||''; }catch(e){ return ''; } })(), aiRemember: !!(function(){ try{ return !!localStorage.getItem('dl_cgx_ai_key'); }catch(e){ return false; } })(), aiConnected: !!(function(){ try{ return !!(localStorage.getItem('dl_cgx_ai_key')||sessionStorage.getItem('dl_cgx_ai_key')); }catch(e){ return false; } })(), deploy: (function(){ try{ const raw=localStorage.getItem('dl_cgx_deploy'); const base={ cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, cfgTrCbc:null, cfgTrBc:null, cfgExported:false, cfgImportedTest:false, cfgAlmApproved:false, cfgCurrentPending:3, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; if(!raw) return base; return Object.assign(base, JSON.parse(raw)); }catch(e){ return { cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, cfgTrCbc:null, cfgTrBc:null, cfgExported:false, cfgImportedTest:false, cfgAlmApproved:false, cfgCurrentPending:3, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; } })() };
   closeRisk(){ try{ localStorage.setItem('dl_cgx_risk_closed','1'); }catch(e){} this.setState({ riskOpen:false }); }
   openRisk(){ try{ localStorage.removeItem('dl_cgx_risk_closed'); }catch(e){} this.setState({ riskOpen:true }); }
 
   openEmail(cfg){ this.setState({ emailModal: Object.assign({ send:true }, cfg), notifOpen:false }); }
   closeEmail(){ this.setState({ emailModal: null }); }
   toggleEmailSend(){ this.setState(s=>({ emailModal: s.emailModal ? Object.assign({}, s.emailModal, { send: !s.emailModal.send }) : null })); }
-  sendEmail(){ const m=this.state.emailModal; if(!m){ return; } const n=(m.recipients||[]).length; this.setState({ emailModal:null }); if(m.send){ this.showToast(m.doneMsg || (m.actionLabel+' — notification emailed to '+n+' recipient'+(n===1?'':'s')), (m.actionLabel||'that action')); } else { this.showToast((m.actionLabel||'Done')+' — recorded, no email sent', (m.actionLabel||'that action')); } }
+  sendEmail(){ const m=this.state.emailModal; if(!m){ return; } const n=(m.recipients||[]).length; const label=m.actionLabel||''; const isSign=/sign/i.test(label); this.setState({ emailModal:null }); if(m.send){ if(isSign){ try{ localStorage.setItem('dl_cgx_blueprint_signed','1'); }catch(e){} this.setState({ blueprintSigned:true, signCleared: !/conditional/i.test(label) }); this.showToast((m.doneMsg||'Sign-off recorded')+' — next: Build Readiness, then Configure via CBC','blueprint sign-off'); clearTimeout(this._flowT); this._flowT=setTimeout(()=>{ if(this.state.screen==='review'||this.state.screen==='spec') this.go('build'); }, 900); } else { this.showToast(m.doneMsg || (label+' — notification emailed to '+n+' recipient'+(n===1?'':'s')), label||'that action'); } } else { if(isSign){ try{ localStorage.setItem('dl_cgx_blueprint_signed','1'); }catch(e){} this.setState({ blueprintSigned:true }); } this.showToast((label||'Done')+' — recorded, no email sent', label||'that action'); } }
   openSignConditions(){ if(this.state.signCleared) return []; return [ {ref:'SEC-012', t:'SoD conflict — credit-release vs order-create'}, {ref:'MDM', t:'Master-data quality below 80% fit'} ]; }
   rerunAdvisor(){ if(this.state.advisorBusy) return; this.setState({ advisorBusy:true }); this.showToast('Re-running the five expert lenses across the latest analysis…','re-running the Advisor'); clearTimeout(this._advisorT); this._advisorT=setTimeout(()=>{ this.setState({ advisorBusy:false, advisorReviewed:Date.now() }); this.showToast('Advisor re-run complete — verdict holds: Proceed with conditions. 2 conditions still open (SEC-012 · MDM). Confidence 88%.'); }, 1700); }
   signClick(){ var nm=(this.state.name||'').trim()||'A. Reyes'; var open=this.openSignConditions(); var cond=open.length>0; var refs=open.map(o=>o.ref).join(' · '); this.openEmail({ kicker: cond?'CONDITIONAL SIGN-OFF · OUTBOUND EMAIL':'SIGN-OFF · OUTBOUND EMAIL', title: cond?'Record a conditional sign-off':'Record your sign-off', subject:'[Cognixa] '+nm+(cond?' signed (conditional) — ':' signed off — ')+'Order-to-Cash blueprint (FIN-O2C)', actionLabel: cond?'Sign — conditional':'Signed', doneMsg: cond?('Conditional sign-off recorded — bound to the content hash and flagged on '+open.length+' open item'+(open.length>1?'s':'')+' ('+refs+'). 3 parties notified; the blueprint stays gated from final approval until they clear.'):'Your sign-off is recorded — 3 parties notified by email', teamsOn:true, recipients:[ {name:'Priya Nair',role:'Programme Director',email:'priya.nair@meridianfoods.com'}, {name:'Daniel Hofer',role:'Client Process Owner',email:'d.hofer@meridianfoods.com'}, {name:'Marcus Webb',role:'SAP Delivery Lead',email:'marcus.webb@digitorilabs.com'} ] }); }
@@ -5283,7 +5308,7 @@ class Component extends DCLogic {
   _setDeploy(patch, extra){ const d=this._saveDeploy(patch); this.setState(Object.assign({ deploy:d }, extra||{})); }
   cfgRunConnect(){ const d=this.state.deploy||this._deployDefaults(); if(d.cfgChecking) return; this._setDeploy({ cfgChecking:true, cfgConnOk:false }); this.showToast('Checking S/4HANA Cloud Public Edition links — CBC workspace · DEV customizing · Cloud ALM · transport apps…'); clearTimeout(this._cfgConnT); this._cfgConnT=setTimeout(()=>{ this._setDeploy({ cfgChecking:false, cfgConnOk:true }); this.showToast('Healthy — CBC workspace, DEV customizing 100, Cloud ALM, Export Customizing Transports, Import Collection','the connection check'); }, 1400); }
   cfgStagePush(){ const d=this.state.deploy||this._deployDefaults(); if(d.cfgChecking) return; if(!d.cfgConnOk && d.cfgConnOk!==undefined){ this.showToast('Run connection check first — CBC must reach the DEV customizing tenant'); return; } this.showToast('Deploying transportable config via CBC → DEV customizing tenant (100). Current settings are held — not on this transport.'); clearTimeout(this._cfgPushT); this._cfgPushT=setTimeout(()=>{ const n=(d.cfgStaged||0)+186; const cbc=d.cfgTrCbc||('CBC'+String(900000+((n*7)%90000))); const bc=d.cfgTrBc||('BC'+String(910000+((n*11)%80000))); this._setDeploy({ cfgStaged:n, cfgStage:Math.max(d.cfgStage||0,2), cfgOrgDone:true, cfgTrCbc:cbc, cfgTrBc:bc, cfgExported:false }); this.showToast(n+' values on '+cbc+' / '+bc+' in DEV customizing — next: Export Customizing Transports','deploying to DEV customizing'); }, 1500); }
-  cfgGenerateRun(){ this.setState({ cfgDoc:'finance', cfgPipe:'book' }); this._setDeploy({ cfgStage:Math.max((this.state.deploy||{}).cfgStage||0,1) }); this.showToast('Mapped signed specs → CBC configuration activities (BDCQ/SSCUI IDs) — 1,284 values ready to deploy to DEV customizing','generating configuration'); }
+  cfgGenerateRun(){ if(!this.state.blueprintSigned && !this.state.signCleared){ this.showToast('Design not signed yet — finish Quality & Sign-off first, then map specs into CBC'); this.go('review'); return; } this.setState({ cfgDoc:'finance', cfgPipe:'book' }); this._setDeploy({ cfgStage:Math.max((this.state.deploy||{}).cfgStage||0,1) }); this.showToast('Mapped signed specs → CBC configuration activities (BDCQ/SSCUI IDs) — 1,284 values ready to deploy to DEV customizing','generating configuration'); }
   cfgApplyWl(key, ready, name){ if(!ready){ this.showToast('No ready/transportable items — clear prerequisites, decide held items, or maintain current settings in each system'); return; } const d=this.state.deploy||this._deployDefaults(); const applied=Object.assign({}, d.cfgApplied||{}); applied[key]=(applied[key]||0)+ready; const n=(d.cfgStaged||0)+ready; const cbc=d.cfgTrCbc||('CBC'+String(900000+((n*7)%90000))); const bc=d.cfgTrBc||('BC'+String(910000+((n*11)%80000))); this._setDeploy({ cfgApplied:applied, cfgStage:Math.max(d.cfgStage||0,2), cfgStaged:n, cfgOrgDone:true, cfgTrCbc:cbc, cfgTrBc:bc, cfgExported:false }, { cfgWl:null }); this.showToast((name||key)+': '+ready+' transportable activit'+(ready===1?'y':'ies')+' written to DEV customizing on '+bc,'applying config worklist'); }
   cfgExportTransports(){ const d=this.state.deploy||this._deployDefaults(); if(!(d.cfgStaged|0) && !d.cfgOrgDone){ this.showToast('Deploy to DEV customizing first — nothing to export yet'); return; } if(d.cfgExported){ this.showToast('Already exported — open Cloud ALM feature or Import Collection on TEST'); return; } this.showToast('Releasing CBC + BC transports in Export Customizing Transports (DEV)…'); clearTimeout(this._cfgExpT); this._cfgExpT=setTimeout(()=>{ const cbc=d.cfgTrCbc||'CBC900421'; const bc=d.cfgTrBc||'BC910118'; this._setDeploy({ cfgExported:true, cfgStage:Math.max(d.cfgStage||0,3), cfgTrCbc:cbc, cfgTrBc:bc }); this.showToast('Exported '+cbc+' + '+bc+' — sequence locked. Import Collection on TEST next (Cloud ALM quality gate).','exporting customizing transports'); }, 1300); }
   cfgImportTest(){ const d=this.state.deploy||this._deployDefaults(); if(!d.cfgExported){ this.showToast('Export Customizing Transports from DEV first — Import Collection needs a released collection'); return; } if(d.cfgImportedTest){ this.showToast('Already in TEST — record Cloud ALM quality approval to unlock PROD forward'); return; } this.showToast('Import Collection → TEST tenant 100 — validating CBC then BC sequence…'); clearTimeout(this._cfgImpT); this._cfgImpT=setTimeout(()=>{ this._setDeploy({ cfgImportedTest:true, cfgStage:Math.max(d.cfgStage||0,4) }); this.showToast('Imported to TEST — run regression, then Cloud ALM quality approval before PROD','importing to TEST'); }, 1400); }
@@ -5410,7 +5435,7 @@ class Component extends DCLogic {
   }
   setFa(a){ this.setState({ fa: a }); }
   toggleSettings(v){ this.setState({ settingsOpen: v }); }
-  openBuildTrack(i){ this.setState({ buildTrack: i, btq: '' }); }
+  openBuildTrack(i){ const t=this._BTRACKS && this._BTRACKS[i]; if(t && t.key==='config'){ this.showToast('Opening Configure & Deploy — CBC path for signed Fit-to-Standard config'); this.go('config'); return; } this.setState({ buildTrack: i, btq: '' }); }
   closeBuildTrack(){ this.setState({ buildTrack: null }); }
   setBtq(v){ this.setState({ btq: v }); }
   copyBuildTrack(){
@@ -5426,6 +5451,9 @@ class Component extends DCLogic {
     catch(e){ this.showToast('Copy not available in this view'); }
   }
   exportBuildReadiness(){ this.showToast('Exporting Build Readiness pack — gate, plan, tracks & environments (demo)', 'the Build Readiness export'); }
+  goBuildFromReview(){ this.go('build'); this.showToast('Build Readiness — confirm the Explore → Realize gate before CBC writes'); }
+  goConfigFromBuild(){ if(!this.state.blueprintSigned && !this.state.signCleared){ this.showToast('Sign the blueprint in Quality & Sign-off before Configure'); this.go('review'); return; } this.go('config'); this.showToast('Configure S/4HANA — deploy signed design via CBC to DEV customizing'); }
+  markBlueprintSigned(){ try{ localStorage.setItem('dl_cgx_blueprint_signed','1'); }catch(e){} this.setState({ blueprintSigned:true, signCleared:true }); this.showToast('Blueprint marked signed — Build Readiness and Configure are unlocked','blueprint sign-off'); }
   toggleWaveForm(){ this.setState(s=>({showWaveForm:!s.showWaveForm, waveForm:s.showWaveForm?s.waveForm:{}})); }
   setWaveField(k,e){ var v=e&&e.target?e.target.value:e; this.setState(s=>({waveForm:Object.assign({},s.waveForm,{[k]:v})})); }
   submitWave(){
@@ -6289,6 +6317,44 @@ class Component extends DCLogic {
       admin:gate(perm.admin), adminClick: perm.admin ? (()=>this.toggleSettings(true)) : noop, adminLocked:!perm.admin,
       export:gate(perm.export), exportLocked:!perm.export
     };
+
+    const _flowSigned = !!(this.state.blueprintSigned || this.state.signCleared);
+    const _dep = this.state.deploy || {};
+    let ctNextTitle, ctNextSub, ctNextCta, ctNextGo;
+    if(!_flowSigned){
+      ctNextTitle='Run the review on the deliverables awaiting sign-off';
+      ctNextSub='Lock the Explore blueprint before Build Readiness and CBC configure';
+      ctNextCta='Run review';
+      ctNextGo=(perm.approve||perm.run)?(()=>this.runReview()):(()=>this.go('review'));
+    } else if(!(_dep.cfgStaged|0) && !(_dep.cfgStage>=2)){
+      ctNextTitle='Build Readiness cleared — open Configure S/4HANA';
+      ctNextSub='Signed design is ready for CBC → DEV customizing on Public Cloud';
+      ctNextCta='Open Configure';
+      ctNextGo=()=>this.goConfigFromBuild();
+    } else if(!_dep.cfgExported){
+      ctNextTitle='Export Customizing Transports from DEV';
+      ctNextSub='CBC/BC requests are in DEV customizing — release before Import Collection';
+      ctNextCta='Go to Configure';
+      ctNextGo=()=>this.go('config');
+    } else if(!_dep.cfgAlmApproved){
+      ctNextTitle='Import to TEST and record Cloud ALM approval';
+      ctNextSub='Quality gate before forwarding the collection to PROD';
+      ctNextCta='Continue Configure';
+      ctNextGo=()=>this.go('config');
+    } else {
+      ctNextTitle='Public Cloud pipeline advancing';
+      ctNextSub='Track Export → Import → PROD and current settings on Configure';
+      ctNextCta='Open Configure';
+      ctNextGo=()=>this.go('config');
+    }
+    const flowReviewBg = _flowSigned ? 'rgba(22,163,74,.22)' : 'rgba(99,102,241,.28)';
+    const flowBuildBg = (this.state.screen==='build') ? 'rgba(99,102,241,.28)' : (_flowSigned ? 'rgba(22,163,74,.18)' : 'transparent');
+    const flowConfigBg = (this.state.screen==='config') ? 'rgba(99,102,241,.28)' : ((_dep.cfgStaged|0) ? 'rgba(22,163,74,.18)' : 'transparent');
+    const buildNextLabel = _flowSigned ? 'Configure S/4HANA →' : 'Sign design first →';
+    const reviewFlowNote = _flowSigned ? 'Blueprint signed — proceed to Build Readiness.' : 'Sign-off unlocks Build, then Configure.';
+    const cfgFlowNote = _flowSigned
+      ? 'Blueprint signed in Quality & Sign-off · Build Readiness is the Realize gate · CBC writes only after that chain.'
+      : 'Not signed yet — Map specs is locked until Quality & Sign-off completes.';
 
     const wsCardOrder = ['integration','datamig','testing','reporting','change','training','security','cyber','entstruct','masterdata','cutover','automation'];
     const wsDeliv = { integration:4, datamig:5, testing:6, reporting:3, change:3, training:3, security:3, cyber:2, entstruct:3, masterdata:5, cutover:4, automation:2 };
@@ -8123,9 +8189,10 @@ class Component extends DCLogic {
       late:{bg:'#FCE8EC',color:'#BE123C',dot:'#E11D48'},
       plan:{bg:'#EEF1F6',color:'#5B6475',dot:'#94A3B8'}
     };
+    const _bpSigned = !!(this.state.blueprintSigned || this.state.signCleared);
     const bGate = [
-      ['Delta requirements signed off','Backlog reconciled with every Explore gap','ok','Signed'],
-      ['Solution design documents approved','All workstream specifications at v1.0','ok','Signed'],
+      ['Delta requirements signed off', _bpSigned ? 'Signed blueprint linked from Quality & Sign-off' : 'Awaiting Quality & Sign-off on the Explore blueprint', _bpSigned?'ok':'risk', _bpSigned?'Signed':'Open'],
+      ['Solution design documents approved', _bpSigned ? 'FS / config specs approved for Realize' : 'Hold Build until design documents are signed', _bpSigned?'ok':'risk', _bpSigned?'Signed':'Held'],
       ['Prioritised build backlog','RICEFW + configuration items ranked into waves','ok','Ready'],
       ['Build plan & sprint waves baselined','6 waves with dependencies mapped','ok','Baselined'],
       ['Environments provisioned & connected','PRD + Integration Suite tenant outstanding','risk','At risk'],
@@ -8169,7 +8236,7 @@ class Component extends DCLogic {
       na:{dot:'#EAEDF2',bg:'#F8FAFC',t:'Not started'}
     };
     const BTRACKS = [
-      { key:'config', name:'Configuration', sub:'Fit-to-Standard config & CBC values', done:226, total:318, unit:'config items', st:'ok', label:'On track', eff:480,
+      { key:'config', name:'Configuration', sub:'Open Configure & Deploy → CBC to DEV customizing', done:226, total:318, unit:'config items', st:'ok', label:'On track', eff:480,
         system:'SAP Central Business Configuration · transport route CBC → DEV → QAS → PRD',
         env:[['DEV',226,318,'ok','Built'],['QAS',180,318,'ok','Imported & tested'],['PRD',0,318,'plan','Awaiting go-live']],
         items:[
@@ -8494,8 +8561,8 @@ class Component extends DCLogic {
     };
     const ph = PHASE[curDs] || PHASE.queued;
     var self2 = this;
-    var STEPDEF=[['Workshop','capture'],['Mapping','mapping'],['Drafts','spec'],['Sign-off','review']];
-    var stepMeta={queued:1, mapping:1, draft:3, live:4};
+    var STEPDEF=[['Workshop','capture'],['Mapping','mapping'],['Drafts','spec'],['Sign-off','review'],['Build','build'],['Configure','config']];
+    var stepMeta={queued:1, mapping:1, draft:3, live:(this.state.blueprintSigned||this.state.signCleared)?5:4};
     var doneCount=stepMeta[curDs]!=null?stepMeta[curDs]:1;
     var activeIdx=(curDs==='live')?-1:doneCount;
     var streamSteps=STEPDEF.map(function(s,i){ var st=i<doneCount?'done':(i===activeIdx?'active':'todo'); return {name:s[0], go:function(){ self2.go(s[1]); }, state:st, isDone:st==='done', isActive:st==='active', dot:st==='done'?'#16A34A':(st==='active'?'#4F46E5':'#D3DAE6'), bg:st==='active'?'#EEF0FF':(st==='done'?'#F2FBF5':'#fff'), bd:st==='active'?'#C7CBF5':(st==='done'?'#CDEBD7':'#E5E9F0'), color:st==='done'?'#15803D':(st==='active'?'#4F46E5':'#9AA4B2'), num:st==='done'?'✓':String(i+1) }; });
@@ -8558,7 +8625,7 @@ class Component extends DCLogic {
       houseName: screen==='roster' ? 'RosterIQ' : (screen==='hcm' ? 'Cognixa for HCM' : 'Cognixa'),
       houseTag: screen==='roster' ? 'AI rostering & award compliance' : (screen==='hcm' ? 'AI-powered SuccessFactors delivery' : 'AI-powered SAP delivery'),
       aiOn: !!this.state.aiRun, aiLabel: this.state.aiRun ? this.state.aiRun.steps[this.state.aiRun.i] : '', aiStepNum: this.state.aiRun ? (this.state.aiRun.i+1) : 0, aiStepTotal: this.state.aiRun ? this.state.aiRun.steps.length : 0,
-      goDashboard:()=>this.go('dashboard'), goBuild:()=>this.go('build'), goConfig:()=>this.go('config'), goRemediate:()=>this.go('remediate'), goConvert:()=>this.go('convert'),
+      goDashboard:()=>this.go('dashboard'), goBuild:()=>this.go('build'), goConfig:()=>this.go('config'), goRemediate:()=>this.go('remediate'), goConvert:()=>this.go('convert'), goBuildFromReview:()=>this.goBuildFromReview(), goConfigFromBuild:()=>this.goConfigFromBuild(), markBlueprintSigned:()=>this.markBlueprintSigned(), ctNextTitle, ctNextSub, ctNextCta, ctNextGo, flowReviewBg, flowBuildBg, flowConfigBg, buildNextLabel, reviewFlowNote, cfgFlowNote, goReview:()=>this.go('review'),
       cfgGenerate:()=>this.cfgGenerateRun(),
       cfgConnect:()=>this.cfgRunConnect(),
       cfgPush:()=>this.cfgStagePush(),
