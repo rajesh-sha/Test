@@ -2619,7 +2619,7 @@
           <div style="display:flex;justify-content:flex-end;width:100%;margin-top:-6px">
             <button onClick="{{ openCfgBot }}" style="display:inline-flex;align-items:center;gap:8px;background:#0E1525;border:none;color:#fff;font-weight:600;font-size:12.5px;padding:9px 15px;border-radius:10px;cursor:pointer" style-hover="background:#1B2440">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="11" rx="2.5"/><path d="M12 8V5M9 3h6M9 13h.01M15 13h.01M9.5 16.5h5"/></svg>
-              Watch Configuration Bot configure a sandbox
+              Watch Configuration Bot run CBC → DEV → TEST
             </button>
           </div>
 
@@ -2654,12 +2654,12 @@
             <div onClick="{{ cfgShowSpec }}" style="flex:1;text-align:center;cursor:pointer" style-hover="opacity:.82"><div style="width:30px;height:30px;border-radius:8px;background:#16A34A;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg></div><div style="font-size:11.5px;color:#fff;font-weight:600">1 · Signed scope</div><div style="font-size:10px;color:#9DA8FF;margin-top:2px;text-decoration:underline">view document</div></div>
             <div style="flex:none;width:46px;height:2px;background:linear-gradient(90deg,#16A34A,#16A34A)"></div>
             <div onClick="{{ cfgShowBook }}" style="flex:1;text-align:center;cursor:pointer" style-hover="opacity:.82"><div style="width:30px;height:30px;border-radius:8px;background:#16A34A;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg></div><div style="font-size:11.5px;color:#fff;font-weight:600">2 · CBC activities</div><div style="font-size:10px;color:#9DA8FF;margin-top:2px;text-decoration:underline">1,284 values</div></div>
-            <div style="flex:none;width:46px;height:2px;background:linear-gradient(90deg,#16A34A,#6366F1)"></div>
-            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep3Bg }};display:flex;align-items:center;justify-content:center;margin:0 auto 7px;box-shadow:0 0 0 4px rgba(99,102,241,.22)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="3"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep3Title }};font-weight:600">3 · DEV customizing</div><div style="font-size:10px;color:#9DA8FF;margin-top:2px">{{ cfgPipeStep3Sub }}</div></div>
+            <div style="flex:none;width:46px;height:2px;background:{{ cfgPipeLine23 }}"></div>
+            <div onClick="{{ cfgPipeStep3Act }}" style="flex:1;text-align:center;cursor:pointer" style-hover="opacity:.82"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep3Bg }};border:{{ cfgPipeStep3Border }};display:flex;align-items:center;justify-content:center;margin:0 auto 7px;box-shadow:{{ cfgPipeStep3Shadow }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="{{ cfgPipeStep3Icon }}"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep3Title }};font-weight:600">3 · DEV customizing</div><div style="font-size:10px;color:#9DA8FF;margin-top:2px;text-decoration:underline">{{ cfgPipeStep3Sub }}</div></div>
             <div style="flex:none;width:46px;height:2px;background:{{ cfgPipeLine34 }}"></div>
-            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep4Bg }};border:1.5px solid #3A4358;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7E89A8" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep4Title }};font-weight:600">4 · Export + ALM gate</div><div style="font-size:10px;color:#7E89A8;margin-top:2px">{{ cfgPipeStep4Sub }}</div></div>
+            <div onClick="{{ cfgPipeStep4Act }}" style="flex:1;text-align:center;cursor:pointer" style-hover="opacity:.82"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep4Bg }};border:{{ cfgPipeStep4Border }};display:flex;align-items:center;justify-content:center;margin:0 auto 7px;box-shadow:{{ cfgPipeStep4Shadow }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{{ cfgPipeStep4Stroke }}" stroke-width="2"><path d="{{ cfgPipeStep4Icon }}"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep4Title }};font-weight:600">4 · Export + ALM gate</div><div style="font-size:10px;color:{{ cfgPipeStep4SubColor }};margin-top:2px;text-decoration:underline">{{ cfgPipeStep4Sub }}</div></div>
             <div style="flex:none;width:46px;height:2px;background:{{ cfgPipeLine45 }}"></div>
-            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep5Bg }};border:1.5px solid #3A4358;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7E89A8" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep5Title }};font-weight:600">5 · Import TEST → PROD</div><div style="font-size:10px;color:#7E89A8;margin-top:2px">{{ cfgPipeStep5Sub }}</div></div>
+            <div onClick="{{ cfgPipeStep5Act }}" style="flex:1;text-align:center;cursor:pointer" style-hover="opacity:.82"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep5Bg }};border:{{ cfgPipeStep5Border }};display:flex;align-items:center;justify-content:center;margin:0 auto 7px;box-shadow:{{ cfgPipeStep5Shadow }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{{ cfgPipeStep5Stroke }}" stroke-width="2"><path d="{{ cfgPipeStep5Icon }}"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep5Title }};font-weight:600">5 · Import TEST → PROD</div><div style="font-size:10px;color:{{ cfgPipeStep5SubColor }};margin-top:2px;text-decoration:underline">{{ cfgPipeStep5Sub }}</div></div>
           </div>
         </div>
 
@@ -2829,7 +2829,7 @@
               </div>
 
               <div style="display:flex;gap:9px;margin-top:18px;padding-bottom:8px">
-                <button onClick="{{ cfgWlOpen.apply }}" style="flex:1;background:var(--accent,#4F46E5);border:none;color:#fff;font-weight:600;font-size:12.5px;padding:11px;border-radius:10px;cursor:pointer">Apply ready items to sandbox</button>
+                <button onClick="{{ cfgWlOpen.apply }}" style="flex:1;background:var(--accent,#4F46E5);border:none;color:#fff;font-weight:600;font-size:12.5px;padding:11px;border-radius:10px;cursor:pointer">Apply ready items to DEV customizing</button>
                 <button onClick="{{ cfgWlOpen.close }}" style="flex:none;background:#fff;border:1px solid #D8DEE8;color:#3A4252;font-weight:600;font-size:12.5px;padding:11px 16px;border-radius:10px;cursor:pointer">Close</button>
               </div>
             </div>
@@ -2967,7 +2967,7 @@
                 </div>
                 </sc-for>
               </div>
-              <div style="font-size:11px;color:#9AA4B2;margin-top:11px;line-height:1.5">Each row is generated from a signed clause and carries its method, target client and status — the same values the sandbox and transport steps consume.</div>
+              <div style="font-size:11px;color:#9AA4B2;margin-top:11px;line-height:1.5">Each row is generated from a signed clause and carries its method, target tenant and status — the same values CBC, Export Customizing Transports, and Import Collection consume.</div>
               </sc-if>
             </div>
 
@@ -2979,14 +2979,14 @@
         </div>
         </sc-if>
 
-        <!-- Configuration Bot — scripted sandbox auto-configure demo -->
+        <!-- Configuration Bot — Public Cloud CBC → DEV → Export → Import demo -->
         <sc-if value="{{ cfgBotOpen }}" hint-placeholder-val="{{ false }}">
         <div onClick="{{ cfgBotOpen.close }}" style="position:fixed;inset:0;background:rgba(14,21,37,.55);z-index:62;display:flex;align-items:center;justify-content:center;padding:30px 20px">
           <div onClick="{{ stopProp }}" style="width:940px;max-width:97vw;background:#0E1525;border-radius:16px;box-shadow:0 30px 80px -20px rgba(0,0,0,.6);overflow:hidden">
             <div style="padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #1F2A40">
               <div style="display:flex;align-items:center;gap:10px">
                 <span style="width:30px;height:30px;border-radius:8px;background:linear-gradient(140deg,#6366F1,#4338CA);display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="4" y="8" width="16" height="11" rx="2.5"/><path d="M12 8V5M9 3h6M9 13h.01M15 13h.01M9.5 16.5h5"/></svg></span>
-                <div><div style="font-size:13.5px;font-weight:700;color:#fff">Configuration Bot</div><div style="font-size:10.5px;color:#8A93A3">Scenario: Define Company Code AU01 · sandbox DEV·100</div></div>
+                <div><div style="font-size:13.5px;font-weight:700;color:#fff">Configuration Bot</div><div style="font-size:10.5px;color:#8A93A3">Public Cloud · CBC activity Define Company Code AU01 → DEV customizing</div></div>
               </div>
               <div style="display:flex;align-items:center;gap:10px">
                 <span style="font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:20px;background:{{ cfgBotOpen.statusBg }};color:{{ cfgBotOpen.statusColor }}">{{ cfgBotOpen.statusLabel }}</span>
@@ -3009,13 +3009,13 @@
                   </div>
                   <div style="background:#0A6ED1;padding:14px 16px;display:flex;align-items:center;gap:9px">
                     <span style="font-weight:800;font-size:15px;color:#fff;letter-spacing:.04em">SAP</span>
-                    <span style="font-size:12px;color:#CFE3FB;font-weight:600">S/4HANA · Logon</span>
+                    <span style="font-size:12px;color:#CFE3FB;font-weight:600">Central Business Configuration</span>
                   </div>
                   <div style="padding:18px 18px 22px;background:#F7F8FA">
                     <div style="display:flex;flex-direction:column;gap:11px">
                       <div>
-                        <div style="font-size:10px;color:#8A93A3;font-weight:600;margin-bottom:4px">SYSTEM / CLIENT</div>
-                        <div style="border:1.5px solid #D8DEE8;background:#fff;border-radius:7px;padding:8px 11px;font-size:12px;color:#131826;font-family:'IBM Plex Mono',monospace">my300123 · DEV · client 100</div>
+                        <div style="font-size:10px;color:#8A93A3;font-weight:600;margin-bottom:4px">PROJECT / TARGET</div>
+                        <div style="border:1.5px solid #D8DEE8;background:#fff;border-radius:7px;padding:8px 11px;font-size:12px;color:#131826;font-family:'IBM Plex Mono',monospace">AU_SCOPE · DEV customizing 100</div>
                       </div>
                       <div>
                         <div style="font-size:10px;color:#8A93A3;font-weight:600;margin-bottom:4px">USER (technical)</div>
@@ -3029,18 +3029,18 @@
                     </div>
                   </div>
                 </div>
-                <div style="font-size:10.5px;color:#6B7488;line-height:1.5;margin-top:12px">Shown for illustration. In reality there's no password screen — the agent presents an OAuth token to the Communication Arrangement. This is the technical user, not a person, and only into the sandbox.</div>
+                <div style="font-size:10.5px;color:#6B7488;line-height:1.5;margin-top:12px">Shown for illustration. In reality there's no password screen — the agent presents an OAuth token to the CBC Communication Arrangement. Technical user only; CBC can deploy into DEV customizing, never straight to PROD.</div>
                 </sc-if>
 
                 <sc-if value="{{ cfgBotOpen.showForm }}" hint-placeholder-val="{{ false }}">
                 <div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 10px 30px -12px rgba(0,0,0,.5)">
                   <div style="background:#354A5F;padding:9px 14px;display:flex;align-items:center;gap:8px">
                     <span style="width:9px;height:9px;border-radius:50%;background:#fff;opacity:.6"></span>
-                    <span style="font-size:11px;color:#fff;font-weight:600">SAP S/4HANA — Define Company Code</span>
+                    <span style="font-size:11px;color:#fff;font-weight:600">CBC — Define Company Code (SSCUI)</span>
                     <span style="margin-left:auto;font-size:9.5px;color:#C7D2DD;font-family:'IBM Plex Mono',monospace">DEV·100 · CGX_CFG_BOT</span>
                   </div>
                   <div style="padding:16px 18px 20px;background:#F7F8FA">
-                    <div style="font-size:11px;color:#8A93A3;margin-bottom:12px">Configuration activity · eCATT replay from workbook</div>
+                    <div style="font-size:11px;color:#8A93A3;margin-bottom:12px">Configuration activity · values from signed BDCQ workbook</div>
                     <div style="display:flex;flex-direction:column;gap:10px">
                       <sc-for list="{{ cfgBotOpen.fields }}" as="f" hint-placeholder-count="6">
                       <div style="display:grid;grid-template-columns:.7fr 1.3fr;gap:10px;align-items:center">
@@ -3052,16 +3052,16 @@
                   </div>
                 </div>
                 </sc-if>
-                <div style="font-size:10.5px;color:#6B7488;line-height:1.5;margin-top:12px">Simulation of the mechanism. The bot uses a technical user into a sandbox only — it never logs in as a person and never touches Production.</div>
+                <div style="font-size:10.5px;color:#6B7488;line-height:1.5;margin-top:12px">Simulation of the Public Cloud path. The bot confirms CBC activities into the DEV customizing tenant, then advances Export → Import Collection (TEST) under the Cloud ALM gate — never direct to PROD.</div>
 
                 <!-- run context: who/where/how it logs in -->
                 <div style="margin-top:14px;background:#141D30;border:1px solid #1F2A40;border-radius:11px;padding:13px 15px">
-                  <div style="font-size:10px;letter-spacing:.06em;color:#8A93A3;font-weight:700;margin-bottom:9px">RUN CONTEXT — WHO LOGS IN &amp; FROM WHERE</div>
+                  <div style="font-size:10px;letter-spacing:.06em;color:#8A93A3;font-weight:700;margin-bottom:9px">RUN CONTEXT — PUBLIC CLOUD CBC</div>
                   <div style="display:flex;flex-direction:column;gap:9px">
                     <div style="display:flex;gap:10px"><span style="font-size:10.5px;color:#8A93A3;width:74px;flex:none">Runner</span><span style="font-size:11px;color:#C7D2DD;line-height:1.45">A headless Cognixa agent on SAP BTP (Cloud Foundry) — no desktop, no browser session. A server runs it, not a person.</span></div>
-                    <div style="display:flex;gap:10px"><span style="font-size:10.5px;color:#8A93A3;width:74px;flex:none">Identity</span><span style="font-size:11px;color:#C7D2DD;line-height:1.45">Technical user <b style="color:#fff;font-family:'IBM Plex Mono',monospace">CGX_CFG_BOT</b> — OAuth 2.0 client credentials, not a named person's SSO/MFA login.</span></div>
-                    <div style="display:flex;gap:10px"><span style="font-size:10.5px;color:#8A93A3;width:74px;flex:none">Reaches it</span><span style="font-size:11px;color:#C7D2DD;line-height:1.45">Through the SAP Cloud Connector tunnel to the private/RISE landscape — the sandbox is never exposed to the open internet.</span></div>
-                    <div style="display:flex;gap:10px"><span style="font-size:10.5px;color:#8A93A3;width:74px;flex:none">Login step</span><span style="font-size:11px;color:#C7D2DD;line-height:1.45">There is no interactive login screen — the agent presents its token to the Communication Arrangement and gets a scoped, sandbox-only session.</span></div>
+                    <div style="display:flex;gap:10px"><span style="font-size:10.5px;color:#8A93A3;width:74px;flex:none">Identity</span><span style="font-size:11px;color:#C7D2DD;line-height:1.45">Technical user <b style="color:#fff;font-family:'IBM Plex Mono',monospace">CGX_CFG_BOT</b> — OAuth 2.0 client credentials into CBC / Communication Arrangement.</span></div>
+                    <div style="display:flex;gap:10px"><span style="font-size:10.5px;color:#8A93A3;width:74px;flex:none">Reaches it</span><span style="font-size:11px;color:#C7D2DD;line-height:1.45">CBC project experience linked to the 3SL Public Edition landscape — deploy target is DEV customizing only.</span></div>
+                    <div style="display:flex;gap:10px"><span style="font-size:10.5px;color:#8A93A3;width:74px;flex:none">Pipeline</span><span style="font-size:11px;color:#C7D2DD;line-height:1.45">After DEV: Export Customizing Transports → Import Collection (TEST) → Cloud ALM quality approval → forward PROD.</span></div>
                   </div>
                 </div>
               </div>
@@ -3072,12 +3072,12 @@
 
                 <!-- what tells the bot what to do -->
                 <div style="background:#141D30;border:1px solid #1F2A40;border-radius:10px;padding:11px 13px;margin-bottom:13px">
-                  <div style="font-size:10px;letter-spacing:.06em;color:#8A93A3;font-weight:700;margin-bottom:7px">DRIVEN BY — NOT IMPROVISED</div>
+                  <div style="font-size:10px;letter-spacing:.06em;color:#8A93A3;font-weight:700;margin-bottom:7px">DRIVEN BY — SIGNED SCOPE → CBC</div>
                   <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9DA8FF" stroke-width="2" style="flex:none"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5z"/></svg>
-                    <span style="font-size:11px;color:#C7D2DD">Script <b style="color:#fff;font-family:'IBM Plex Mono',monospace">CFG-BOT/FI/0001</b> · eCATT · Define Company Code</span>
+                    <span style="font-size:11px;color:#C7D2DD">Playbook <b style="color:#fff;font-family:'IBM Plex Mono',monospace">CFG-BOT/CBC/FI/0001</b> · SSCUI · Company Code</span>
                   </div>
-                  <div style="font-size:10.5px;color:#8A93A3;line-height:1.5">A pre-built, version-controlled script from the <b style="color:#C7D2DD">Accelerator Library</b> (reused 23×). The script holds the steps; the signed workbook supplies the values. Built once per activity, not once per client.</div>
+                  <div style="font-size:10.5px;color:#8A93A3;line-height:1.5">Steps come from the <b style="color:#C7D2DD">Accelerator Library</b>; values come from the signed BDCQ / config workbook. Bot confirms into CBC, deploys to DEV customizing, then walks Export → Import Collection under Cloud ALM.</div>
                 </div>
                 <div style="flex:1;display:flex;flex-direction:column;gap:8px;font-family:'IBM Plex Mono',monospace">
                   <sc-for list="{{ cfgBotOpen.steps }}" as="s" hint-placeholder-count="6">
@@ -3093,7 +3093,7 @@
                 </div>
                 <div style="display:flex;gap:9px;margin-top:12px">
                   <sc-if value="{{ cfgBotOpen.done }}" hint-placeholder-val="{{ false }}">
-                  <button onClick="{{ cfgBotOpen.signoff }}" style="flex:1;background:#16A34A;border:none;color:#fff;font-weight:600;font-size:12px;padding:10px;border-radius:9px;cursor:pointer">Send to sign-off</button>
+                  <button onClick="{{ cfgBotOpen.signoff }}" style="flex:1;background:#16A34A;border:none;color:#fff;font-weight:600;font-size:12px;padding:10px;border-radius:9px;cursor:pointer">Forward Import Collection → PROD</button>
                   <button onClick="{{ cfgBotOpen.replay }}" style="flex:none;background:#1C2435;border:1px solid #2F3B52;color:#C7D2DD;font-weight:600;font-size:12px;padding:10px 14px;border-radius:9px;cursor:pointer">Replay</button>
                   </sc-if>
                   <sc-if value="{{ cfgBotNotDone }}" hint-placeholder-val="{{ true }}">
@@ -5283,15 +5283,51 @@ class Component extends DCLogic {
   acceptAllCap(){ const all={}; for(let i=0;i<9;i++) all[i]=true; this.setState({ capRouted: all }); this.showToast('9 items routed — 4 to Jira, 2 to Cloud ALM, 3 to decision log', 'routing the workshop items'); }
   parkAssign(i){ this.setState(s=>({ parkAssigned: Object.assign({}, s.parkAssigned, { [i]: true }) })); this.showToast('Open item given an owner + decide-by date — added to the program RAID so it can\'t slip', 'tracking the open item'); }
   openCfgBot(){ if(this._botT){ clearInterval(this._botT); this._botT=null; } this.setState({ cfgBot:{ step:0, playing:false, done:false } }); }
+  _cfgBotSyncDeploy(n, done){
+    const d=this.state.deploy||this._deployDefaults();
+    const patch={ cfgConnOk:true };
+    if(n>=2 || done) patch.cfgStage=Math.max(d.cfgStage||0,1);
+    if(n>=11 || done){
+      const staged=Math.max(d.cfgStaged||0, 186);
+      patch.cfgStaged=staged;
+      patch.cfgOrgDone=true;
+      patch.cfgStage=Math.max(patch.cfgStage||d.cfgStage||0,2);
+      patch.cfgTrCbc=d.cfgTrCbc||('CBC'+String(900000+((staged*7)%90000)));
+      patch.cfgTrBc=d.cfgTrBc||('BC'+String(910000+((staged*11)%80000)));
+    }
+    if(n>=12 || done){ patch.cfgExported=true; patch.cfgStage=Math.max(patch.cfgStage||d.cfgStage||0,3); }
+    if(n>=13 || done){ patch.cfgImportedTest=true; patch.cfgStage=Math.max(patch.cfgStage||d.cfgStage||0,4); }
+    if(n>=14 || done){ patch.cfgAlmApproved=true; patch.cfgStage=Math.max(patch.cfgStage||d.cfgStage||0,5); }
+    this._setDeploy(patch);
+  }
   startCfgBot(){ if(this._botT){ clearInterval(this._botT); }
+    this._setDeploy({ cfgConnOk:true, cfgStage:Math.max((this.state.deploy||{}).cfgStage||0,1) });
     this.setState({ cfgBot:{ step:0, playing:true, done:false } });
     this._botT = setInterval(()=>{
-      this.setState(s=>{ const b=s.cfgBot||{step:0}; const n=(b.step||0)+1;
-        if(n>=14){ if(this._botT){ clearInterval(this._botT); this._botT=null; } return { cfgBot:{ step:14, playing:false, done:true } }; }
-        return { cfgBot:{ step:n, playing:true, done:false } }; });
+      const b=this.state.cfgBot||{step:0}; const n=(b.step||0)+1;
+      if(n>=14){ if(this._botT){ clearInterval(this._botT); this._botT=null; }
+        this._cfgBotSyncDeploy(14,true);
+        this.setState({ cfgBot:{ step:14, playing:false, done:true } });
+        this.showToast('Bot complete — CBC → DEV customizing → Export → Import TEST · Cloud ALM quality gate recorded. Forward to PROD when ready.','Configuration Bot');
+        return;
+      }
+      this._cfgBotSyncDeploy(n,false);
+      this.setState({ cfgBot:{ step:n, playing:true, done:false } });
     }, 720);
   }
   closeCfgBot(){ if(this._botT){ clearInterval(this._botT); this._botT=null; } this.setState({ cfgBot:null }); }
+  cfgBotSignoff(){
+    this.closeCfgBot();
+    this._cfgBotSyncDeploy(14,true);
+    let d=this._deployDefaults();
+    try{ d=Object.assign(d, JSON.parse(localStorage.getItem('dl_cgx_deploy')||'{}')); }catch(e){}
+    if(d.cfgAlmApproved && (d.cfgStage|0)<6){
+      this._setDeploy({ cfgStage:6 });
+      this.showToast('Forwarded collection to PROD via Import Collection. Reminder: '+((d.cfgCurrentPending|0)||3)+' current settings stay local (not transported).','forwarding to PROD');
+    } else {
+      this.showToast('Public Cloud pipeline complete through Cloud ALM — use Guardrails if you need to re-run a step');
+    }
+  }
   startRcBot(){ if(this._rcT){ clearInterval(this._rcT); }
     this.setState({ rcBot:{ step:0, playing:true, done:false } });
     this._rcT = setInterval(()=>{
@@ -7316,19 +7352,19 @@ class Component extends DCLogic {
         fields:[['System URL','my300123-api.s4hana.cloud.sap'],['Auth','OAuth 2.0 · communication arrangement'],['Apply via','CBC activities · SSCUIs · BC Sets / eCATT'],['Note','No single write-all config API — values applied per object/method'],['Status','Active · last call 4m ago']] },
       OAU: { name:'OAuth 2.0 communication user', app:'SAP Fiori — “Maintain Communication Users”', scenario:'Client credentials grant',
         how:['Create a technical comm user (no dialog logon)','Grant the least-privilege configuration catalogue','Issue OAuth 2.0 client-credentials (client id + secret)','Rotate the secret on a 90-day schedule'],
-        fields:[['User ID','CGX_CFG_BOT'],['Auth','OAuth 2.0 · client credentials'],['Scope','Business Configuration — write to sandbox only'],['Secret rotates','every 90 days · next 12 Aug']] },
+        fields:[['User ID','CGX_CFG_BOT'],['Auth','OAuth 2.0 · client credentials'],['Scope','CBC / Business Configuration — DEV customizing only'],['Secret rotates','every 90 days · next 12 Aug']] },
       CBC: { name:'Central Business Configuration tenant', app:'SAP Central Business Configuration (cloud)', scenario:'Project scope & configuration activities',
-        how:['Link the CBC tenant to the S/4HANA system','Sync project scope — countries, scope items, org structure','Cognixa reads & writes configuration activities','Roadmap milestones gate when a transport may be released'],
+        how:['Link the CBC tenant to the S/4HANA Cloud Public Edition landscape','Sync project scope — countries, scope items, org structure','Cognixa reads & writes configuration activities into CBC','CBC deploys transportable config into DEV customizing only'],
         fields:[['Tenant','cbc.cloud.sap/CGX-AU01'],['Project','Meridian — AU Greenfield'],['Scope','AU · O2C · synced'],['Status','Connected']] },
       CC: { name:'SAP Cloud Connector', app:'SAP Cloud Connector (on-prem admin UI)', scenario:'Reverse-invoke tunnel for private/RISE',
         how:['Install the Cloud Connector inside the client network','Register the BTP subaccount + a virtual host','Expose only the S/4HANA OData host (least exposure)','Heartbeat is monitored; alerts on drop'],
         fields:[['Region host','cf.ap10.hana.ondemand.com'],['Virtual host','s4-prd:44300'],['Tunnel','Up · 14ms'],['HA','Primary + shadow']] },
-      TMS: { name:'Transport route (TMS / gCTS)', app:'SAP Fiori — “Export Customizing Transports” · gCTS', scenario:'Git-enabled change & release control',
-        how:['Config is recorded into a customizing transport','Released from DEV after sandbox validation','Imported to QA for integration test','Imported to PRD only on signed approval'],
-        fields:[['Route','DEV·100 → QA·200 → PRD·300'],['Method','gCTS (git-enabled CTS)'],['Repo','git/cgx-au01-customizing'],['Gate','Sign-off required before PRD']] },
+      TMS: { name:'Export / Import Collection', app:'SAP Fiori — Export Customizing Transports · Import Collection', scenario:'Public Cloud 3SL change control',
+        how:['Config is recorded on CBC/BC customizing transports in DEV','Released via Export Customizing Transports','Imported to TEST via Import Collection','Forwarded to PROD only after Cloud ALM quality approval'],
+        fields:[['Route','DEV customizing → TEST → PROD'],['Method','Export / Import Collection'],['Requests','CBC + BC sequence locked'],['Gate','Cloud ALM quality approval before PROD']] },
       GRD: { name:'Deployment guardrails', app:'Cognixa policy — platform-enforced', scenario:'Safety rails on every push',
-        how:['Default target is always a sandbox client','Straight-through items apply to sandbox only','A human gate is required before QA import','PRD is reachable only via a signed transport'],
-        fields:[['Default client','DEV·100 (sandbox)'],['Direct-to-Prod','Blocked'],['Human gate','On'],['Audit hash','On — every push']] }
+        how:['CBC deploys into DEV customizing only — never TEST/PROD','Straight-through items stay on the Export/Import path','Cloud ALM quality gate is required before PROD forward','Current settings are maintained per system (not transported)'],
+        fields:[['Default target','DEV customizing 100'],['Direct-to-Prod','Blocked'],['ALM gate','On'],['Audit hash','On — every push']] }
     };
     const mkCfgConn=(abbr,bg,fg,name,purpose,st)=>({ abbr,bg,fg,name,purpose, ...CST[st], action:()=>this.setState({connManage:abbr}) });
     const connectorGroups = [
@@ -7345,7 +7381,7 @@ class Component extends DCLogic {
         mkCfgConn('CBC','#EAF1FB','#0A6ED1','Central Business Configuration tenant','Scope, org structure & configuration activities (S/4HANA Cloud)','connected'),
         mkCfgConn('CC','#EAF1FB','#0A6ED1','SAP Cloud Connector','Secure tunnel to a private / RISE landscape','connected'),
         mkCfgConn('TMS','#E9F2FF','#0052CC','Transport route (TMS / gCTS)','DEV·100 → QA·200 → PRD·300 — git-enabled change control','connected'),
-        mkCfgConn('GRD','#E7F6EC','#15803D','Deployment guardrails','Default sandbox client, sandbox-first & no-direct-to-Prod policy','connected')
+        mkCfgConn('GRD','#E7F6EC','#15803D','Deployment guardrails','CBC → DEV only · Export/Import Collection · Cloud ALM gate before PROD','connected')
       ]},
       {label:'ECC → S/4HANA CONVERSION — Brownfield toolchain', items:[
         mkConn('RFC','#EAF1FB','#0A6ED1','ECC read-only RFC','ST-A/PI + /SDF/ collectors — feeds Readiness Check & SI Check','connected'),
@@ -7378,7 +7414,7 @@ class Component extends DCLogic {
       connManageOpen = Object.assign({}, m, { abbr:_cmKey,
         how: m.how.map((t,i)=>({ num:i+1, t:t })),
         rows: m.fields.map(p=>({ k:p[0], v:p[1] })),
-        test:()=>this.showToast(m.name+' — test call succeeded. '+m.app+' responded; credentials valid, scope confirmed (sandbox-write only).'),
+        test:()=>this.showToast(m.name+' — test call succeeded. '+m.app+' responded; credentials valid, scope confirmed (CBC / DEV customizing write).'),
         close:()=>this.setState({connManage:null}) });
     }
 
@@ -7687,7 +7723,7 @@ class Component extends DCLogic {
           {q:'Credit management', a:'SAP Credit Management (FSCM) — automatic block at credit limit'}
         ],
         open:[
-          'Confirm pricing condition values with Sales before sandbox load',
+          'Confirm pricing condition values with Sales before CBC deploy to DEV',
           'Approve output determination — invoice by email (BRF+ / Adobe form)'
         ]
       }
@@ -7742,26 +7778,26 @@ class Component extends DCLogic {
     }
     const cfgPipeIsSpec = cfgPipeKey==='spec';
 
-    // ---- Configuration Bot: scripted sandbox-login + auto-configure demo ----
+    // ---- Configuration Bot: Public Cloud CBC → DEV → Export → Import demo ----
     const _bot = this.state.cfgBot || null;
     let cfgBotOpen = null;
     if(_bot){
       const cur = _bot.step||0; const done = !!_bot.done;
       const LOG = [
         'Bot runner starting on Cognixa runtime (SAP BTP · Cloud Foundry)…',
-        'Resolving target: sandbox DEV·100 via SAP Cloud Connector tunnel',
-        'Requesting OAuth 2.0 token — Communication Arrangement SAP_COM_0XXX',
+        'Opening CBC project AU_SCOPE · target DEV customizing 100',
+        'Requesting OAuth 2.0 token — CBC Communication Arrangement',
         'Token granted · technical user CGX_CFG_BOT (no dialog / SSO login)',
-        'Session opened — scope: write to sandbox client only',
-        'Method selected → eCATT replay (no write-API for this object)',
-        'Opening configuration activity: Define Company Code',
+        'CBC session opened — write scope: DEV customizing only',
+        'Mapping signed BDCQ → CBC configuration activities (SSCUI IDs)',
+        'Opening CBC activity: Define Company Code',
         'Entering Company Code = AU01',
         'Entering Company Name = Meridian Foods Pty Ltd',
         'Entering City = Perth · Country = AU',
         'Entering Currency = AUD · Language = EN',
-        'Saving → SAP validation passed (no errors)',
-        'Applied to sandbox DEV·100 · content hash recorded',
-        'Human gate → awaiting consultant sign-off before transport'
+        'Confirming activity → deploying CBC → DEV customizing · CBC/BC requests created',
+        'Export Customizing Transports — collection released from DEV',
+        'Import Collection → TEST · Cloud ALM quality gate recorded'
       ];
       const steps = LOG.map((t,i)=>({ t, done: done || i<cur, active: !done && i===cur, pending: !done && i>cur,
         dot: (done||i<cur) ? '#16A34A' : (i===cur ? '#6366F1' : '#3A4358'),
@@ -7782,13 +7818,14 @@ class Component extends DCLogic {
         showLogin: !done && cur < 5, showForm: done || cur >= 5,
         lgUser: done || cur >= 1, lgPass: done || cur >= 2, lgAuthing: !done && cur === 3, lgAuthed: done || cur >= 4,
         lgBtnLabel: (done || cur >= 4) ? 'Authenticated ✓' : (cur === 3 ? 'Authenticating…' : 'Log On'),
-        lgBtnBg: (done || cur >= 4) ? '#16A34A' : (cur >= 1 ? '#0A6ED1' : '#9AA4B2'),        statusLabel: done ? 'Applied to sandbox · awaiting sign-off' : (_bot.playing ? 'Bot running…' : 'Ready to run'),
+        lgBtnBg: (done || cur >= 4) ? '#16A34A' : (cur >= 1 ? '#0A6ED1' : '#9AA4B2'),
+        statusLabel: done ? 'Pipeline advanced · ALM gate recorded' : (_bot.playing ? 'Bot running CBC pipeline…' : 'Ready to run Public Cloud bot'),
         statusColor: done ? '#15803D' : (_bot.playing ? '#4F46E5' : '#8A93A3'),
         statusBg: done ? '#E7F6EC' : (_bot.playing ? '#EEF0FF' : '#F0F1F4'),
         run: ()=>this.startCfgBot(), replay: ()=>this.startCfgBot(), close: ()=>this.closeCfgBot(),
-        timeNote: done ? 'Applied in ~10s' : (_bot.playing ? 'Running… ~'+Math.round(cur*0.72)+'s elapsed' : 'Typical run: under a minute'),
-        manualNote: 'A consultant keying this activity by hand ≈ 20–30 min — and again in QA, and again in Prod.',
-        signoff: ()=>{ this.closeCfgBot(); this.showToast('Company Code AU01 sent to the Finance Process Owner for sign-off — on approval it is packaged into a transport (DEV → QA → PRD). The bot never touches Production directly.'); } };
+        timeNote: done ? 'CBC → DEV → TEST in ~10s (demo)' : (_bot.playing ? 'Running… ~'+Math.round(cur*0.72)+'s elapsed' : 'Typical demo run: under a minute'),
+        manualNote: 'Manual CBC confirm + Export + Import Collection across 3SL ≈ hours — bot walks the same gates automatically in the demo.',
+        signoff: ()=>this.cfgBotSignoff() };
     }
     const _bcur = _bot ? (_bot.step||0) : 0; const _bdone = _bot && _bot.done;
     const cfgBotLgUserVal = (_bdone || _bcur>=1) ? 'CGX_CFG_BOT' : '';
@@ -7797,16 +7834,16 @@ class Component extends DCLogic {
     const cfgBotLgUserBg = (_bdone || _bcur>=1) ? '#F4FBF6' : '#fff';
     const cfgBotLgPassBd = (_bdone || _bcur>=2) ? '#CDEBD7' : '#D8DEE8';
     const cfgBotLgPassBg = (_bdone || _bcur>=2) ? '#F4FBF6' : '#fff';
-    const _bfull = 'https://my300123.s4hana.cloud.sap/ui#Shell-home';
-    const cfgBotUrl = _bcur===0 ? 'https://my300123.s4hana.clou' : _bfull;
+    const _bfull = 'https://cbc.eu10.sapcloud.services/ui#Project-home';
+    const cfgBotUrl = _bcur===0 ? 'https://cbc.eu10.sapcloud.servic' : _bfull;
     const cfgBotUrlTyping = _bcur===0;
 
     const deploy = this.state.deploy || (this._deployDefaults ? this._deployDefaults() : {});
     const _cfgApplied = deploy.cfgApplied || {};
     const cfgModules = [
-      { name:'Finance', mod:'FI · CO · Treasury', tag:'IN SCOPE', tagBg:'#E7F6EC', tagColor:'#15803D', items:'412', auto:'368', dec:'44', pct:(_cfgApplied.finance? '88%':'72%'), barColor:'#16A34A', status:(_cfgApplied.finance? (_cfgApplied.finance+' ready items applied to sandbox'):'Chart of accounts, ledgers, posting keys staged'), act:()=>this.setState({cfgWl:'finance'}) },
-      { name:'Order to Cash', mod:'SD · BRIM', tag:'IN SCOPE', tagBg:'#E7F6EC', tagColor:'#15803D', items:'286', auto:'241', dec:'45', pct:(_cfgApplied.o2c? '74%':'58%'), barColor:'#16A34A', status:(_cfgApplied.o2c? (_cfgApplied.o2c+' ready items applied to sandbox'):'Pricing procedures held for a decision'), act:()=>this.setState({cfgWl:'o2c'}) },
-      { name:'Procurement', mod:'MM · Inventory', tag:'IN SCOPE', tagBg:'#E7F6EC', tagColor:'#15803D', items:'198', auto:'176', dec:'22', pct:(_cfgApplied.mm? '81%':'63%'), barColor:'#16A34A', status:(_cfgApplied.mm? (_cfgApplied.mm+' ready items applied to sandbox'):'Purchasing org & doc types staged to sandbox'), act:()=>this.setState({cfgWl:'mm'}) },
+      { name:'Finance', mod:'FI · CO · Treasury', tag:'IN SCOPE', tagBg:'#E7F6EC', tagColor:'#15803D', items:'412', auto:'368', dec:'44', pct:(_cfgApplied.finance? '88%':'72%'), barColor:'#16A34A', status:(_cfgApplied.finance? (_cfgApplied.finance+' ready items in DEV customizing'):'Chart of accounts, ledgers, posting keys staged'), act:()=>this.setState({cfgWl:'finance'}) },
+      { name:'Order to Cash', mod:'SD · BRIM', tag:'IN SCOPE', tagBg:'#E7F6EC', tagColor:'#15803D', items:'286', auto:'241', dec:'45', pct:(_cfgApplied.o2c? '74%':'58%'), barColor:'#16A34A', status:(_cfgApplied.o2c? (_cfgApplied.o2c+' ready items in DEV customizing'):'Pricing procedures held for a decision'), act:()=>this.setState({cfgWl:'o2c'}) },
+      { name:'Procurement', mod:'MM · Inventory', tag:'IN SCOPE', tagBg:'#E7F6EC', tagColor:'#15803D', items:'198', auto:'176', dec:'22', pct:(_cfgApplied.mm? '81%':'63%'), barColor:'#16A34A', status:(_cfgApplied.mm? (_cfgApplied.mm+' ready items in DEV customizing'):'Purchasing org & doc types staged for CBC'), act:()=>this.setState({cfgWl:'mm'}) },
       { name:'Enterprise Asset Mgmt', mod:'EAM · PM', tag:'WAVE 2', tagBg:'#EEF0FF', tagColor:'#4338CA', items:'164', auto:'118', dec:'46', pct:'12%', barColor:'#6366F1', status:'Awaiting signed EAM configuration spec', act:()=>this.setState({cfgWl:'eam'}) },
       { name:'Treasury & Risk', mod:'TRM', tag:'WAVE 2', tagBg:'#EEF0FF', tagColor:'#4338CA', items:'132', auto:'112', dec:'20', pct:'8%', barColor:'#6366F1', status:'House banks pending bank master sign-off', act:()=>this.setState({cfgWl:'trm'}) },
       { name:'Project System', mod:'PS', tag:'WAVE 2', tagBg:'#EEF0FF', tagColor:'#4338CA', items:'92', auto:'78', dec:'14', pct:'5%', barColor:'#6366F1', status:'Network & WBS profiles not yet drafted', act:()=>this.setState({cfgWl:'ps'}) }
@@ -7835,17 +7872,38 @@ class Component extends DCLogic {
     const cfgPipelineStatus = (deploy.cfgStage|0)>=6 ? 'PROD forwarded' : (deploy.cfgAlmApproved ? 'ALM approved' : (deploy.cfgImportedTest ? 'In TEST' : (deploy.cfgExported ? 'Exported' : ((deploy.cfgStaged|0)?'In DEV customizing':'Awaiting deploy'))));
     const cfgCurrentNote = ((deploy.cfgCurrentPending|0)||3)+' current-setting activities stay out of transports — maintain them in Implementation Activities on TEST and PROD after import (e.g. number ranges, user defaults).';
     const cfgStage = deploy.cfgStage|0;
-    const cfgPipeStep3Sub = (deploy.cfgStaged|0) ? ((deploy.cfgTrBc||'BC')+' · DEV') : 'awaiting deploy';
-    const cfgPipeStep3Bg = (deploy.cfgStaged|0) || cfgStage>=2 ? '#16A34A' : 'var(--accent-bright,#6366F1)';
+    const _pipeDevDone = !!(deploy.cfgStaged|0) || cfgStage>=2;
+    const _pipeExpDone = !!(deploy.cfgExported || deploy.cfgAlmApproved || cfgStage>=3);
+    const _pipeImpDone = !!(deploy.cfgImportedTest || (deploy.cfgStage|0)>=6);
+    const _pipeProdDone = (deploy.cfgStage|0)>=6;
+    const cfgPipeStep3Sub = _pipeDevDone ? ((deploy.cfgTrBc||'BC')+' · DEV') : 'awaiting deploy';
+    const cfgPipeStep3Bg = _pipeDevDone ? '#16A34A' : 'var(--accent-bright,#6366F1)';
     const cfgPipeStep3Title = '#fff';
-    const cfgPipeStep4Bg = deploy.cfgExported || cfgStage>=3 ? '#16A34A' : ((deploy.cfgStaged|0)?'var(--accent-bright,#6366F1)':'#1C2435');
-    const cfgPipeStep4Title = (deploy.cfgExported || (deploy.cfgStaged|0)) ? '#fff' : '#AEB7C7';
-    const cfgPipeStep4Sub = deploy.cfgAlmApproved ? 'ALM approved' : (deploy.cfgExported ? 'exported · ALM' : 'export + approve');
-    const cfgPipeStep5Bg = (deploy.cfgStage|0)>=6 ? '#16A34A' : (deploy.cfgImportedTest ? 'var(--accent-bright,#6366F1)' : '#1C2435');
-    const cfgPipeStep5Title = (deploy.cfgImportedTest || (deploy.cfgStage|0)>=5) ? '#fff' : '#AEB7C7';
-    const cfgPipeStep5Sub = (deploy.cfgStage|0)>=6 ? 'in PROD' : (deploy.cfgImportedTest ? 'in TEST' : 'import gated');
-    const cfgPipeLine34 = (deploy.cfgStaged|0) || cfgStage>=2 ? '#16A34A' : 'linear-gradient(90deg,#6366F1,#3A4358)';
-    const cfgPipeLine45 = deploy.cfgExported || cfgStage>=3 ? '#16A34A' : '#3A4358';
+    const cfgPipeStep3Border = 'none';
+    const cfgPipeStep3Shadow = _pipeDevDone ? 'none' : '0 0 0 4px rgba(99,102,241,.22)';
+    const cfgPipeStep3Icon = _pipeDevDone ? 'M20 6L9 17l-5-5' : 'M12 2v6M12 16v6M2 12h6M16 12h6';
+    const cfgPipeStep3Act = ()=>{ if(!_pipeDevDone) this.cfgStagePush(); else this.showToast('DEV customizing already has '+(deploy.cfgStaged||0)+' values — next: Export Customizing Transports'); };
+    const cfgPipeStep4Bg = deploy.cfgAlmApproved ? '#16A34A' : (_pipeExpDone ? '#16A34A' : (_pipeDevDone ? 'var(--accent-bright,#6366F1)' : '#1C2435'));
+    const cfgPipeStep4Title = (_pipeExpDone || _pipeDevDone) ? '#fff' : '#AEB7C7';
+    const cfgPipeStep4Sub = deploy.cfgAlmApproved ? 'ALM approved' : (deploy.cfgExported ? 'exported · await ALM' : (_pipeDevDone ? 'export + approve' : 'locked'));
+    const cfgPipeStep4SubColor = (_pipeExpDone || _pipeDevDone) ? '#9DA8FF' : '#7E89A8';
+    const cfgPipeStep4Border = (_pipeExpDone || _pipeDevDone) ? 'none' : '1.5px solid #3A4358';
+    const cfgPipeStep4Shadow = (!_pipeExpDone && _pipeDevDone) ? '0 0 0 4px rgba(99,102,241,.22)' : 'none';
+    const cfgPipeStep4Stroke = (_pipeExpDone || _pipeDevDone) ? '#fff' : '#7E89A8';
+    const cfgPipeStep4Icon = deploy.cfgAlmApproved ? 'M20 6L9 17l-5-5' : (deploy.cfgExported ? 'M9 12l2 2 4-4M12 3a9 9 0 110 18 9 9 0 010-18z' : 'M9 12l2 2 4-4M12 3a9 9 0 110 18 9 9 0 010-18z');
+    const cfgPipeStep4Act = ()=>{ if(!_pipeDevDone){ this.showToast('Deploy to DEV customizing first'); return; } if(!deploy.cfgExported) this.cfgExportTransports(); else if(!deploy.cfgAlmApproved){ if(!deploy.cfgImportedTest) this.cfgImportTest(); else this.cfgAlmApprove(); } else this.showToast('Cloud ALM already approved — forward Import Collection to PROD when ready'); };
+    const cfgPipeStep5Bg = _pipeProdDone ? '#16A34A' : (_pipeImpDone ? 'var(--accent-bright,#6366F1)' : '#1C2435');
+    const cfgPipeStep5Title = (_pipeImpDone || deploy.cfgAlmApproved || (deploy.cfgStage|0)>=5) ? '#fff' : '#AEB7C7';
+    const cfgPipeStep5Sub = _pipeProdDone ? 'in PROD' : (deploy.cfgImportedTest ? (deploy.cfgAlmApproved ? 'TEST · ready PROD' : 'in TEST') : 'import gated');
+    const cfgPipeStep5SubColor = (_pipeImpDone || deploy.cfgExported) ? '#9DA8FF' : '#7E89A8';
+    const cfgPipeStep5Border = (_pipeImpDone || deploy.cfgExported) ? 'none' : '1.5px solid #3A4358';
+    const cfgPipeStep5Shadow = (deploy.cfgImportedTest && !_pipeProdDone) ? '0 0 0 4px rgba(99,102,241,.22)' : 'none';
+    const cfgPipeStep5Stroke = (_pipeImpDone || deploy.cfgExported || deploy.cfgAlmApproved) ? '#fff' : '#7E89A8';
+    const cfgPipeStep5Icon = _pipeProdDone ? 'M20 6L9 17l-5-5' : 'M5 12h14M13 6l6 6-6 6';
+    const cfgPipeStep5Act = ()=>{ if(!deploy.cfgExported){ this.showToast('Export Customizing Transports from DEV first'); return; } if(!deploy.cfgImportedTest) this.cfgImportTest(); else if(!deploy.cfgAlmApproved) this.cfgAlmApprove(); else if(!_pipeProdDone) this.cfgForwardProd(); else this.showToast('Collection already forwarded to PROD'); };
+    const cfgPipeLine23 = _pipeDevDone ? '#16A34A' : 'linear-gradient(90deg,#16A34A,#6366F1)';
+    const cfgPipeLine34 = _pipeDevDone ? '#16A34A' : 'linear-gradient(90deg,#6366F1,#3A4358)';
+    const cfgPipeLine45 = _pipeExpDone ? '#16A34A' : '#3A4358';
 
     // ---- per-module configuration worklist with prerequisite gating ----
     // Enterprise-structure foundations every module's config depends on. status: done | pending | held
@@ -8635,7 +8693,11 @@ class Component extends DCLogic {
       cfgForwardProd:()=>this.cfgForwardProd(),
       cfgModuleAct:(m)=>this.setState({cfgWl: m==='Finance'?'finance': m==='Order to Cash'?'o2c': m==='Procurement'?'mm': null}),
       cfgModules, cfgConn, cfgOrg, cfgWlOpen, cfgDocOpen, cfgDocFinColor, cfgDocFinBar, cfgDocO2cColor, cfgDocO2cBar, cfgPipeOpen, cfgBotOpen, cfgBotLgUserVal, cfgBotLgPassVal, cfgBotLgUserBd, cfgBotLgUserBg, cfgBotLgPassBd, cfgBotLgPassBg, cfgBotUrl, cfgBotUrlTyping, cfgBotNotDone: !!(cfgBotOpen && !cfgBotOpen.done), cfgBotRunLabel: (cfgBotOpen && cfgBotOpen.playing) ? 'Running…' : 'Run bot', openCfgBot:()=>this.openCfgBot(), cfgPipeToggleLabel: cfgPipeIsSpec ? 'View generated workbook →' : '← View signed spec', cfgShowSpec:()=>this.setState({cfgPipe:'spec'}), cfgShowBook:()=>this.setState({cfgPipe:'book'}), stopProp:(e)=>{ try{ e.stopPropagation(); }catch(_){} },
-      cfgHealthLabel, cfgHealthColor, cfgHealthBg, cfgConnectLabel, cfgPushLabel, cfgExportLabel, cfgImportLabel, cfgAlmLabel, cfgCanForwardProd, cfgTrCbcLabel, cfgTrBcLabel, cfgPipelineStatus, cfgCurrentNote, cfgPipeStep3Sub, cfgPipeStep3Bg, cfgPipeStep3Title, cfgPipeStep4Bg, cfgPipeStep4Title, cfgPipeStep4Sub, cfgPipeStep5Bg, cfgPipeStep5Title, cfgPipeStep5Sub, cfgPipeLine34, cfgPipeLine45,
+      cfgHealthLabel, cfgHealthColor, cfgHealthBg, cfgConnectLabel, cfgPushLabel, cfgExportLabel, cfgImportLabel, cfgAlmLabel, cfgCanForwardProd, cfgTrCbcLabel, cfgTrBcLabel, cfgPipelineStatus, cfgCurrentNote,
+      cfgPipeStep3Sub, cfgPipeStep3Bg, cfgPipeStep3Title, cfgPipeStep3Border, cfgPipeStep3Shadow, cfgPipeStep3Icon, cfgPipeStep3Act,
+      cfgPipeStep4Bg, cfgPipeStep4Title, cfgPipeStep4Sub, cfgPipeStep4SubColor, cfgPipeStep4Border, cfgPipeStep4Shadow, cfgPipeStep4Stroke, cfgPipeStep4Icon, cfgPipeStep4Act,
+      cfgPipeStep5Bg, cfgPipeStep5Title, cfgPipeStep5Sub, cfgPipeStep5SubColor, cfgPipeStep5Border, cfgPipeStep5Shadow, cfgPipeStep5Stroke, cfgPipeStep5Icon, cfgPipeStep5Act,
+      cfgPipeLine23, cfgPipeLine34, cfgPipeLine45,
       remConnect, remRun, remDeploy, remCards, remObjects, remConn, remRunLabel, remDeployLabel, remConnectLabel, remHealthLabel, remHealthColor, remHealthBg, remFilterActive, remFilterLabel, remClearFilter, remPipeStep3Sub, remPipeStep3Bg, remPipeStep4Bg, remPipeStep4Title, remPipeStep4Sub, remPipeStep5Bg, remPipeStep5Title, remPipeStep5Sub, remPipeLine34, remPipeLine45,
       cvPhases, cvReadiness, cvMand, cvKeep, cvConn, cvLand, cvIntf, cvIntfDetailOpen, cvTest, cvTestDetailOpen, cvTabs, cvTabOv, cvTabLand, cvTabConv, cvTabIntg, cvTabTest, cvTabAuto, cvGoLandscape:()=>this.setState({cvTab:'landscape'}), rcBotOpen, rcBotNotDone: !!(rcBotOpen && !rcBotOpen.done), rcBotRunLabel: (rcBotOpen && rcBotOpen.playing) ? 'Analysing…' : 'Run analysis',
       cvConnect:()=>this.cvRecheck(),
