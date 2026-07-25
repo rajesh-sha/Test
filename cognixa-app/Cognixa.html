@@ -2585,17 +2585,18 @@
         <!-- intro + source→target -->
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:20px;flex-wrap:wrap">
           <div style="max-width:660px">
-            <div style="font-size:13px;color:#5A6473;line-height:1.65">Turn <b style="color:#1B2230;font-weight:600">signed</b> Configuration &amp; Enterprise Structure specifications into real S/4HANA settings — generated from the deliverables, validated in a sandbox, and transported under sign-off. Cognixa configures; a consultant approves. Clean-core throughout: settings only, no core modifications.</div>
+            <div style="font-size:13px;color:#5A6473;line-height:1.65">Turn <b style="color:#1B2230;font-weight:600">signed</b> specs into real <b style="color:#1B2230;font-weight:600">S/4HANA Cloud Public Edition</b> settings via <b style="color:#1B2230;font-weight:600">SAP Central Business Configuration (CBC)</b> — deploy to the DEV customizing tenant, export customizing transports, import to TEST, then forward to PROD under Cloud ALM quality approval. Cognixa writes; a consultant approves. Clean-core: SSCUIs &amp; released config only — no core mods.</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:11px;flex-wrap:wrap">
-              <span style="font-size:10.5px;font-weight:600;color:#3A4252;background:#EEF0FF;padding:3px 9px;border-radius:20px;font-family:'IBM Plex Mono',monospace">Target: SAP S/4HANA 2023</span>
-              <a href="https://me.sap.com/processnavigator" target="_blank" style="font-size:11px;color:var(--accent,#4F46E5);text-decoration:none;display:inline-flex;align-items:center;gap:4px">SAP Signavio Process Navigator ↗</a>
+              <span style="font-size:10.5px;font-weight:600;color:#3A4252;background:#EEF0FF;padding:3px 9px;border-radius:20px;font-family:'IBM Plex Mono',monospace">S/4HANA Cloud Public Edition · 3SL</span>
+              <span style="font-size:10.5px;font-weight:600;color:#15803D;background:#E7F6EC;padding:3px 9px;border-radius:20px;font-family:'IBM Plex Mono',monospace">CBC + Export/Import Collection</span>
+              <a href="https://help.sap.com/docs/SAP_CENTRAL_BUSINESS_CONFIGURATION" target="_blank" style="font-size:11px;color:var(--accent,#4F46E5);text-decoration:none;display:inline-flex;align-items:center;gap:4px">CBC Help ↗</a>
               <span style="color:#D8DEE8">·</span>
-              <a href="https://help.sap.com/docs/SAP_S4HANA_CLOUD" target="_blank" style="font-size:11px;color:var(--accent,#4F46E5);text-decoration:none;display:inline-flex;align-items:center;gap:4px">SAP Help — Configuring S/4HANA ↗</a>
+              <a href="https://me.sap.com/processnavigator" target="_blank" style="font-size:11px;color:var(--accent,#4F46E5);text-decoration:none;display:inline-flex;align-items:center;gap:4px">Process Navigator ↗</a>
             </div>
           </div>
           <button onClick="{{ cfgGenerate }}" style="flex:none;display:inline-flex;align-items:center;gap:9px;background:var(--accent,#4F46E5);border:none;color:#fff;font-weight:600;font-size:13.5px;padding:12px 18px;border-radius:11px;cursor:pointer;box-shadow:0 6px 18px -6px rgba(79,70,229,.6)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.9 5.1L19 9l-5.1 1.9L12 16l-1.9-5.1L5 9l5.1-1.9z"/></svg>
-            Generate configuration from signed specs
+            Map specs → CBC activities
           </button>
           </div>
           <div style="display:flex;justify-content:flex-end;width:100%;margin-top:-6px">
@@ -2608,40 +2609,40 @@
         <!-- source → target strip -->
         <div style="display:flex;align-items:stretch;gap:0;background:#fff;border:1px solid #E5E9F0;border-radius:14px;overflow:hidden;margin-bottom:18px">
           <div style="flex:1;padding:15px 18px;border-right:1px solid #EEF1F6">
-            <div style="font-size:10px;letter-spacing:.08em;color:#8A93A3;font-weight:700">SOURCE — SIGNED DELIVERABLES</div>
-            <div style="display:flex;align-items:center;gap:8px;margin-top:7px"><span style="width:8px;height:8px;border-radius:50%;background:#16A34A"></span><span style="font-size:13.5px;font-weight:600;color:#131826">Configuration Spec · Enterprise Structure Design</span></div>
-            <div style="font-size:11.5px;color:#5A6473;margin-top:3px;font-family:'IBM Plex Mono',monospace">FIN-CFG-001 v3.2 · ORG-STR-001 v2.1 — both signed</div>
+            <div style="font-size:10px;letter-spacing:.08em;color:#8A93A3;font-weight:700">SOURCE — SIGNED SCOPE &amp; BDCQ</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:7px"><span style="width:8px;height:8px;border-radius:50%;background:#16A34A"></span><span style="font-size:13.5px;font-weight:600;color:#131826">Fit-to-Standard · signed config specs</span></div>
+            <div style="font-size:11.5px;color:#5A6473;margin-top:3px;font-family:'IBM Plex Mono',monospace">FIN-CFG-001 v3.2 · ORG-STR-001 v2.1 · AU scope</div>
           </div>
           <div style="display:flex;align-items:center;padding:0 14px;background:#FAFBFD"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9AA4B2" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
           <div style="flex:1;padding:15px 18px;border-right:1px solid #EEF1F6">
-            <div style="font-size:10px;letter-spacing:.08em;color:#8A93A3;font-weight:700">METHOD — HOW IT'S APPLIED</div>
-            <div style="display:flex;align-items:center;gap:8px;margin-top:7px"><span style="width:8px;height:8px;border-radius:50%;background:var(--accent,#4F46E5)"></span><span style="font-size:13.5px;font-weight:600;color:#131826">Central Business Configuration + Config APIs</span></div>
-            <div style="font-size:11.5px;color:#5A6473;margin-top:3px">SSCUIs &amp; CBC activities · per-object config APIs · BC Sets / eCATT</div>
+            <div style="font-size:10px;letter-spacing:.08em;color:#8A93A3;font-weight:700">METHOD — PUBLIC CLOUD</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:7px"><span style="width:8px;height:8px;border-radius:50%;background:var(--accent,#4F46E5)"></span><span style="font-size:13.5px;font-weight:600;color:#131826">CBC activities · SSCUIs · BC transports</span></div>
+            <div style="font-size:11.5px;color:#5A6473;margin-top:3px">Export Customizing Transports · Import Collection · Cloud ALM</div>
           </div>
           <div style="display:flex;align-items:center;padding:0 14px;background:#FAFBFD"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9AA4B2" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
           <div style="flex:1;padding:15px 18px">
-            <div style="font-size:10px;letter-spacing:.08em;color:#8A93A3;font-weight:700">TARGET — RISE S/4HANA CLOUD</div>
-            <div style="display:flex;align-items:center;gap:8px;margin-top:7px"><span style="width:8px;height:8px;border-radius:50%;background:#F59E0B"></span><span style="font-size:13.5px;font-weight:600;color:#131826">Sandbox &amp; Dev client first</span></div>
-            <div style="font-size:11.5px;color:#5A6473;margin-top:3px;font-family:'IBM Plex Mono',monospace">DEV·100 → QA·200 → PRD·300 (under sign-off)</div>
+            <div style="font-size:10px;letter-spacing:.08em;color:#8A93A3;font-weight:700">TARGET — 3-SYSTEM LANDSCAPE</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:7px"><span style="width:8px;height:8px;border-radius:50%;background:#F59E0B"></span><span style="font-size:13.5px;font-weight:600;color:#131826">DEV customizing → TEST → PROD</span></div>
+            <div style="font-size:11.5px;color:#5A6473;margin-top:3px;font-family:'IBM Plex Mono',monospace">CBC→DEV only · current settings per system</div>
           </div>
         </div>
 
         <!-- deploy pipeline ribbon -->
         <div style="background:#0E1525;border-radius:14px;padding:18px 20px;margin-bottom:22px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-            <div style="font-size:12.5px;font-weight:700;color:#E7ECF5;letter-spacing:.02em">DEPLOYMENT PIPELINE — sandbox-first, sign-off gated</div>
-            <span style="font-size:10.5px;color:#8A93A3;font-family:'IBM Plex Mono',monospace">clean-core · every push hashed &amp; logged</span>
+            <div style="font-size:12.5px;font-weight:700;color:#E7ECF5;letter-spacing:.02em">PUBLIC CLOUD PIPELINE — CBC → DEV → TEST → PROD</div>
+            <span style="font-size:10.5px;color:#8A93A3;font-family:'IBM Plex Mono',monospace">3SL · Export/Import Collection · Cloud ALM gate</span>
           </div>
           <div style="display:flex;align-items:center;gap:0">
-            <div onClick="{{ cfgShowSpec }}" style="flex:1;text-align:center;cursor:pointer" style-hover="opacity:.82"><div style="width:30px;height:30px;border-radius:8px;background:#16A34A;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg></div><div style="font-size:11.5px;color:#fff;font-weight:600">1 · Signed spec</div><div style="font-size:10px;color:#9DA8FF;margin-top:2px;text-decoration:underline">view document</div></div>
+            <div onClick="{{ cfgShowSpec }}" style="flex:1;text-align:center;cursor:pointer" style-hover="opacity:.82"><div style="width:30px;height:30px;border-radius:8px;background:#16A34A;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg></div><div style="font-size:11.5px;color:#fff;font-weight:600">1 · Signed scope</div><div style="font-size:10px;color:#9DA8FF;margin-top:2px;text-decoration:underline">view document</div></div>
             <div style="flex:none;width:46px;height:2px;background:linear-gradient(90deg,#16A34A,#16A34A)"></div>
-            <div onClick="{{ cfgShowBook }}" style="flex:1;text-align:center;cursor:pointer" style-hover="opacity:.82"><div style="width:30px;height:30px;border-radius:8px;background:#16A34A;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg></div><div style="font-size:11.5px;color:#fff;font-weight:600">2 · Config Workbook</div><div style="font-size:10px;color:#9DA8FF;margin-top:2px;text-decoration:underline">1,284 values</div></div>
+            <div onClick="{{ cfgShowBook }}" style="flex:1;text-align:center;cursor:pointer" style-hover="opacity:.82"><div style="width:30px;height:30px;border-radius:8px;background:#16A34A;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg></div><div style="font-size:11.5px;color:#fff;font-weight:600">2 · CBC activities</div><div style="font-size:10px;color:#9DA8FF;margin-top:2px;text-decoration:underline">1,284 values</div></div>
             <div style="flex:none;width:46px;height:2px;background:linear-gradient(90deg,#16A34A,#6366F1)"></div>
-            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep3Bg }};display:flex;align-items:center;justify-content:center;margin:0 auto 7px;box-shadow:0 0 0 4px rgba(99,102,241,.22)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="3"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep3Title }};font-weight:600">3 · Validate in sandbox</div><div style="font-size:10px;color:#9DA8FF;margin-top:2px">{{ cfgPipeStep3Sub }}</div></div>
+            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep3Bg }};display:flex;align-items:center;justify-content:center;margin:0 auto 7px;box-shadow:0 0 0 4px rgba(99,102,241,.22)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="3"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep3Title }};font-weight:600">3 · DEV customizing</div><div style="font-size:10px;color:#9DA8FF;margin-top:2px">{{ cfgPipeStep3Sub }}</div></div>
             <div style="flex:none;width:46px;height:2px;background:{{ cfgPipeLine34 }}"></div>
-            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep4Bg }};border:1.5px solid #3A4358;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7E89A8" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep4Title }};font-weight:600">4 · Human gate</div><div style="font-size:10px;color:#7E89A8;margin-top:2px">{{ cfgPipeStep4Sub }}</div></div>
+            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep4Bg }};border:1.5px solid #3A4358;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7E89A8" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep4Title }};font-weight:600">4 · Export + ALM gate</div><div style="font-size:10px;color:#7E89A8;margin-top:2px">{{ cfgPipeStep4Sub }}</div></div>
             <div style="flex:none;width:46px;height:2px;background:{{ cfgPipeLine45 }}"></div>
-            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep5Bg }};border:1.5px solid #3A4358;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7E89A8" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep5Title }};font-weight:600">5 · Transport to QA → Prod</div><div style="font-size:10px;color:#7E89A8;margin-top:2px">{{ cfgPipeStep5Sub }}</div></div>
+            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep5Bg }};border:1.5px solid #3A4358;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7E89A8" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep5Title }};font-weight:600">5 · Import TEST → PROD</div><div style="font-size:10px;color:#7E89A8;margin-top:2px">{{ cfgPipeStep5Sub }}</div></div>
           </div>
         </div>
 
@@ -2702,12 +2703,30 @@
             <div style="background:#FBFBFE;border:1px solid #E7E9F5;border-radius:14px;padding:16px">
               <div style="font-size:13px;font-weight:700;color:#131826;margin-bottom:10px">Guardrails</div>
               <div style="display:flex;flex-direction:column;gap:10px">
-                <div style="display:flex;gap:9px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.2" style="flex:none;margin-top:1px"><path d="M20 6L9 17l-5-5"/></svg><div style="font-size:11.5px;color:#3A4252;line-height:1.5"><b style="color:#1B2230">Sandbox first.</b> Every value is applied to a sandbox client and validated before it can move.</div></div>
-                <div style="display:flex;gap:9px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.2" style="flex:none;margin-top:1px"><path d="M20 6L9 17l-5-5"/></svg><div style="font-size:11.5px;color:#3A4252;line-height:1.5"><b style="color:#1B2230">No direct-to-Prod.</b> Production only ever receives a signed-off transport, never a live write.</div></div>
-                <div style="display:flex;gap:9px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.2" style="flex:none;margin-top:1px"><path d="M20 6L9 17l-5-5"/></svg><div style="font-size:11.5px;color:#3A4252;line-height:1.5"><b style="color:#1B2230">Judgement stays human.</b> Anything ambiguous is held at the gate for a consultant — not auto-applied.</div></div>
-                <div style="display:flex;gap:9px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.2" style="flex:none;margin-top:1px"><path d="M20 6L9 17l-5-5"/></svg><div style="font-size:11.5px;color:#3A4252;line-height:1.5"><b style="color:#1B2230">Full audit trail.</b> Each push carries the spec clause, value, method and a content hash — reversible and traceable.</div></div>
+                <div style="display:flex;gap:9px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.2" style="flex:none;margin-top:1px"><path d="M20 6L9 17l-5-5"/></svg><div style="font-size:11.5px;color:#3A4252;line-height:1.5"><b style="color:#1B2230">CBC → DEV only.</b> CBC deploys into the DEV customizing tenant — never straight into TEST/PROD.</div></div>
+                <div style="display:flex;gap:9px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.2" style="flex:none;margin-top:1px"><path d="M20 6L9 17l-5-5"/></svg><div style="font-size:11.5px;color:#3A4252;line-height:1.5"><b style="color:#1B2230">Export then Import Collection.</b> Release in DEV, import to TEST, forward to PROD in creation sequence.</div></div>
+                <div style="display:flex;gap:9px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.2" style="flex:none;margin-top:1px"><path d="M20 6L9 17l-5-5"/></svg><div style="font-size:11.5px;color:#3A4252;line-height:1.5"><b style="color:#1B2230">Cloud ALM quality gate.</b> Features group CBC/BC transports; PROD forward needs approval.</div></div>
+                <div style="display:flex;gap:9px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.2" style="flex:none;margin-top:1px"><path d="M20 6L9 17l-5-5"/></svg><div style="font-size:11.5px;color:#3A4252;line-height:1.5"><b style="color:#1B2230">Current settings stay local.</b> System-specific activities are maintained in Implementation Activities per tenant.</div></div>
               </div>
               <button onClick="{{ cfgPush }}" style="width:100%;margin-top:14px;font-size:12.5px;font-weight:600;color:#fff;background:#0E1525;border:none;border-radius:9px;padding:10px;cursor:pointer">{{ cfgPushLabel }}</button>
+              <button onClick="{{ cfgExport }}" style="width:100%;margin-top:8px;font-size:12px;font-weight:600;color:#3A4252;background:#fff;border:1px solid #D8DEE8;border-radius:9px;padding:9px;cursor:pointer" style-hover="background:var(--surface,#F4F6F9)">{{ cfgExportLabel }}</button>
+              <button onClick="{{ cfgImportTest }}" style="width:100%;margin-top:8px;font-size:12px;font-weight:600;color:#3A4252;background:#fff;border:1px solid #D8DEE8;border-radius:9px;padding:9px;cursor:pointer" style-hover="background:var(--surface,#F4F6F9)">{{ cfgImportLabel }}</button>
+              <button onClick="{{ cfgAlmApprove }}" style="width:100%;margin-top:8px;font-size:12px;font-weight:600;color:#fff;background:var(--accent,#4F46E5);border:none;border-radius:9px;padding:9px;cursor:pointer">{{ cfgAlmLabel }}</button>
+              <sc-if value="{{ cfgCanForwardProd }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ cfgForwardProd }}" style="width:100%;margin-top:8px;font-size:12px;font-weight:600;color:#fff;background:#16A34A;border:none;border-radius:9px;padding:9px;cursor:pointer">Forward Import Collection → PROD</button>
+              </sc-if>
+            </div>
+            <div style="background:#FFF8EB;border:1px solid #F0E2CC;border-radius:14px;padding:14px 16px">
+              <div style="font-size:12.5px;font-weight:700;color:#7A4B12;margin-bottom:6px">Current settings (not transported)</div>
+              <div style="font-size:11.5px;color:#7A4B12;line-height:1.5">{{ cfgCurrentNote }}</div>
+            </div>
+            <div style="background:#fff;border:1px solid #E5E9F0;border-radius:14px;padding:14px 16px">
+              <div style="font-size:12.5px;font-weight:700;color:#131826;margin-bottom:8px">Active transports</div>
+              <div style="display:flex;flex-direction:column;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11px">
+                <div style="display:flex;justify-content:space-between"><span style="color:#8A93A3">CBC request</span><span style="color:#1B2230">{{ cfgTrCbcLabel }}</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:#8A93A3">BC request</span><span style="color:#1B2230">{{ cfgTrBcLabel }}</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:#8A93A3">Pipeline</span><span style="color:var(--accent,#4F46E5)">{{ cfgPipelineStatus }}</span></div>
+              </div>
             </div>
           </div>
         </div>
@@ -4901,7 +4920,7 @@
 <dc-import name="FeedbackToast" accent="#6366F1" soft="rgba(99,102,241,.12)" hint-size="0,0"></dc-import></x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1380,&quot;height&quot;:860},&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Iris&quot;,&quot;Teal&quot;,&quot;Violet&quot;,&quot;Royal&quot;],&quot;default&quot;:&quot;Iris&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;shell&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Ink&quot;,&quot;Slate&quot;,&quot;Graphite&quot;],&quot;default&quot;:&quot;Ink&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;surface&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Cool&quot;,&quot;Warm&quot;,&quot;Bright&quot;],&quot;default&quot;:&quot;Cool&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
 class Component extends DCLogic {
-  state = { screen: 'dashboard', ctLens: 'process', sel: 'O2C-021', ws: 'integration', specDoc: 'fs', fa: 'Finance (R2R)', settingsOpen: false, role: 'Administrator', roleMenuOpen: false, openGroups: { design: true }, navCollapsed: { 'hcm:DESIGN':true, 'hcm:BUILD':true, 'hcm:INTEGRATE':true, 'hcm:ASSURE':true, 'hcm:VALUE':true, 'roster:DESIGN':true, 'roster:INTEGRATE':true, 'roster:ASSURE':true, 'roster:VALUE':true }, solution: 's4', solnOpen: false, copilotOpen: false, notifOpen: false, authed: !!(this.props && this.props.boot === 'dashboard'), loginRole: 'Consultant', loginProduct: 'Cognixa', capRouted: {}, emailModal: null, riskOpen: (function(){ try{ return localStorage.getItem('dl_cgx_risk_closed')!=='1'; }catch(e){ return true; } })() , notifAllRead: false, aiKey: (function(){ try{ return localStorage.getItem('dl_cgx_ai_key')||sessionStorage.getItem('dl_cgx_ai_key')||''; }catch(e){ return ''; } })(), aiRemember: !!(function(){ try{ return !!localStorage.getItem('dl_cgx_ai_key'); }catch(e){ return false; } })(), aiConnected: !!(function(){ try{ return !!(localStorage.getItem('dl_cgx_ai_key')||sessionStorage.getItem('dl_cgx_ai_key')); }catch(e){ return false; } })(), deploy: (function(){ try{ const raw=localStorage.getItem('dl_cgx_deploy'); const base={ cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; if(!raw) return base; return Object.assign(base, JSON.parse(raw)); }catch(e){ return { cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; } })() };
+  state = { screen: 'dashboard', ctLens: 'process', sel: 'O2C-021', ws: 'integration', specDoc: 'fs', fa: 'Finance (R2R)', settingsOpen: false, role: 'Administrator', roleMenuOpen: false, openGroups: { design: true }, navCollapsed: { 'hcm:DESIGN':true, 'hcm:BUILD':true, 'hcm:INTEGRATE':true, 'hcm:ASSURE':true, 'hcm:VALUE':true, 'roster:DESIGN':true, 'roster:INTEGRATE':true, 'roster:ASSURE':true, 'roster:VALUE':true }, solution: 's4', solnOpen: false, copilotOpen: false, notifOpen: false, authed: !!(this.props && this.props.boot === 'dashboard'), loginRole: 'Consultant', loginProduct: 'Cognixa', capRouted: {}, emailModal: null, riskOpen: (function(){ try{ return localStorage.getItem('dl_cgx_risk_closed')!=='1'; }catch(e){ return true; } })() , notifAllRead: false, aiKey: (function(){ try{ return localStorage.getItem('dl_cgx_ai_key')||sessionStorage.getItem('dl_cgx_ai_key')||''; }catch(e){ return ''; } })(), aiRemember: !!(function(){ try{ return !!localStorage.getItem('dl_cgx_ai_key'); }catch(e){ return false; } })(), aiConnected: !!(function(){ try{ return !!(localStorage.getItem('dl_cgx_ai_key')||sessionStorage.getItem('dl_cgx_ai_key')); }catch(e){ return false; } })(), deploy: (function(){ try{ const raw=localStorage.getItem('dl_cgx_deploy'); const base={ cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, cfgTrCbc:null, cfgTrBc:null, cfgExported:false, cfgImportedTest:false, cfgAlmApproved:false, cfgCurrentPending:3, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; if(!raw) return base; return Object.assign(base, JSON.parse(raw)); }catch(e){ return { cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, cfgTrCbc:null, cfgTrBc:null, cfgExported:false, cfgImportedTest:false, cfgAlmApproved:false, cfgCurrentPending:3, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; } })() };
   closeRisk(){ try{ localStorage.setItem('dl_cgx_risk_closed','1'); }catch(e){} this.setState({ riskOpen:false }); }
   openRisk(){ try{ localStorage.removeItem('dl_cgx_risk_closed'); }catch(e){} this.setState({ riskOpen:true }); }
 
@@ -5258,14 +5277,18 @@ class Component extends DCLogic {
   }
   closeRcBot(){ if(this._rcT){ clearInterval(this._rcT); this._rcT=null; } this.setState({ rcBot:null }); }
   /* —— Configure / Remediate / Convert: live demo engines —— */
-  _deployDefaults(){ return { cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; }
+  _deployDefaults(){ return { cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, cfgTrCbc:null, cfgTrBc:null, cfgExported:false, cfgImportedTest:false, cfgAlmApproved:false, cfgCurrentPending:3, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; }
   _loadDeploy(){ try{ const raw=localStorage.getItem('dl_cgx_deploy'); if(!raw) return this._deployDefaults(); return Object.assign(this._deployDefaults(), JSON.parse(raw)); }catch(e){ return this._deployDefaults(); } }
   _saveDeploy(patch){ const d=Object.assign({}, this.state.deploy||this._deployDefaults(), patch||{}); try{ localStorage.setItem('dl_cgx_deploy', JSON.stringify(d)); }catch(e){} return d; }
   _setDeploy(patch, extra){ const d=this._saveDeploy(patch); this.setState(Object.assign({ deploy:d }, extra||{})); }
-  cfgRunConnect(){ const d=this.state.deploy||this._deployDefaults(); if(d.cfgChecking) return; this._setDeploy({ cfgChecking:true, cfgConnOk:false }); this.showToast('Running connection check — RISE S/4HANA Cloud Dev 100…'); clearTimeout(this._cfgConnT); this._cfgConnT=setTimeout(()=>{ this._setDeploy({ cfgChecking:false, cfgConnOk:true }); this.showToast('All five connections healthy — Comm Arrangement, OAuth, Cloud Connector, CBC, Cloud ALM','the connection check'); }, 1400); }
-  cfgStagePush(){ const d=this.state.deploy||this._deployDefaults(); if(d.cfgChecking) return; this.showToast('Staging straight-through items to sandbox via CBC + Config APIs…'); clearTimeout(this._cfgPushT); this._cfgPushT=setTimeout(()=>{ const n=(d.cfgStaged||0)+186; this._setDeploy({ cfgStaged:n, cfgStage:Math.max(d.cfgStage||0,3), cfgOrgDone:true }); this.showToast(n+' straight-through values staged to DEV·100 — judgement items held at the human gate','staging to sandbox'); }, 1500); }
-  cfgGenerateRun(){ this.setState({ cfgDoc:'finance', cfgPipe:'book' }); this._setDeploy({ cfgStage:Math.max((this.state.deploy||{}).cfgStage||0,2) }); this.showToast('Generated Configuration Workbook from signed specs — 1,284 values ready for sandbox validation','generating configuration'); }
-  cfgApplyWl(key, ready, name){ if(!ready){ this.showToast('No ready items — clear prerequisites or decide held items first'); return; } const d=this.state.deploy||this._deployDefaults(); const applied=Object.assign({}, d.cfgApplied||{}); applied[key]=(applied[key]||0)+ready; this._setDeploy({ cfgApplied:applied, cfgStage:Math.max(d.cfgStage||0,3), cfgStaged:(d.cfgStaged||0)+ready, cfgOrgDone:true }, { cfgWl:null }); this.showToast((name||key)+': applied '+ready+' ready item(s) to sandbox — hashed & logged','applying config worklist'); }
+  cfgRunConnect(){ const d=this.state.deploy||this._deployDefaults(); if(d.cfgChecking) return; this._setDeploy({ cfgChecking:true, cfgConnOk:false }); this.showToast('Checking S/4HANA Cloud Public Edition links — CBC workspace · DEV customizing · Cloud ALM · transport apps…'); clearTimeout(this._cfgConnT); this._cfgConnT=setTimeout(()=>{ this._setDeploy({ cfgChecking:false, cfgConnOk:true }); this.showToast('Healthy — CBC workspace, DEV customizing 100, Cloud ALM, Export Customizing Transports, Import Collection','the connection check'); }, 1400); }
+  cfgStagePush(){ const d=this.state.deploy||this._deployDefaults(); if(d.cfgChecking) return; if(!d.cfgConnOk && d.cfgConnOk!==undefined){ this.showToast('Run connection check first — CBC must reach the DEV customizing tenant'); return; } this.showToast('Deploying transportable config via CBC → DEV customizing tenant (100). Current settings are held — not on this transport.'); clearTimeout(this._cfgPushT); this._cfgPushT=setTimeout(()=>{ const n=(d.cfgStaged||0)+186; const cbc=d.cfgTrCbc||('CBC'+String(900000+((n*7)%90000))); const bc=d.cfgTrBc||('BC'+String(910000+((n*11)%80000))); this._setDeploy({ cfgStaged:n, cfgStage:Math.max(d.cfgStage||0,2), cfgOrgDone:true, cfgTrCbc:cbc, cfgTrBc:bc, cfgExported:false }); this.showToast(n+' values on '+cbc+' / '+bc+' in DEV customizing — next: Export Customizing Transports','deploying to DEV customizing'); }, 1500); }
+  cfgGenerateRun(){ this.setState({ cfgDoc:'finance', cfgPipe:'book' }); this._setDeploy({ cfgStage:Math.max((this.state.deploy||{}).cfgStage||0,1) }); this.showToast('Mapped signed specs → CBC configuration activities (BDCQ/SSCUI IDs) — 1,284 values ready to deploy to DEV customizing','generating configuration'); }
+  cfgApplyWl(key, ready, name){ if(!ready){ this.showToast('No ready/transportable items — clear prerequisites, decide held items, or maintain current settings in each system'); return; } const d=this.state.deploy||this._deployDefaults(); const applied=Object.assign({}, d.cfgApplied||{}); applied[key]=(applied[key]||0)+ready; const n=(d.cfgStaged||0)+ready; const cbc=d.cfgTrCbc||('CBC'+String(900000+((n*7)%90000))); const bc=d.cfgTrBc||('BC'+String(910000+((n*11)%80000))); this._setDeploy({ cfgApplied:applied, cfgStage:Math.max(d.cfgStage||0,2), cfgStaged:n, cfgOrgDone:true, cfgTrCbc:cbc, cfgTrBc:bc, cfgExported:false }, { cfgWl:null }); this.showToast((name||key)+': '+ready+' transportable activit'+(ready===1?'y':'ies')+' written to DEV customizing on '+bc,'applying config worklist'); }
+  cfgExportTransports(){ const d=this.state.deploy||this._deployDefaults(); if(!(d.cfgStaged|0) && !d.cfgOrgDone){ this.showToast('Deploy to DEV customizing first — nothing to export yet'); return; } if(d.cfgExported){ this.showToast('Already exported — open Cloud ALM feature or Import Collection on TEST'); return; } this.showToast('Releasing CBC + BC transports in Export Customizing Transports (DEV)…'); clearTimeout(this._cfgExpT); this._cfgExpT=setTimeout(()=>{ const cbc=d.cfgTrCbc||'CBC900421'; const bc=d.cfgTrBc||'BC910118'; this._setDeploy({ cfgExported:true, cfgStage:Math.max(d.cfgStage||0,3), cfgTrCbc:cbc, cfgTrBc:bc }); this.showToast('Exported '+cbc+' + '+bc+' — sequence locked. Import Collection on TEST next (Cloud ALM quality gate).','exporting customizing transports'); }, 1300); }
+  cfgImportTest(){ const d=this.state.deploy||this._deployDefaults(); if(!d.cfgExported){ this.showToast('Export Customizing Transports from DEV first — Import Collection needs a released collection'); return; } if(d.cfgImportedTest){ this.showToast('Already in TEST — record Cloud ALM quality approval to unlock PROD forward'); return; } this.showToast('Import Collection → TEST tenant 100 — validating CBC then BC sequence…'); clearTimeout(this._cfgImpT); this._cfgImpT=setTimeout(()=>{ this._setDeploy({ cfgImportedTest:true, cfgStage:Math.max(d.cfgStage||0,4) }); this.showToast('Imported to TEST — run regression, then Cloud ALM quality approval before PROD','importing to TEST'); }, 1400); }
+  cfgAlmApprove(){ const d=this.state.deploy||this._deployDefaults(); if(!d.cfgImportedTest){ this.showToast('Import to TEST and finish regression before Cloud ALM quality approval'); return; } if(d.cfgAlmApproved){ this.showToast('Cloud ALM feature already quality-approved — ready to forward Import Collection to PROD'); return; } this._setDeploy({ cfgAlmApproved:true, cfgStage:Math.max(d.cfgStage||0,5) }); this.showToast('Cloud ALM quality approval recorded — transports may forward to PROD. Maintain current settings in Implementation Activities per system.','Cloud ALM approval'); }
+  cfgForwardProd(){ const d=this.state.deploy||this._deployDefaults(); if(!d.cfgAlmApproved){ this.showToast('Cloud ALM quality approval required before forwarding to PROD'); return; } this._setDeploy({ cfgStage:6 }); this.showToast('Forwarded collection to PROD via Import Collection. Reminder: '+((d.cfgCurrentPending|0)||3)+' current settings must be maintained directly in TEST/PROD (not transported).','forwarding to PROD'); }
   remRescan(){ const d=this.state.deploy||this._deployDefaults(); if(d.remChecking) return; this._setDeploy({ remChecking:true }); this.showToast('Re-scanning ECC — read-only RFC + remote ATC + UPL/SCMON…'); clearTimeout(this._remScanT); this._remScanT=setTimeout(()=>{ this._setDeploy({ remChecking:false, remScanned:true, remStage:Math.max(d.remStage||0,2) }); this.showToast('Rescan complete — 4,820 custom objects · ATC findings refreshed · 13-month usage window','re-scanning ECC'); }, 1500); }
   remRunEngine(){ const d=this.state.deploy||this._deployDefaults(); if(d.remRunning) return; this._setDeploy({ remRunning:true, remProgress:0, remStage:3, remFilter:null }); this.showToast('Remediation engine running — classify → design-check → disposition → ATC re-run…'); if(this._remRunT) clearInterval(this._remRunT); this._remRunT=setInterval(()=>{ const cur=(this.state.deploy||{}).remProgress||0; const n=Math.min(100, cur+14); if(n>=100){ clearInterval(this._remRunT); this._remRunT=null; this._setDeploy({ remRunning:false, remProgress:100, remStage:4 }); this.showToast('Remediation complete — 1,180 auto-fixed · 420 → BTP · 232 developer · 2,988 retired','running remediation'); } else { this._setDeploy({ remProgress:n, remRunning:true, remStage:3 }); } }, 260); }
   remPackage(){ const d=this.state.deploy||this._deployDefaults(); if((d.remProgress||0)<100 && (d.remStage||0)<4){ this.showToast('Run the remediation engine to green first — only ATC-green objects can be packaged'); return; } const n=(d.remPackaged||0)||1180; this._setDeploy({ remPackaged:n, remStage:5 }); this.showToast(n+' green objects packaged into transport CGXK9A001 — TMS/gCTS DEV → QA → PRD under sign-off','packaging transports'); }
@@ -7726,29 +7749,37 @@ class Component extends DCLogic {
     const _cfgOk = deploy.cfgConnOk !== false && !_cfgChk;
     const _cfgDot = _cfgChk ? '#F59E0B' : (_cfgOk ? '#16A34A' : '#EF4444');
     const cfgConn = [
-      { name:'RISE S/4HANA Cloud — Dev 100', detail:_cfgChk?'probing Communication Arrangement…':(_cfgOk?'Communication Arrangement SAP_COM_0X · active':'unreachable — retry check'), dot:_cfgDot },
-      { name:'OAuth 2.0 communication user', detail:_cfgChk?'validating token…':(_cfgOk?'CGX_CFG_BOT · token healthy':'token expired'), dot:_cfgDot },
-      { name:'SAP Cloud Connector', detail:_cfgChk?'pinging tunnel…':(_cfgOk?'tunnel up · 14ms':'tunnel down'), dot:_cfgDot },
-      { name:'Central Business Configuration', detail:_cfgChk?'syncing scope…':(_cfgOk?'tenant reachable · scope synced':'CBC unreachable'), dot:_cfgDot },
-      { name:'SAP Cloud ALM', detail:_cfgChk?'checking sync…':(_cfgOk?'config sync on · just now':'ALM sync off'), dot:_cfgDot }
+      { name:'CBC workspace', detail:_cfgChk?'opening project experience…':(_cfgOk?'scope AU · org structure deployed':'CBC unreachable'), dot:_cfgDot },
+      { name:'DEV customizing tenant 100', detail:_cfgChk?'pinging customizing…':(_cfgOk?'CBC target linked · ready':'customizing offline'), dot:_cfgDot },
+      { name:'Export Customizing Transports', detail:_cfgChk?'checking app…':(_cfgOk?(deploy.cfgExported?'released · awaiting import':'ready to release'):'app unavailable'), dot: deploy.cfgExported ? '#16A34A' : _cfgDot },
+      { name:'Import Collection (TEST/PROD)', detail:_cfgChk?'checking app…':(_cfgOk?(deploy.cfgImportedTest?'TEST imported':'waiting for export'):'app unavailable'), dot: deploy.cfgImportedTest ? '#16A34A' : _cfgDot },
+      { name:'SAP Cloud ALM · Features', detail:_cfgChk?'syncing features…':(_cfgOk?(deploy.cfgAlmApproved?'quality approved':'feature open · awaiting QA'):'ALM offline'), dot: deploy.cfgAlmApproved ? '#16A34A' : _cfgDot }
     ];
-    const cfgHealthLabel = _cfgChk ? 'Checking…' : (_cfgOk ? 'Healthy' : 'Degraded');
+    const cfgHealthLabel = _cfgChk ? 'Checking…' : (_cfgOk ? 'Public Cloud OK' : 'Degraded');
     const cfgHealthColor = _cfgChk ? '#B45309' : (_cfgOk ? '#15803D' : '#B91C1C');
     const cfgHealthBg = _cfgChk ? '#FBF1DD' : (_cfgOk ? '#E7F6EC' : '#FEE2E2');
-    const cfgConnectLabel = _cfgChk ? 'Checking connections…' : 'Run connection check';
-    const cfgPushLabel = (deploy.cfgStaged|0) > 0 ? ('Staged '+deploy.cfgStaged+' · stage more') : 'Stage straight-through to sandbox';
+    const cfgConnectLabel = _cfgChk ? 'Checking Public Cloud links…' : 'Run Public Cloud connection check';
+    const cfgPushLabel = (deploy.cfgStaged|0) > 0 ? ('DEV customizing · '+(deploy.cfgStaged)+' values · deploy more') : 'Deploy to DEV customizing (CBC)';
+    const cfgExportLabel = deploy.cfgExported ? ('Exported '+(deploy.cfgTrCbc||'CBC')+' / '+(deploy.cfgTrBc||'BC')) : 'Export Customizing Transports';
+    const cfgImportLabel = deploy.cfgImportedTest ? 'Imported to TEST · ready for ALM' : 'Import Collection → TEST';
+    const cfgAlmLabel = deploy.cfgAlmApproved ? 'Cloud ALM quality approved' : 'Record Cloud ALM quality approval';
+    const cfgCanForwardProd = !!(deploy.cfgAlmApproved && (deploy.cfgStage|0) < 6);
+    const cfgTrCbcLabel = deploy.cfgTrCbc || '— not created';
+    const cfgTrBcLabel = deploy.cfgTrBc || '— not created';
+    const cfgPipelineStatus = (deploy.cfgStage|0)>=6 ? 'PROD forwarded' : (deploy.cfgAlmApproved ? 'ALM approved' : (deploy.cfgImportedTest ? 'In TEST' : (deploy.cfgExported ? 'Exported' : ((deploy.cfgStaged|0)?'In DEV customizing':'Awaiting deploy'))));
+    const cfgCurrentNote = ((deploy.cfgCurrentPending|0)||3)+' current-setting activities stay out of transports — maintain them in Implementation Activities on TEST and PROD after import (e.g. number ranges, user defaults).';
     const cfgStage = deploy.cfgStage|0;
-    const cfgPipeStep3Sub = cfgStage>=3?'validated':((deploy.cfgStaged|0)?'staging…':'in progress');
-    const cfgPipeStep3Bg = cfgStage>=3?'#16A34A':'var(--accent-bright,#6366F1)';
+    const cfgPipeStep3Sub = (deploy.cfgStaged|0) ? ((deploy.cfgTrBc||'BC')+' · DEV') : 'awaiting deploy';
+    const cfgPipeStep3Bg = (deploy.cfgStaged|0) || cfgStage>=2 ? '#16A34A' : 'var(--accent-bright,#6366F1)';
     const cfgPipeStep3Title = '#fff';
-    const cfgPipeStep4Bg = cfgStage>=4?'#16A34A':'#1C2435';
-    const cfgPipeStep4Title = cfgStage>=4?'#fff':'#AEB7C7';
-    const cfgPipeStep4Sub = cfgStage>=4?'signed':'consultant signs';
-    const cfgPipeStep5Bg = cfgStage>=5?'#16A34A':'#1C2435';
-    const cfgPipeStep5Title = cfgStage>=5?'#fff':'#AEB7C7';
-    const cfgPipeStep5Sub = cfgStage>=5?'in flight':'on approval';
-    const cfgPipeLine34 = cfgStage>=3?'#16A34A':'linear-gradient(90deg,#6366F1,#3A4358)';
-    const cfgPipeLine45 = cfgStage>=4?'#16A34A':'#3A4358';
+    const cfgPipeStep4Bg = deploy.cfgExported || cfgStage>=3 ? '#16A34A' : ((deploy.cfgStaged|0)?'var(--accent-bright,#6366F1)':'#1C2435');
+    const cfgPipeStep4Title = (deploy.cfgExported || (deploy.cfgStaged|0)) ? '#fff' : '#AEB7C7';
+    const cfgPipeStep4Sub = deploy.cfgAlmApproved ? 'ALM approved' : (deploy.cfgExported ? 'exported · ALM' : 'export + approve');
+    const cfgPipeStep5Bg = (deploy.cfgStage|0)>=6 ? '#16A34A' : (deploy.cfgImportedTest ? 'var(--accent-bright,#6366F1)' : '#1C2435');
+    const cfgPipeStep5Title = (deploy.cfgImportedTest || (deploy.cfgStage|0)>=5) ? '#fff' : '#AEB7C7';
+    const cfgPipeStep5Sub = (deploy.cfgStage|0)>=6 ? 'in PROD' : (deploy.cfgImportedTest ? 'in TEST' : 'import gated');
+    const cfgPipeLine34 = (deploy.cfgStaged|0) || cfgStage>=2 ? '#16A34A' : 'linear-gradient(90deg,#6366F1,#3A4358)';
+    const cfgPipeLine45 = deploy.cfgExported || cfgStage>=3 ? '#16A34A' : '#3A4358';
 
     // ---- per-module configuration worklist with prerequisite gating ----
     // Enterprise-structure foundations every module's config depends on. status: done | pending | held
@@ -7772,7 +7803,8 @@ class Component extends DCLogic {
         {n:'Ledger & currency settings', s:'FIN-CFG·SSCUI 102', dep:['ca','fyv'], method:'CBC activity', dec:false},
         {n:'Cost centre standard hierarchy', s:'CO-CFG·SSCUI 110', dep:['ca','cch'], method:'Config API', dec:false},
         {n:'Profit centre accounting', s:'CO-CFG·SSCUI 111', dep:['pch'], method:'CBC activity', dec:false},
-        {n:'House bank & bank account mgmt', s:'FIN-CFG·SSCUI 120', dep:['cc'], method:'CBC activity', dec:true} ] },
+        {n:'House bank & bank account mgmt', s:'FIN-CFG·SSCUI 120', dep:['cc'], method:'CBC activity', dec:true},
+        {n:'Number range — accounting docs', s:'FIN-CFG·Current 130', dep:['cc'], method:'Current setting', dec:false, current:true} ] },
       o2c: { name:'Order to Cash', mod:'SD · BRIM', prereq:['cc','so','plant','sloc','coa'], items:[
         {n:'Sales document types', s:'SD-CFG·SSCUI 200', dep:['so'], method:'Config API', dec:false},
         {n:'Pricing procedure & condition types', s:'SD-CFG·SSCUI 201', dep:['so'], method:'CBC activity', dec:true},
@@ -7794,11 +7826,15 @@ class Component extends DCLogic {
         const items = w.items.map(it=>{
           const blockers = it.dep.filter(k=>ES[k].status!=='done').map(k=>ES[k].name);
           let st, stBg, stColor;
-          if(blockers.length){ st='Blocked'; stBg='#F0F1F4'; stColor='#5A6473'; }
+          if(it.current){ st='Current setting'; stBg='#FFF8EB'; stColor='#B45309'; }
+          else if(blockers.length){ st='Blocked'; stBg='#F0F1F4'; stColor='#5A6473'; }
           else if(it.dec){ st='Needs decision'; stBg='#FBF1DD'; stColor='#B45309'; }
           else { st='Ready to apply'; stBg='#E7F6EC'; stColor='#15803D'; }
           const depNames = it.dep.map(k=>ES[k].name).join(', ');
-          return { n:it.n, s:it.s, method:it.method, st, stBg, stColor, blocked:blockers.length>0, blockText: blockers.length? ('Waiting on: '+blockers.join(', ')) : ('Prerequisites met: '+depNames) };
+          const blockText = it.current
+            ? 'Not transported — maintain in Implementation Activities on each system (DEV/TEST/PROD)'
+            : (blockers.length? ('Waiting on: '+blockers.join(', ')) : ('Prerequisites met: '+depNames));
+          return { n:it.n, s:it.s, method:it.method, st, stBg, stColor, blocked:blockers.length>0 || !!it.current, blockText };
         });
         const ready = items.filter(i=>i.st==='Ready to apply').length;
         const blocked = items.filter(i=>i.blocked).length;
@@ -8526,9 +8562,13 @@ class Component extends DCLogic {
       cfgGenerate:()=>this.cfgGenerateRun(),
       cfgConnect:()=>this.cfgRunConnect(),
       cfgPush:()=>this.cfgStagePush(),
+      cfgExport:()=>this.cfgExportTransports(),
+      cfgImportTest:()=>this.cfgImportTest(),
+      cfgAlmApprove:()=>this.cfgAlmApprove(),
+      cfgForwardProd:()=>this.cfgForwardProd(),
       cfgModuleAct:(m)=>this.setState({cfgWl: m==='Finance'?'finance': m==='Order to Cash'?'o2c': m==='Procurement'?'mm': null}),
       cfgModules, cfgConn, cfgOrg, cfgWlOpen, cfgDocOpen, cfgDocFinColor, cfgDocFinBar, cfgDocO2cColor, cfgDocO2cBar, cfgPipeOpen, cfgBotOpen, cfgBotLgUserVal, cfgBotLgPassVal, cfgBotLgUserBd, cfgBotLgUserBg, cfgBotLgPassBd, cfgBotLgPassBg, cfgBotUrl, cfgBotUrlTyping, cfgBotNotDone: !!(cfgBotOpen && !cfgBotOpen.done), cfgBotRunLabel: (cfgBotOpen && cfgBotOpen.playing) ? 'Running…' : 'Run bot', openCfgBot:()=>this.openCfgBot(), cfgPipeToggleLabel: cfgPipeIsSpec ? 'View generated workbook →' : '← View signed spec', cfgShowSpec:()=>this.setState({cfgPipe:'spec'}), cfgShowBook:()=>this.setState({cfgPipe:'book'}), stopProp:(e)=>{ try{ e.stopPropagation(); }catch(_){} },
-      cfgHealthLabel, cfgHealthColor, cfgHealthBg, cfgConnectLabel, cfgPushLabel, cfgPipeStep3Sub, cfgPipeStep3Bg, cfgPipeStep3Title, cfgPipeStep4Bg, cfgPipeStep4Title, cfgPipeStep4Sub, cfgPipeStep5Bg, cfgPipeStep5Title, cfgPipeStep5Sub, cfgPipeLine34, cfgPipeLine45,
+      cfgHealthLabel, cfgHealthColor, cfgHealthBg, cfgConnectLabel, cfgPushLabel, cfgExportLabel, cfgImportLabel, cfgAlmLabel, cfgCanForwardProd, cfgTrCbcLabel, cfgTrBcLabel, cfgPipelineStatus, cfgCurrentNote, cfgPipeStep3Sub, cfgPipeStep3Bg, cfgPipeStep3Title, cfgPipeStep4Bg, cfgPipeStep4Title, cfgPipeStep4Sub, cfgPipeStep5Bg, cfgPipeStep5Title, cfgPipeStep5Sub, cfgPipeLine34, cfgPipeLine45,
       remConnect, remRun, remDeploy, remCards, remObjects, remConn, remRunLabel, remDeployLabel, remConnectLabel, remHealthLabel, remHealthColor, remHealthBg, remFilterActive, remFilterLabel, remClearFilter, remPipeStep3Sub, remPipeStep3Bg, remPipeStep4Bg, remPipeStep4Title, remPipeStep4Sub, remPipeStep5Bg, remPipeStep5Title, remPipeStep5Sub, remPipeLine34, remPipeLine45,
       cvPhases, cvReadiness, cvMand, cvKeep, cvConn, cvLand, cvIntf, cvIntfDetailOpen, cvTest, cvTestDetailOpen, cvTabs, cvTabOv, cvTabLand, cvTabConv, cvTabIntg, cvTabTest, cvTabAuto, cvGoLandscape:()=>this.setState({cvTab:'landscape'}), rcBotOpen, rcBotNotDone: !!(rcBotOpen && !rcBotOpen.done), rcBotRunLabel: (rcBotOpen && rcBotOpen.playing) ? 'Analysing…' : 'Run analysis',
       cvConnect:()=>this.cvRecheck(),
