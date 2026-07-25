@@ -14,10 +14,10 @@ import csv
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Sequence
 
-from .matcher import Candidate, rank_candidates, resolve_assignment
+from .matcher import Candidate, rank_sources_for_target, resolve_assignment
 from .memory import MappingMemory
 from .profiling import ColumnProfile, profile_column, profile_from_name
-from .transforms import Transform, suggest_transform
+from .transforms import IDENTITY, Transform, suggest_transform
 
 
 @dataclass
@@ -99,6 +99,14 @@ class SmartFieldMapper:
             profiles[f] = prof if prof.non_empty else profile_from_name(f)
         return profiles
 
+    @staticmethod
+    def _column_values(
+        field: str, rows: Optional[Sequence[dict]]
+    ) -> List[object]:
+        if not rows:
+            return []
+        return [row.get(field) for row in rows]
+
     # ------------------------------------------------------------------ #
     # Mapping
     # ------------------------------------------------------------------ #
@@ -127,15 +135,15 @@ class SmartFieldMapper:
         mappings: List[FieldMapping] = []
         for tgt in target_fields:
             cand = by_target.get(tgt)
+            alts = rank_sources_for_target(
+                tgt, source_fields, tgt_profiles.get(tgt),
+                src_profiles, self.memory, top_k=3,
+            )
             if cand is None:
                 # No confident 1:1 link — still surface the best few guesses.
-                alts = rank_candidates(
-                    tgt, source_fields, tgt_profiles.get(tgt),
-                    src_profiles, self.memory, top_k=3,
-                )
                 mappings.append(FieldMapping(
                     target=tgt, source=None, confidence=0.0,
-                    transform=suggest_transform(tgt, tgt, None, None),
+                    transform=IDENTITY,
                     reasons=["no confident match above threshold"],
                     alternatives=alts,
                 ))
@@ -144,10 +152,7 @@ class SmartFieldMapper:
             transform = suggest_transform(
                 cand.source, tgt,
                 src_profiles.get(cand.source), tgt_profiles.get(tgt),
-            )
-            alts = rank_candidates(
-                tgt, source_fields, tgt_profiles.get(tgt),
-                src_profiles, self.memory, top_k=3,
+                source_values=self._column_values(cand.source, source_rows),
             )
             mappings.append(FieldMapping(
                 target=tgt, source=cand.source, confidence=cand.score,
@@ -176,17 +181,39 @@ class SmartFieldMapper:
                     new_row[m.target] = None
                     continue
                 raw = row.get(m.source)
-                new_row[m.target] = m.transform.apply(raw) if raw is not None else None
+                if raw is None or (isinstance(raw, str) and raw.strip() == ""):
+                    new_row[m.target] = None
+                    continue
+                new_row[m.target] = m.transform.apply(raw)
             out.append(new_row)
         return out
 
-    def learn(self, plan: MappingPlan) -> None:
-        """Feed confirmed mappings back into memory (active learning)."""
+    def learn(
+        self,
+        plan: MappingPlan,
+        *,
+        min_status: str = "auto",
+    ) -> int:
+        """Feed confirmed mappings back into memory (active learning).
+
+        By default only ``auto``-tier mappings are learned, so review/low
+        guesses are not reinforced.  Pass ``min_status="review"`` (or
+        ``"low"``) to also learn lower-confidence pairs after human review.
+
+        Returns the number of pairs confirmed.
+        """
         if self.memory is None:
-            return
+            return 0
+        rank = {"auto": 3, "review": 2, "low": 1, "unmatched": 0}
+        min_rank = rank.get(min_status, 3)
+        learned = 0
         for m in plan.mappings:
-            if m.source is not None:
+            if m.source is None:
+                continue
+            if rank.get(m.status, 0) >= min_rank:
                 self.memory.confirm(m.source, m.target)
+                learned += 1
+        return learned
 
 
 # ---------------------------------------------------------------------- #
@@ -203,7 +230,9 @@ def read_csv(path: str) -> tuple[List[str], List[dict]]:
 
 def write_csv(path: str, fields: Sequence[str], rows: Sequence[dict]) -> None:
     with open(path, "w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=list(fields))
+        writer = csv.DictWriter(
+            fh, fieldnames=list(fields), extrasaction="ignore"
+        )
         writer.writeheader()
         for row in rows:
             writer.writerow(row)

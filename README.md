@@ -11,14 +11,14 @@ a few seconds of review.
 Zero dependencies. Pure standard-library Python. Runs anywhere.
 
 ```
-8 target fields | 4 auto, 3 review, 0 low-confidence, 1 unmatched | coverage 88%
+8 target fields | 5 auto, 3 review, 0 low-confidence, 0 unmatched | coverage 100%
 
   [ 90%] email            <- CustEmail     ⟳ lowercase
-  [ 60%] first_name       <- fname         ⟳ split_first_name
+  [ 60%] first_name       <- fname
   [ 90%] date_of_birth    <- DOB           ⟳ to_iso_date
   [ 90%] phone            <- Cell
   [ 90%] postal_code      <- ZipCode
-  [  0%] lifetime_value   <- —             (needs a human — flagged, not guessed)
+  [ 60%] lifetime_value   <- Spend         ⟳ strip_currency
 ```
 
 ## Why this is more than fuzzy string matching
@@ -128,11 +128,13 @@ examples/        runnable demo + sample CSVs
 ## Extending it
 
 - **Add your house vocabulary:** append term groups to
-  `SYNONYM_GROUPS` in `knowledge.py`.
+  `SYNONYM_GROUPS` in `knowledge.py`, then call `rebuild_index()`.
 - **Add a transform:** register a `Transform` in `transforms.py` and teach
   `suggest_transform` when to pick it.
 - **Tune aggressiveness:** adjust `--threshold` (CLI) or the signal
   `_WEIGHTS` / confidence floors in `matcher.py`.
+- **Active learning:** `mapper.learn(plan)` (and CLI `--learn`) only confirms
+  `auto`-tier pairs by default, so review/low guesses are not reinforced.
 
 ## Tests
 

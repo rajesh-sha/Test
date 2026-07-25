@@ -9,7 +9,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from smartmapper import SmartFieldMapper, MappingMemory, profile_column  # noqa: E402
 from smartmapper import similarity, text, knowledge  # noqa: E402
-from smartmapper.transforms import get_transform, suggest_transform  # noqa: E402
+from smartmapper.profiling import profile_similarity, type_hint_from_name  # noqa: E402
+from smartmapper.transforms import (  # noqa: E402
+    get_transform,
+    infer_dayfirst,
+    make_iso_date_transform,
+    suggest_transform,
+)
 
 
 class TestText(unittest.TestCase):
@@ -52,6 +58,34 @@ class TestKnowledge(unittest.TestCase):
     def test_unrelated(self):
         self.assertEqual(knowledge.synonym_score("color", "velocity"), 0.0)
 
+    def test_compound_names_need_attribute_overlap(self):
+        # Sharing only an entity concept must not look like a synonym.
+        self.assertEqual(
+            knowledge.synonym_score("customer email", "user phone"), 0.0
+        )
+        self.assertEqual(
+            knowledge.synonym_score("order date", "purchase amount"), 0.0
+        )
+
+    def test_state_means_province_not_status(self):
+        self.assertEqual(knowledge.synonym_score("state", "province"), 1.0)
+        self.assertEqual(knowledge.synonym_score("state", "status"), 0.0)
+
+    def test_spend_lifetime_value(self):
+        self.assertEqual(
+            knowledge.synonym_score("spend", "lifetime value"), 1.0
+        )
+
+    def test_rebuild_index_picks_up_custom_groups(self):
+        knowledge.SYNONYM_GROUPS.append(["widget", "gadget"])
+        try:
+            self.assertEqual(knowledge.synonym_score("widget", "gadget"), 0.0)
+            knowledge.rebuild_index()
+            self.assertEqual(knowledge.synonym_score("widget", "gadget"), 1.0)
+        finally:
+            knowledge.SYNONYM_GROUPS.pop()
+            knowledge.rebuild_index()
+
 
 class TestProfiling(unittest.TestCase):
     def test_email_type(self):
@@ -63,18 +97,45 @@ class TestProfiling(unittest.TestCase):
         self.assertTrue(p.numeric)
         self.assertEqual(p.num_max, 100.0)
 
+    def test_postal_not_integer(self):
+        p = profile_column(["90210", "10001", "60614"])
+        self.assertEqual(p.semantic_type, "postal")
+
+    def test_currency_related_to_float(self):
+        a = profile_column(["$1,299.50", "$742.00", "$3,050.75"])
+        b = profile_column(["850.00", "1620.00", "99.50"])
+        self.assertEqual(a.semantic_type, "currency")
+        self.assertIn(b.semantic_type, ("float", "integer"))
+        self.assertGreater(profile_similarity(a, b), 0.5)
+
+    def test_name_hint_not_substring(self):
+        self.assertEqual(type_hint_from_name("candidate"), "unknown")
+        self.assertEqual(type_hint_from_name("paramount"), "unknown")
+        self.assertEqual(type_hint_from_name("update"), "unknown")
+        self.assertEqual(type_hint_from_name("email"), "email")
+        self.assertEqual(type_hint_from_name("lifetime_value"), "currency")
+
     def test_value_overlap_beats_names(self):
         # Columns with totally different names but shared enum values.
-        from smartmapper.profiling import profile_similarity
         a = profile_column(["ACTIVE", "INACTIVE", "PENDING"] * 5)
         b = profile_column(["ACTIVE", "PENDING", "INACTIVE"] * 5)
         self.assertGreater(profile_similarity(a, b), 0.5)
 
 
 class TestTransforms(unittest.TestCase):
-    def test_iso_date(self):
+    def test_iso_date_month_first_default(self):
         t = get_transform("to_iso_date")
+        self.assertEqual(t.apply("01/02/2023"), "2023-01-02")
+        self.assertEqual(t.apply("12/24/1985"), "1985-12-24")
+
+    def test_iso_date_dayfirst_policy(self):
+        t = make_iso_date_transform(dayfirst=True)
         self.assertEqual(t.apply("01/02/2023"), "2023-02-01")
+
+    def test_infer_dayfirst_from_column(self):
+        self.assertIs(infer_dayfirst(["01/02/1990", "12/24/1985", "07/09/1978"]), False)
+        self.assertIs(infer_dayfirst(["13/02/1990", "07/09/1978"]), True)
+        self.assertIsNone(infer_dayfirst(["01/02/1990", "07/09/1978"]))
 
     def test_bool(self):
         t = get_transform("to_bool")
@@ -85,10 +146,16 @@ class TestTransforms(unittest.TestCase):
         t = get_transform("strip_currency")
         self.assertEqual(t.apply("$1,299.50"), 1299.50)
 
-    def test_name_split_suggested(self):
+    def test_name_split_suggested_for_full_name(self):
         sp = profile_column(["John Smith", "Jane Doe"])
         t = suggest_transform("full_name", "first_name", sp, profile_column(["x"]))
+        self.assertEqual(t.name, "split_first_name")
         self.assertEqual(t.apply("John Smith"), "John")
+
+    def test_fname_does_not_suggest_split(self):
+        sp = profile_column(["John", "Jane"])
+        t = suggest_transform("fname", "first_name", sp, profile_column(["x"]))
+        self.assertEqual(t.name, "identity")
 
 
 class TestMapper(unittest.TestCase):
@@ -132,7 +199,10 @@ class TestMapper(unittest.TestCase):
 
     def test_connect_applies_transform(self):
         mapper = SmartFieldMapper()
-        rows = [{"full_name": "John Smith", "DOB": "01/02/1990"}]
+        rows = [
+            {"full_name": "John Smith", "DOB": "01/02/1990"},
+            {"full_name": "Jane Doe", "DOB": "12/24/1985"},
+        ]
         plan = mapper.map_schema(
             source_fields=["full_name", "DOB"],
             target_fields=["first_name", "date_of_birth"],
@@ -140,7 +210,69 @@ class TestMapper(unittest.TestCase):
         )
         out = mapper.connect(plan, rows)
         self.assertEqual(out[0]["first_name"], "John")
-        self.assertEqual(out[0]["date_of_birth"], "1990-02-01")
+        # Column evidence (12/24) forces month-first for the whole field.
+        self.assertEqual(out[0]["date_of_birth"], "1990-01-02")
+        self.assertEqual(out[1]["date_of_birth"], "1985-12-24")
+
+    def test_demo_maps_spend_to_lifetime_value(self):
+        mapper = SmartFieldMapper()
+        src_fields = [
+            "CustEmail", "fname", "lname", "DOB", "Cell",
+            "ZipCode", "SignupDate", "Spend",
+        ]
+        tgt_fields = [
+            "email", "first_name", "last_name", "date_of_birth", "phone",
+            "postal_code", "created_at", "lifetime_value",
+        ]
+        rows = [
+            {
+                "CustEmail": "John@Acme.com", "fname": "John", "lname": "Smith",
+                "DOB": "01/02/1990", "Cell": "555-123-4567", "ZipCode": "90210",
+                "SignupDate": "03/15/2023", "Spend": "$1,299.50",
+            },
+            {
+                "CustEmail": "jane@beta.io", "fname": "Jane", "lname": "Doe",
+                "DOB": "12/24/1985", "Cell": "555-987-6543", "ZipCode": "10001",
+                "SignupDate": "06/01/2023", "Spend": "$742.00",
+            },
+        ]
+        plan = mapper.map_schema(
+            src_fields, tgt_fields, source_rows=rows,
+            target_rows=[
+                {
+                    "email": "a@x.com", "first_name": "A", "last_name": "B",
+                    "date_of_birth": "1990-01-01", "phone": "1",
+                    "postal_code": "94103", "created_at": "2023-01-10",
+                    "lifetime_value": "850.00",
+                }
+            ],
+        )
+        self.assertEqual(plan.as_dict()["lifetime_value"], "Spend")
+        self.assertEqual(plan.coverage, 1.0)
+        spend = next(m for m in plan.mappings if m.target == "lifetime_value")
+        self.assertEqual(spend.transform.name, "strip_currency")
+
+    def test_alternatives_keep_source_target_polarity(self):
+        mapper = SmartFieldMapper()
+        plan = mapper.map_schema(
+            source_fields=["CustEmail", "Cell"],
+            target_fields=["email", "phone"],
+        )
+        email = next(m for m in plan.mappings if m.target == "email")
+        self.assertTrue(email.alternatives)
+        for alt in email.alternatives:
+            self.assertIn(alt.source, ("CustEmail", "Cell"))
+            self.assertEqual(alt.target, "email")
+
+    def test_false_friend_compounds_not_auto_matched(self):
+        mapper = SmartFieldMapper()
+        plan = mapper.map_schema(
+            source_fields=["customer_email", "order_date"],
+            target_fields=["user_phone", "purchase_amount"],
+        )
+        # These must not clear the bar just because they share entity vocab.
+        self.assertIsNone(plan.as_dict()["user_phone"])
+        self.assertIsNone(plan.as_dict()["purchase_amount"])
 
     def test_coverage_and_summary(self):
         mapper = SmartFieldMapper()
@@ -160,6 +292,26 @@ class TestMemory(unittest.TestCase):
         plan = mapper.map_schema(["weird_legacy_code"], ["customer_status"])
         self.assertEqual(plan.as_dict()["customer_status"], "weird_legacy_code")
         self.assertGreater(plan.mappings[0].confidence, 0.9)
+
+    def test_learn_defaults_to_auto_only(self):
+        mem = MappingMemory()
+        mapper = SmartFieldMapper(memory=mem)
+        plan = mapper.map_schema(
+            source_fields=["fname", "CustEmail"],
+            target_fields=["first_name", "email"],
+        )
+        n = mapper.learn(plan)
+        auto_targets = {m.target for m in plan.mappings if m.status == "auto" and m.source}
+        skipped = {
+            m.target for m in plan.mappings
+            if m.source and m.status in ("review", "low")
+        }
+        for t in auto_targets:
+            self.assertGreater(mem.prior(plan.as_dict()[t], t), 0.0)
+        for t in skipped:
+            self.assertEqual(mem.prior(plan.as_dict()[t], t), 0.0)
+        self.assertEqual(n, len(auto_targets))
+        self.assertTrue(skipped)  # fname should remain unlearned by default
 
     def test_persistence_roundtrip(self):
         with tempfile.TemporaryDirectory() as d:
