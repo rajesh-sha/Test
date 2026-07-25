@@ -91,7 +91,12 @@
         </div>
 
         <div style="font-size:11px;letter-spacing:.04em;color:#8A93A3;font-weight:600;margin:24px 0 7px">YOUR NAME <span style="color:#DC2626">*</span></div>
-        <input type="text" value="{{ name }}" onInput="{{ setName }}" placeholder="e.g. Rajesh Sha" style="width:100%;border:1px solid {{ nameBorder }};border-radius:9px;padding:11px 13px;font-size:13.5px;color:#131826;outline:none;font-family:'IBM Plex Sans',system-ui,sans-serif" style-focus="border-color:{{ loginAccent }};box-shadow:0 0 0 3px {{ loginAccentSoft }}" />
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px">
+          <sc-for list="{{ quickNames }}" as="qn" hint-placeholder-count="3">
+            <div onClick="{{ qn.pick }}" style="font-size:11.5px;font-weight:600;padding:6px 10px;border-radius:999px;border:1px solid {{ qn.bd }};background:{{ qn.bg }};color:{{ qn.color }};cursor:pointer">{{ qn.label }}</div>
+          </sc-for>
+        </div>
+        <input type="text" value="{{ name }}" onInput="{{ setName }}" onChange="{{ setName }}" autofocus="true" autocomplete="name" placeholder="e.g. Rajesh Sha — or tap a name above" style="width:100%;border:1px solid {{ nameBorder }};border-radius:9px;padding:11px 13px;font-size:13.5px;color:#131826;outline:none;font-family:'IBM Plex Sans',system-ui,sans-serif" style-focus="border-color:{{ loginAccent }};box-shadow:0 0 0 3px {{ loginAccentSoft }}" />
         <sc-if value="{{ nameError }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px;color:#DC2626;margin-top:6px;font-weight:500">Please enter your name to sign in.</div></sc-if>
 
         <div style="font-size:11px;letter-spacing:.04em;color:#8A93A3;font-weight:600;margin:18px 0 9px">ROLE</div>
@@ -5836,7 +5841,8 @@ class Component extends DCLogic {
     }
     this.signIn();
   }
-  setName(e){ this.setState({ name: e.target.value, nameError: false }); }
+  setName(e){ const v=(e && e.target && typeof e.target.value==='string') ? e.target.value : (typeof e==='string'?e:''); this.setState({ name: v, nameError: false }); }
+  pickQuickName(n){ this.setState({ name: n, nameError: false }); }
   signIn(){ if (!(this.state.name||'').trim()) { this.setState({ nameError: true }); return; } const hcm = (this.state.loginProduct||'Cognixa')==='CognixaHCM'; this.setState({ authed: true, role: this.state.loginRole, screen: hcm?'hcm':'dashboard', solution: hcm?'hcm':'s4' }); this.writeSession({ cognixaRole: this.state.loginRole }); }
   enterDemo(){
     var n=(this.state.name||'').trim();
@@ -8580,7 +8586,7 @@ class Component extends DCLogic {
         {h:'Audit-ready sign-off', t:'multi-party, hash-bound, human at every gate'}
       ])))),
       heroShowRoadmap: loginProduct!=='LicentIQ' && loginProduct!=='CognixaHCM' && loginProduct!=='RosterIQ' && loginProduct!=='TaxIQ' && loginProduct!=='TreasuryIQ',
-      name: this.state.name || '', setName:(e)=>this.setName(e),
+      name: this.state.name || '', setName:(e)=>this.setName(e), quickNames: ['Rajesh Sha','Guest','Demo User'].map(n=>({ label:n, pick:()=>this.pickQuickName(n), bg:(this.state.name||'')===n ? 'var(--accent-soft-bg,#EEF0FF)' : '#F8FAFC', color:(this.state.name||'')===n ? 'var(--accent,#4F46E5)' : '#3A4252', bd:(this.state.name||'')===n ? 'var(--accent,#4F46E5)' : '#D8DEE8' })),
       nameError: !!this.state.nameError, nameBorder: this.state.nameError ? '#DC2626' : '#D8DEE8',
       userName: userName, userInitials: userInitials,
       helpOpen: this.state.helpOpen, openHelp:()=>this.toggleHelp(true), closeHelp:()=>this.toggleHelp(false),
