@@ -27,7 +27,14 @@ from .engine import (
     read_csv,
     write_csv,
 )
-from .matcher import Candidate, rank_candidates, resolve_assignment, score_pair
+from .knowledge import rebuild_index
+from .matcher import (
+    Candidate,
+    rank_candidates,
+    rank_sources_for_target,
+    resolve_assignment,
+    score_pair,
+)
 from .memory import MappingMemory
 from .profiling import ColumnProfile, profile_column
 
@@ -41,7 +48,9 @@ __all__ = [
     "Candidate",
     "score_pair",
     "rank_candidates",
+    "rank_sources_for_target",
     "resolve_assignment",
+    "rebuild_index",
     "read_csv",
     "write_csv",
 ]

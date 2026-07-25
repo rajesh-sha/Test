@@ -69,13 +69,16 @@ def _confidence_floor(sig: "Signals") -> float:
         floor = max(floor, 0.97)
     if sig.memory_prior >= 0.9:
         floor = max(floor, 0.95)
-    if sig.synonym >= 1.0:
+    if sig.synonym >= 0.99:
         floor = max(floor, 0.60)
+    elif sig.synonym >= 0.5:
+        # Partial attribute-concept overlap — helpful but not decisive alone.
+        floor = max(floor, 0.45)
     if sig.value_profile >= 0.75:  # distinctive type / real value overlap
         floor = max(floor, 0.60)
     # Two independent strong signals agreeing is high-confidence: a known
     # synonym whose values also match, or a value match with name overlap.
-    if sig.synonym >= 1.0 and sig.value_profile >= 0.75:
+    if sig.synonym >= 0.99 and sig.value_profile >= 0.75:
         floor = max(floor, 0.90)
     if sig.value_profile >= 0.9 and (sig.token_jaccard >= 0.5 or sig.monge_elkan >= 0.85):
         floor = max(floor, 0.90)
@@ -149,13 +152,41 @@ def rank_candidates(
     memory: Optional[MappingMemory] = None,
     top_k: int = 3,
 ) -> List[Candidate]:
-    """Return the ``top_k`` best target matches for one source field."""
+    """Return the ``top_k`` best target matches for one source field.
+
+    Each :class:`Candidate` keeps ``source`` / ``target`` polarity: the
+    ``source`` argument is always ``candidate.source``.
+    """
     target_profiles = target_profiles or {}
     scored = [
         score_pair(
             source, t, source_profile, target_profiles.get(t), memory
         )
         for t in targets
+    ]
+    scored.sort(key=lambda c: c.score, reverse=True)
+    return scored[:top_k]
+
+
+def rank_sources_for_target(
+    target: str,
+    sources: List[str],
+    target_profile: Optional[ColumnProfile] = None,
+    source_profiles: Optional[Dict[str, ColumnProfile]] = None,
+    memory: Optional[MappingMemory] = None,
+    top_k: int = 3,
+) -> List[Candidate]:
+    """Return the ``top_k`` best source matches for one target field.
+
+    Unlike calling :func:`rank_candidates` with swapped arguments, this keeps
+    ``Candidate.source`` as the real source field name.
+    """
+    source_profiles = source_profiles or {}
+    scored = [
+        score_pair(
+            s, target, source_profiles.get(s), target_profile, memory
+        )
+        for s in sources
     ]
     scored.sort(key=lambda c: c.score, reverse=True)
     return scored[:top_k]

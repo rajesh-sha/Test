@@ -55,9 +55,9 @@ def cmd_map(args) -> int:
     )
     _print_plan(plan)
     if args.memory and args.learn:
-        mapper.learn(plan)
+        n = mapper.learn(plan)
         mapper.memory.save()
-        print(f"  learned {len(mapper.memory)} pairs -> {args.memory}\n")
+        print(f"  learned {n} auto-tier pair(s) -> {args.memory}\n")
     return 0
 
 
@@ -75,8 +75,9 @@ def cmd_connect(args) -> int:
     write_csv(args.output, tgt_fields, out_rows)
     print(f"  wrote {len(out_rows)} rows -> {args.output}\n")
     if args.memory and args.learn:
-        mapper.learn(plan)
+        n = mapper.learn(plan)
         mapper.memory.save()
+        print(f"  learned {n} auto-tier pair(s) -> {args.memory}\n")
     return 0
 
 
@@ -91,8 +92,10 @@ def build_parser() -> argparse.ArgumentParser:
     common.add_argument("source", help="Source CSV (data to remap)")
     common.add_argument("target", help="Target CSV (defines target schema)")
     common.add_argument("--memory", help="Path to a mappings memory JSON file")
-    common.add_argument("--learn", action="store_true",
-                        help="Save confirmed mappings back to memory")
+    common.add_argument(
+        "--learn", action="store_true",
+        help="Save auto-tier mappings back to memory (review/low are skipped)",
+    )
     common.add_argument("--threshold", type=float, default=0.35,
                         help="Minimum confidence to accept a match (default 0.35)")
 

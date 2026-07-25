@@ -16,8 +16,11 @@ from typing import Iterable, List, Optional, Set
 
 # Ordered most-specific first: the first pattern that matches the majority of
 # non-empty values wins the semantic type.
+# Notes:
+#   - ``postal`` precedes ``integer`` so ZIP/postcodes are not typed as ints.
+#   - ``bool`` excludes bare ``0``/``1`` (those stay integer / categorical).
 _TYPE_PATTERNS = [
-    ("email", re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")),
+    ("email", re.compile(r"^[^@\s]+@[^@\s]+\.[^\s@]+$")),
     ("uuid", re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)),
     ("url", re.compile(r"^https?://[^\s]+$", re.I)),
     ("ipv4", re.compile(r"^(\d{1,3}\.){3}\d{1,3}$")),
@@ -25,11 +28,19 @@ _TYPE_PATTERNS = [
     ("date", re.compile(r"^(\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}[-/]\d{1,2}[-/]\d{2,4})$")),
     ("phone", re.compile(r"^[+(]?[\d][\d\s().-]{6,}\d$")),
     ("currency", re.compile(r"^[$€£¥]\s?-?\d[\d,]*(\.\d+)?$|^-?\d[\d,]*(\.\d+)?\s?[$€£¥]$")),
-    ("bool", re.compile(r"^(true|false|yes|no|y|n|t|f|0|1)$", re.I)),
+    ("bool", re.compile(r"^(true|false|yes|no|y|n|t|f)$", re.I)),
+    ("postal", re.compile(r"^\d{4,6}(-\d{4})?$")),
     ("integer", re.compile(r"^-?\d{1,15}$")),
     ("float", re.compile(r"^-?\d+\.\d+$")),
-    ("postal", re.compile(r"^\d{4,6}(-\d{4})?$")),
 ]
+
+# Types that are mutually compatible for the value-profile signal.
+_RELATED_TYPES = {
+    frozenset({"currency", "float"}),
+    frozenset({"currency", "integer"}),
+    frozenset({"float", "integer"}),
+    frozenset({"date", "datetime"}),
+}
 
 
 @dataclass
@@ -95,18 +106,26 @@ def profile_column(values: Iterable, max_samples: int = 256) -> ColumnProfile:
     return prof
 
 
-# Keyword -> expected semantic type, used when a field has no sample values and
-# we must fall back to the name alone.  Longer/more-specific keys first.
+# Keyword / phrase -> expected semantic type.  Longer phrases first.
+# Matching is token/phrase exact — never a raw substring of the name, so
+# ``candidate`` / ``paramount`` / ``update`` do not falsely hint ``date`` /
+# ``currency``.
 _NAME_TYPE_HINTS = [
-    ("email", "email"), ("e mail", "email"),
+    ("email address", "email"), ("e mail", "email"), ("email", "email"),
     ("phone", "phone"), ("mobile", "phone"), ("cell", "phone"), ("tel", "phone"),
-    ("dob", "date"), ("birth", "date"), ("date", "date"), ("created", "date"),
-    ("updated", "date"), ("timestamp", "datetime"),
-    ("zip", "postal"), ("postal", "postal"), ("postcode", "postal"),
+    ("date of birth", "date"), ("birth date", "date"), ("birthday", "date"),
+    ("dob", "date"), ("created", "date"), ("updated", "date"),
+    ("signup", "date"), ("timestamp", "datetime"),
+    ("postal code", "postal"), ("zip code", "postal"), ("postcode", "postal"),
+    ("zip", "postal"), ("postal", "postal"),
     ("uuid", "uuid"), ("guid", "uuid"),
+    ("lifetime value", "currency"), ("unit price", "currency"),
     ("price", "currency"), ("amount", "currency"), ("cost", "currency"),
     ("spend", "currency"), ("revenue", "currency"), ("balance", "currency"),
+    ("value", "currency"), ("ltv", "currency"),
     ("url", "url"), ("website", "url"),
+    # Bare "date" last among date hints — still token-exact only.
+    ("date", "date"),
 ]
 
 
@@ -114,10 +133,19 @@ def type_hint_from_name(name: str) -> str:
     """Best-guess semantic type inferred from a field name (no data needed)."""
     from .text import normalize
     norm = normalize(name)
-    tokens = set(norm.split())
+    tokens = norm.split()
+    token_set = set(tokens)
     for keyword, type_name in _NAME_TYPE_HINTS:
-        if keyword in tokens or keyword in norm:
-            return type_name
+        parts = keyword.split()
+        if len(parts) == 1:
+            if keyword in token_set:
+                return type_name
+        else:
+            # Phrase must appear as consecutive tokens.
+            n = len(parts)
+            for i in range(len(tokens) - n + 1):
+                if tokens[i : i + n] == parts:
+                    return type_name
     return "unknown"
 
 
@@ -147,6 +175,18 @@ def _infer_type(values: List[str]) -> str:
     return "text"
 
 
+def _types_compatible(a: str, b: str) -> float:
+    """Return a type-agreement score contribution for two semantic types."""
+    if a == "unknown" or b == "unknown":
+        return 0.0
+    if a == b:
+        return 0.25 if a in ("text", "categorical") else 0.8
+    if frozenset({a, b}) in _RELATED_TYPES:
+        # Related numeric / temporal families — useful but weaker than exact.
+        return 0.55
+    return 0.0
+
+
 def profile_similarity(a: ColumnProfile, b: ColumnProfile) -> float:
     """Similarity in ``[0, 1]`` between two column profiles.
 
@@ -161,9 +201,9 @@ def profile_similarity(a: ColumnProfile, b: ColumnProfile) -> float:
 
     # Semantic type agreement.  A shared *distinctive* type (email, phone,
     # date, uuid, ...) is strong evidence; a shared generic "text" type barely
-    # counts because almost everything is text.
-    if a.semantic_type == b.semantic_type and a.semantic_type != "unknown":
-        score += 0.25 if a.semantic_type in ("text", "categorical") else 0.8
+    # counts because almost everything is text.  Related families
+    # (currency↔float) get partial credit.
+    score += _types_compatible(a.semantic_type, b.semantic_type)
 
     # Direct value overlap — the strongest possible evidence.
     if a.sample_values and b.sample_values:
