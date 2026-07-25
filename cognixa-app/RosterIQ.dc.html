@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><script src="./support.js"></script></head>
+<body>
+<x-dc>
+<div style="font-family:'IBM Plex Sans',system-ui,sans-serif;padding:26px 30px 40px;max-width:1200px;color:#131826">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div>
+      <div style="font-size:22px;font-weight:700">RosterIQ</div>
+      <div style="font-size:13px;color:#5A6473;margin-top:6px">Roster-to-pay assurance — UWA sample program (Workday · Nimbus · Payroll).</div>
+    </div>
+    <span style="background:#F59E0B;color:#fff;font-size:11px;font-weight:700;padding:5px 10px;border-radius:8px">WFM · DEMO</span>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+    <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+      <div onClick="{{ t.pick }}" style="padding:8px 14px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.color }}">{{ t.label }}</div>
+    </sc-for>
+  </div>
+  <div style="background:#fff;border:1px solid #E5E9F0;border-radius:14px;padding:22px">
+    <div style="font-size:16px;font-weight:700">{{ title }}</div>
+    <div style="font-size:13px;color:#5A6473;margin-top:8px;line-height:1.6">{{ body }}</div>
+    <sc-for list="{{ bullets }}" as="b" hint-placeholder-count="4">
+      <div style="display:flex;gap:10px;margin-top:10px;font-size:13px;color:#3A4252"><span style="color:#F59E0B">▸</span><span>{{ b }}</span></div>
+    </sc-for>
+    <button onClick="{{ ping }}" style="margin-top:18px;background:#B45309;border:none;color:#fff;font-weight:600;font-size:13px;padding:10px 16px;border-radius:9px;cursor:pointer">Run award check</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { tab: (this.props.activeTab||this.props['active-tab']||'arch') };
+  toast(m){ const fn=this.props.onToast||this.props['on-toast']; if(typeof fn==='function') fn(m); }
+  renderVals(){
+    const tab=this.state.tab||'arch';
+    const content={
+      arch:{title:'Roster architecture', body:'Positions & costing in from Workday; award engine in the middle; pay-ready time out to payroll.', bullets:['Multi-appointment academics & casuals','EBA overtime / breaks / minimum engagement','Fair Work traceability on every hour']},
+      design:{title:'Award & rule design', body:'Draft award interpretations with human confirmation gates.', bullets:['18 award clauses modelled','3 conflicts flagged for IR','Exportable rule pack']},
+      integrate:{title:'HCM ↔ WFM ↔ Payroll', body:'Interface register and reconciliation windows.', bullets:['Workday positions sync','Nimbus roster import','Payroll export assured']},
+      assure:{title:'Assure & sign-off', body:'Roster-to-pay evidence pack for audit.', bullets:['Sample week reconciled','Exceptions parked in RAID','Sign-off desk ready']},
+      sign:{title:'Sign-off', body:'WFM Lead + Payroll + IR rows.', bullets:['2 of 3 signed','1 conditional','Hash-bound evidence']}
+    }[tab]||{title:'RosterIQ', body:'', bullets:[]};
+    const tabs=['arch','design','integrate','assure','sign'].map(k=>({
+      label:k.toUpperCase(), pick:()=>{ this.setState({tab:k}); this.toast('RosterIQ → '+k); },
+      bg: tab===k?'#B45309':'#fff', color: tab===k?'#fff':'#3A4252', bd: tab===k?'#B45309':'#D8DEE8'
+    }));
+    return { tabs, title:content.title, body:content.body, bullets:content.bullets, ping:()=>this.toast('Award check complete — 2 exceptions for review (demo)') };
+  }
+}
+</script>
+</body>
+</html>

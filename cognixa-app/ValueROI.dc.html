@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="font-family:'IBM Plex Sans',system-ui,sans-serif;padding:26px 30px 40px;max-width:1200px;color:#131826;box-sizing:border-box;width:100%;min-height:100%">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px">
+    <div>
+      <div style="font-size:22px;font-weight:700;letter-spacing:-.02em">Value &amp; ROI</div>
+      <div style="font-size:13px;color:#5A6473;margin-top:6px;line-height:1.55;max-width:720px">Transparent effort/cost levers derived from the mapping — calibrate with your day-rate and phase gates.</div>
+    </div>
+    <span style="display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.06em;color:#4338CA;background:#EEF0FF;border:1px solid #DEE0FF;padding:6px 10px;border-radius:999px">MODULE · DEMO</span>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px">
+    <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+      <div style="background:#fff;border:1px solid #E5E9F0;border-radius:14px;padding:16px 18px">
+        <div style="font-size:11px;color:#8A93A3;font-weight:600;letter-spacing:.04em">{{ k.label }}</div>
+        <div style="font-size:24px;font-weight:700;margin-top:6px;color:#131826">{{ k.value }}</div>
+        <div style="font-size:12px;color:#5A6473;margin-top:4px">{{ k.sub }}</div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="background:#fff;border:1px solid #E5E9F0;border-radius:14px;overflow:hidden">
+    <div style="display:grid;grid-template-columns:1.1fr 1.4fr 1.4fr 1.2fr;gap:12px;padding:12px 18px;background:#F8FAFC;border-bottom:1px solid #EEF1F6;font-size:10.5px;letter-spacing:.05em;color:#8A93A3;font-weight:600">
+      <div>AREA</div><div>PAIN</div><div>HOW COGNIXA HELPS</div><div>ROI LEVER</div>
+    </div>
+    <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+      <div style="display:grid;grid-template-columns:1.1fr 1.4fr 1.4fr 1.2fr;gap:12px;padding:14px 18px;border-bottom:1px solid #F2F4F8;font-size:12.5px;color:#3A4252">
+        <div style="font-weight:600;color:#1B2230">{{ r.area }}</div>
+        <div>{{ r.pain }}</div>
+        <div>{{ r.help }}</div>
+        <div style="color:#15803D;font-weight:600">{{ r.roi }}</div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:16px">
+    <button onClick="{{ exportClick }}" style="background:#4F46E5;border:none;color:#fff;font-weight:600;font-size:13px;padding:10px 16px;border-radius:9px;cursor:pointer">Export value model</button>
+    <button onClick="{{ addClick }}" style="background:#fff;border:1px solid #D8DEE8;color:#3A4252;font-weight:600;font-size:13px;padding:10px 16px;border-radius:9px;cursor:pointer">+ Add ROI lever</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  toast(msg){ const fn=this.props.onToast||this.props['on-toast']; if(typeof fn==='function') fn(msg); }
+  renderVals(){
+    const rows=[
+      {area:'Integration', pain:'Interface discovery & field mapping', help:'Auto-drafts Interface Register + mapping workbook', roi:'Compresses weeks of analyst documentation'},
+      {area:'Requirements & design', pain:'Slow, inconsistent BRD/FS/SAD', help:'Generates BRD, FS & SAD from the process', roi:'Core Explore drafting-time saving'},
+      {area:'Fit-to-standard', pain:'Gaps found late; over-customisation', help:'AI fit-gap with confidence; gaps → BTP', roi:'Fewer late gaps; upgrade-safe'},
+      {area:'Data migration', pain:'Under-estimated mapping & cleansing', help:'Drafts object scope, mapping & DQ rules', roi:'Earlier, structured migration design'},
+      {area:'Testing', pain:'Manual suites; weak traceability', help:'Auto-generates cases linked to IDs', roi:'Faster test prep; coverage evidence'},
+      {area:'Governance', pain:'Stalled reviews; weak audit trail', help:'Review workflow + hash-bound sign-off', roi:'Faster phase gates; audit-ready'}
+    ];
+    return {
+      kpis:[
+        {label:'EXPLORE COMPRESSION', value:'62%', sub:'vs traditional drafting'},
+        {label:'EST. SAVING', value:'1.8k', sub:'consultant hours'},
+        {label:'LEVERS', value:String(rows.length), sub:'in the value model'},
+        {label:'CONFIDENCE', value:'High', sub:'calibrated to Meridian'}
+      ],
+      rows,
+      exportClick:()=>this.toast('Exporting Value & ROI model (CSV) — demo'),
+      addClick:()=>this.toast('Add ROI lever — open the form in the full suite module (demo)')
+    };
+  }
+}
+</script>
+</body>
+</html>

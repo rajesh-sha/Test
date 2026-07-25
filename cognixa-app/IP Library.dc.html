@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><script src="./support.js"></script></head>
+<body>
+<x-dc>
+<div style="font-family:'IBM Plex Sans',system-ui,sans-serif;padding:26px 30px 40px;max-width:1200px;color:#131826">
+  <div style="font-size:22px;font-weight:700;margin-bottom:6px">Accelerators · IP Library</div>
+  <div style="font-size:13px;color:#5A6473;margin-bottom:18px;max-width:720px">Reusable Cognixa assets — templates, playbooks and config packs you can drop into the engagement.</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+    <sc-for list="{{ assets }}" as="a" hint-placeholder-count="6">
+      <div style="background:#fff;border:1px solid #E5E9F0;border-radius:14px;padding:18px" style-hover="border-color:#C7CEFF">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:#8A93A3">{{ a.kind }}</div>
+        <div style="font-size:15px;font-weight:700;margin-top:8px">{{ a.name }}</div>
+        <div style="font-size:12.5px;color:#5A6473;margin-top:6px;line-height:1.5">{{ a.desc }}</div>
+        <button onClick="{{ a.use }}" style="margin-top:14px;background:#4F46E5;border:none;color:#fff;font-weight:600;font-size:12.5px;padding:8px 12px;border-radius:8px;cursor:pointer">Use in engagement</button>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals(){
+    const use=(n)=>()=>{(this.props.onToast||(()=>{}))('Added “'+n+'” to the engagement accelerator tray (demo)');};
+    const assets=[
+      {kind:'TEMPLATE', name:'O2C Functional Spec pack', desc:'Worked Meridian Foods FS sections with CBC cross-refs.', use:use('O2C Functional Spec pack')},
+      {kind:'PLAYBOOK', name:'Clean-core decision tree', desc:'Route every gap to BTP / config / standard.', use:use('Clean-core decision tree')},
+      {kind:'CONFIG', name:'Pricing procedure ZVAA01', desc:'Condition types & access sequences for AU retail.', use:use('Pricing procedure ZVAA01')},
+      {kind:'TEST', name:'Negative auth suite', desc:'SoD-aware negative tests for finance roles.', use:use('Negative auth suite')},
+      {kind:'RUNBOOK', name:'DMO cutover sequence', desc:'Downtime-optimised steps with validation gates.', use:use('DMO cutover sequence')},
+      {kind:'TRAINING', name:'Role-based quick cards', desc:'One-pagers for order desk, pricing & AR.', use:use('Role-based quick cards')}
+    ];
+    return { assets };
+  }
+}
+</script>
+</body>
+</html>

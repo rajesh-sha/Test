@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roadmap · Cognixa</title>
+<script src="./support.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<x-dc>
+<div style="min-height:100vh;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F4F6F9;color:#131826">
+  <div style="background:linear-gradient(135deg,#0E1320,#211B5C);color:#fff;padding:28px 36px;display:flex;align-items:center;gap:14px">
+    <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(150deg,#4F46E5,#4338CA);display:flex;align-items:center;justify-content:center;font-weight:700">C</div>
+    <div style="flex:1">
+      <div style="font-size:18px;font-weight:700">Roadmap</div>
+      <div style="font-size:12px;color:#B7BCE6;margin-top:2px">Cognixa suite · demo shell</div>
+    </div>
+    <a href="Cognixa.html" style="color:#A5B4FC;font-weight:600;font-size:13px;text-decoration:none">← Back to Cognixa</a>
+  </div>
+  <div style="max-width:880px;margin:40px auto;padding:0 24px">
+    <div style="background:#fff;border:1px solid #E5E9F0;border-radius:16px;padding:28px 30px;box-shadow:0 8px 30px rgba(15,23,42,.06)">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:#EEF0FF;color:#4338CA;font-size:11px;font-weight:700;letter-spacing:.06em;padding:5px 10px;border-radius:999px;margin-bottom:14px">TESTABLE DEMO STUB</div>
+      <div style="font-size:26px;font-weight:700;letter-spacing:-.02em">Roadmap</div>
+      <div style="font-size:14px;color:#5A6473;margin-top:10px;line-height:1.6">Cognixa product roadmap — platform thesis and upcoming releases.</div>
+      <div style="font-size:13px;color:#3A4252;margin-top:18px;line-height:1.65">This page is a lightweight stand-in so Cognixa login redirects and nav links work offline. The full Roadmap product surface can be dropped in as a sibling <code>.dc.html</code> module later.</div>
+      <div style="display:flex;gap:10px;margin-top:22px;flex-wrap:wrap">
+        <a href="Cognixa.html" style="background:#4F46E5;color:#fff;font-weight:600;font-size:13px;padding:11px 16px;border-radius:9px;text-decoration:none">Open Cognixa workspace</a>
+        <button onClick="{{ ping }}" style="background:#fff;border:1px solid #D8DEE8;color:#3A4252;font-weight:600;font-size:13px;padding:11px 16px;border-radius:9px;cursor:pointer">Acknowledge demo stub</button>
+      </div>
+      <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:16px;background:#F0FBF4;border:1px solid #CDEBD7;color:#15803D;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:600">{{ toast }}</div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { toast: null };
+  renderVals(){
+    return {
+      toast: this.state.toast,
+      ping: ()=>{ this.setState({ toast: 'Roadmap demo stub acknowledged — return to Cognixa to continue the full flow.' }); }
+    };
+  }
+}
+</script>
+</body>
+</html>
