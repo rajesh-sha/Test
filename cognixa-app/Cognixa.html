@@ -4426,7 +4426,7 @@
         <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent-bright,#6366F1),var(--accent-strong,#4338CA));display:flex;align-items:center;justify-content:center;flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none"><path d="M12 2l1.9 5.1L19 9l-5.1 1.9L12 16l-1.9-5.1L5 9l5.1-1.9z"/></svg></div>
         <div style="flex:1;line-height:1.2">
           <div style="font-size:15px;font-weight:700;color:#131826">Cognixa Copilot</div>
-          <div style="font-size:11px;color:#15803D;display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:50%;background:#16A34A;animation:cgpulse 1.8s ease-in-out infinite"></span>{{ liveAgents }} super agents running</div>
+          <div style="font-size:11px;color:{{ agentsHeaderColor }};display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:50%;background:{{ agentsHeaderDot }};{{ agentsHeaderPulse }}"></span>{{ agentsHeaderLabel }}</div>
         </div>
         <svg onClick="{{ closeCopilot }}" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8A93A3" stroke-width="2" style="cursor:pointer"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </div>
@@ -5246,30 +5246,37 @@ class Component extends DCLogic {
     S.forEach(function(_,idx){ if(idx>0){ self._aiT.push(setTimeout(function(){ self.setState(function(st){ return st.aiRun?{aiRun:Object.assign({},st.aiRun,{i:idx})}:null; }); }, idx*440)); } });
     self._aiT.push(setTimeout(function(){ self.setState({ aiRun:null }); if(typeof thenFn==='function'){ try{ thenFn(); }catch(e){} } }, S.length*440 + 380));
   }
+  _agentSnapshot(parked, reviewDone, scanning){
+    var p=!!parked, d=!!reviewDone, s=!!scanning;
+    if(s){
+      return {
+        'Fit-Gap Agent':{busy:true, act:'Re-scoring O2C steps vs Best-Practice v2408…'},
+        'Deliverable Agent':{busy:true, act:'Checking FS-118 open items & deliverable coverage…'},
+        'Quality & Risk Agent':{busy:true, act:'Walking every sign-off dependency feed…'},
+        'System Intelligence Agent':{busy:false, act:'Scanned 4,820 custom objects · 62% dormant'},
+        'Cutover Agent':{busy:false, act:'Sequenced 142 cutover tasks'}
+      };
+    }
+    return {
+      'Fit-Gap Agent':{busy:!d, act: d ? '318 steps scored · 78% fit · 2 true gaps' : 'Re-scoring 23 steps vs SAP Best-Practice v2408'},
+      'Deliverable Agent':{busy:false, act: p ? 'FS-118 parked in RAID · 5 deliverables clear' : (d ? 'FS-118 open item blocks sign-off' : 'Drafted Functional Spec FS-118 · 9m ago')},
+      'Quality & Risk Agent':{busy:!p, act: p ? 'Gates ready for sign-off · 2 warnings remain' : (d ? '1 hard blocker · 2 warnings · 7 flags' : '7 flags raised pre-sign-off · FS-118 hard blocker')},
+      'System Intelligence Agent':{busy:false, act:'Scanned 4,820 custom objects · 62% dormant'},
+      'Cutover Agent':{busy:false, act:'Sequenced 142 cutover tasks'}
+    };
+  }
   runReview(){
     if(this._rvT){ this._rvT.forEach(clearTimeout); }
     this._rvT=[]; var self=this; var N=8;
     var parkedKeep=!!this.state.reviewResolved;
-    var busy={
-      'Fit-Gap Agent':{busy:true, act:'Re-scoring O2C steps vs Best-Practice v2408…'},
-      'Deliverable Agent':{busy:true, act:'Checking FS-118 open items & deliverable coverage…'},
-      'Quality & Risk Agent':{busy:true, act:'Walking every sign-off dependency feed…'},
-      'System Intelligence Agent':{busy:false, act:'Scanned 4,820 custom objects · 62% dormant'},
-      'Cutover Agent':{busy:false, act:'Sequenced 142 cutover tasks'}
-    };
-    // Close chat so the dependency modal is the focus; agents keep updating under the hood
-    this.setState({ reviewRun:{ i:0, done:false }, agentsScanning:true, agentLive:Object.assign({}, this.state.agentLive||{}, busy), reviewLastRun:Date.now(), copilotOpen:false });
+    var busy=this._agentSnapshot(parkedKeep, false, true);
+    // Keep Copilot open so the header + Super Agents animate live under the modal
+    this.setState({ reviewRun:{ i:0, done:false }, agentsScanning:true, agentLive:Object.assign({}, this.state.agentLive||{}, busy), reviewLastRun:Date.now(), copilotOpen:true });
     if(['dashboard','spec','trace','review','build','integrations','mapping','analyse','capture','config'].indexOf(this.state.screen)<0){ this.go('review'); }
     for(var k=1;k<N;k++){ (function(k){ self._rvT.push(setTimeout(function(){ self.setState(function(st){ return st.reviewRun?{reviewRun:Object.assign({},st.reviewRun,{i:k})}:null; }); }, k*470)); })(k); }
     this._rvT.push(setTimeout(function(){
       var parked=!!self.state.reviewResolved || parkedKeep;
-      var al={
-        'Fit-Gap Agent':{busy:false, act:'318 steps scored · 78% fit · 2 true gaps'},
-        'Deliverable Agent':{busy:false, act: parked ? 'FS-118 parked in RAID · 5 deliverables clear' : 'FS-118 open item blocks sign-off'},
-        'Quality & Risk Agent':{busy:false, act: parked ? 'Gates ready for sign-off · 2 warnings remain' : '1 hard blocker · 2 warnings · 7 flags'},
-        'System Intelligence Agent':{busy:false, act:'Scanned 4,820 custom objects · 62% dormant'},
-        'Cutover Agent':{busy:false, act:'Sequenced 142 cutover tasks'}
-      };
+      var al=self._agentSnapshot(parked, true, false);
       self.setState(function(st){
         if(!st.reviewRun) return { agentLive:al, agentsScanning:false, reviewCompleted:true };
         return { reviewRun:Object.assign({},st.reviewRun,{done:true}), agentLive:al, agentsScanning:false, reviewCompleted:true };
@@ -5284,7 +5291,9 @@ class Component extends DCLogic {
   resolveBlocker(){
     const signed=!!(this.state.blueprintSigned||this.state.signCleared);
     try{ localStorage.setItem('dl_cgx_review_resolved','1'); }catch(e){}
-    this.setState(s=>({ reviewResolved:true, signCleared: signed ? true : s.signCleared, agentLive:Object.assign({}, s.agentLive||{}, { 'Deliverable Agent':{busy:false, act:'FS-118 parked in RAID · 5 deliverables clear'}, 'Quality & Risk Agent':{busy:false, act:'Gates ready for sign-off · 2 warnings remain'} }) }));
+    const done=!!(this.state.reviewCompleted || (this.state.reviewRun && this.state.reviewRun.done));
+    const al=this._agentSnapshot(true, done, false);
+    this.setState(s=>({ reviewResolved:true, signCleared: signed ? true : s.signCleared, agentLive:Object.assign({}, s.agentLive||{}, al) }));
     this.showToast(signed ? 'FS-118 parked — Explore → Realize conditions accepted. Open Build Readiness, then Configure via CBC.' : 'FS-118 open item assigned to the Process Owner with a decide-by date — tracked in RAID. Sign the cleared deliverables, then Build Readiness.','parking the blocker');
   }
   resyncSpec(){ this.setState({ specSynced:true }); this.showToast('§3.3 re-synced from mapping O2C-021 — the 74% pricing re-score and its CBC note are now reflected in the draft. Drift cleared.','re-syncing the spec'); }
@@ -5630,7 +5639,21 @@ class Component extends DCLogic {
   setRole(r){ this.setState({ role: r, roleMenuOpen: false, settingsOpen: false }); }
   toggleRoleMenu(){ this.setState(s=>({ roleMenuOpen: !s.roleMenuOpen })); }
   toggleGroup(k){ this.setState(s=>({ openGroups: { ...(s.openGroups||{}), [k]: !((s.openGroups||{})[k]) } })); }
-  toggleCopilot(v){ this.setState({ copilotOpen: v }); if(v){ try{ this.refreshLiveAgents(false); }catch(e){} } }
+  toggleCopilot(v){
+    if(v){
+      var parked=!!this.state.reviewResolved;
+      var done=!!(this.state.reviewCompleted || (this.state.reviewRun && this.state.reviewRun.done));
+      var scanning=!!(this.state.reviewRun && !this.state.reviewRun.done);
+      var seed = (!this.state.agentLive || !Object.keys(this.state.agentLive).length)
+        ? this._agentSnapshot(parked, done, scanning) : null;
+      this.setState(seed
+        ? { copilotOpen:true, agentLive:seed, agentLiveClient:this.state.client||'meridian' }
+        : { copilotOpen:true });
+      try{ this.refreshLiveAgents(false); }catch(e){}
+    } else {
+      this.setState({ copilotOpen:false });
+    }
+  }
   setAsk(v){ this.setState({ askText: v }); }
   setStepQ(v){ this.setState({ stepQ: v }); }
   cycleStepCls(){
@@ -6063,7 +6086,31 @@ class Component extends DCLogic {
       this.updateChatAns(idx, Object.assign({ thinking:false, offline:true }, fb));
     }
   }
-  // ===== LIVE SUPER AGENTS — tenant-scoped, powered by Claude =====
+  // ===== LIVE SUPER AGENTS — tenant-scoped; DEMO scan works offline, Claude when online =====
+  refreshDemoAgents(){
+    if(this._agDemoT){ this._agDemoT.forEach(clearTimeout); }
+    this._agDemoT=[];
+    var self=this;
+    var parked=!!this.state.reviewResolved;
+    var done=!!(this.state.reviewCompleted || (this.state.reviewRun && this.state.reviewRun.done));
+    var scanBusy=this._agentSnapshot(parked, done, true);
+    // brief busy pulse on the two background monitors + Deliverable during scan
+    scanBusy['System Intelligence Agent']={busy:true, act:'Re-scanning custom objects on the tenant…'};
+    this.setState(s=>({ agentLive:Object.assign({}, s.agentLive||{}, scanBusy), agentsScanning:true, agentLiveClient:this.state.client||'meridian' }));
+    this._agDemoT.push(setTimeout(function(){
+      var p=!!self.state.reviewResolved;
+      var d=!!(self.state.reviewCompleted || (self.state.reviewRun && self.state.reviewRun.done));
+      var al=self._agentSnapshot(p, d, false);
+      // stamp a fresh “just refreshed” nuance so the UI visibly updates
+      if(!d){ al['Fit-Gap Agent']={busy:true, act:'Re-scored 23 O2C steps · Best-Practice v2408'}; }
+      if(!p){ al['Quality & Risk Agent']={busy:true, act:'7 flags live · FS-118 still hard-blocks sign-off'}; }
+      else { al['Quality & Risk Agent']={busy:false, act:'Gates ready · FS-118 parked · 2 warnings remain'}; }
+      al['System Intelligence Agent']={busy:false, act:'Re-scan complete · 4,820 objects · 62% dormant'};
+      al['Cutover Agent']={busy:false, act:'Cutover sequence current · 142 tasks'};
+      self.setState({ agentLive:al, agentsScanning:false });
+      self.showToast(p ? 'Agents refreshed — FS-118 parked; Quality & Risk idle.' : 'Agents refreshed — Fit-Gap + Quality & Risk still running on sign-off feeds.','super agents');
+    }, 1100));
+  }
   async refreshLiveAgents(force){
     var CLINAMES={meridian:'Meridian Foods',rio:'Rio Tinto',wesfarmers:'Wesfarmers Health',bhp:'BHP',woodside:'Woodside Energy',brisbane:'Brisbane City Council',mecca:'Mecca'};
     var INDUSTRY={meridian:'food manufacturing',rio:'mining & resources',wesfarmers:'health & pharmacy retail',bhp:'mining & resources',woodside:'energy / oil & gas',brisbane:'local government',mecca:'beauty retail'};
@@ -6075,24 +6122,33 @@ class Component extends DCLogic {
     // already loaded for this tenant and not forced → skip
     if(!force && this.state.agentLiveClient===clientKey && this.state.agentLive && !this.state.agentsScanning) return;
     var online = (typeof window!=='undefined' && window.claude && window.claude.complete);
-    if(!online) return; // keep the static seed when AI is offline (DEMO mode)
+    // DEMO / offline — still fully functional: animate a state-aware rescan
+    if(!online){ this.refreshDemoAgents(); return; }
     var LIVE=[
       {name:'Fit-Gap Agent', job:'re-scoring the Order-to-Cash process steps against SAP Best-Practice v2408 and flagging clean-core risks where custom code would breach the digital core'},
+      {name:'Deliverable Agent', job:'checking Functional Spec FS-118 coverage and open items that block sign-off'},
       {name:'Quality & Risk Agent', job:'raising quality and risk flags ahead of human sign-off — segregation-of-duties conflicts, missing traceability links, and test-data gaps'}
     ];
-    var busy={}; LIVE.forEach(a=>{ busy[a.name]={busy:true}; });
+    var busy={}; LIVE.forEach(a=>{ busy[a.name]={busy:true, act:'Scanning the '+CN+' tenant…'}; });
     this.setState(s=>({ agentLive: Object.assign({}, s.agentLive, busy), agentsScanning:true, agentLiveClient:clientKey }));
     var self=this;
+    var parked=!!this.state.reviewResolved;
     LIVE.forEach(async function(a){
       try{
         var prompt = 'You are the "'+a.name+'", one of Cognixa\u2019s autonomous super-agents working live inside the '+CN+' tenant (a '+IND+' company running an SAP S/4HANA Cloud Public 2408 greenfield Order-to-Cash programme, clean-core, human-in-the-loop). '
-          + 'You are currently '+a.job+'. '
+          + 'You are currently '+a.job+'. FS-118 is '+(parked?'parked in RAID with an owner':'still an open hard blocker')+'. '
           + 'Write ONE present-tense status line describing exactly what you are doing right now in THIS tenant. Max 10 words. Cite one concrete number or SAP object/ID (e.g. a step count, a percentage, an O2C-/FS-/SEC- id). No preamble, no quotes, no trailing full stop. Plain text only.';
         var text = await window.claude.complete(prompt);
         var line = (text||'').trim().replace(/^["'\u2018\u201c]|["'\u2019\u201d.]+$/g,'').replace(/\s+/g,' ').slice(0,120);
-        self.setState(s=>{ var al=Object.assign({}, s.agentLive); al[a.name]={ busy:false, act: line||(al[a.name]&&al[a.name].act) }; var stillBusy=LIVE.some(x=>al[x.name]&&al[x.name].busy); return { agentLive:al, agentsScanning:stillBusy }; });
+        self.setState(s=>{
+          var al=Object.assign({}, s.agentLive);
+          var keepBusy = (a.name==='Fit-Gap Agent' && !(s.reviewCompleted || (s.reviewRun && s.reviewRun.done))) || (a.name==='Quality & Risk Agent' && !s.reviewResolved);
+          al[a.name]={ busy:keepBusy, act: line||(al[a.name]&&al[a.name].act) };
+          var stillBusy=LIVE.some(x=>al[x.name]&&al[x.name].busy);
+          return { agentLive:al, agentsScanning:stillBusy };
+        });
       }catch(e){
-        self.setState(s=>{ var al=Object.assign({}, s.agentLive); al[a.name]={ busy:false }; var stillBusy=LIVE.some(x=>al[x.name]&&al[x.name].busy); return { agentLive:al, agentsScanning:stillBusy }; });
+        self.setState(s=>{ var al=Object.assign({}, s.agentLive); al[a.name]={ busy:false, act:(al[a.name]&&al[a.name].act)||'' }; var stillBusy=LIVE.some(x=>al[x.name]&&al[x.name].busy); return { agentLive:al, agentsScanning:stillBusy }; });
       }
     });
   }
@@ -6340,35 +6396,43 @@ class Component extends DCLogic {
     const _reviewRunningLive = !!(_rvLive && !_rvLive.done);
     const _reviewDoneLive = !!(_rvLive && _rvLive.done) || !!this.state.reviewCompleted;
     const _fsParkedLive = !!this.state.reviewResolved;
+    const _snap = this._agentSnapshot(_fsParkedLive, _reviewDoneLive, _reviewRunningLive);
     const agentsRaw = [
-      {name:'Fit-Gap Agent', status: _reviewRunningLive?'Running':(_reviewDoneLive?'Idle':'Running'), act: _reviewDoneLive?'318 steps scored · 78% fit · 2 true gaps':'Re-scoring 23 steps vs SAP Best-Practice v2408', live: _reviewRunningLive || !_reviewDoneLive},
-      {name:'Deliverable Agent', status: _reviewRunningLive?'Running':'Idle', act: _fsParkedLive?'FS-118 parked in RAID · 5 deliverables clear':(_reviewDoneLive?'FS-118 open item blocks sign-off':'Drafted Functional Spec FS-118 · 9m ago'), live: _reviewRunningLive},
-      {name:'Quality & Risk Agent', status: _reviewRunningLive?'Running':(_fsParkedLive?'Idle':'Running'), act: _reviewRunningLive?'Walking every sign-off dependency feed…':(_fsParkedLive?'Gates ready for sign-off · 2 warnings remain':'7 flags raised pre-sign-off · FS-118 hard blocker'), live: _reviewRunningLive || !_fsParkedLive},
-      {name:'System Intelligence Agent', status:'Idle', act:'Scanned 4,820 custom objects · 62% dormant', live:false},
-      {name:'Cutover Agent', status:'Idle', act:'Sequenced 142 cutover tasks', live:false}
+      {name:'Fit-Gap Agent', status: (_snap['Fit-Gap Agent']||{}).busy?'Running':'Idle', act: (_snap['Fit-Gap Agent']||{}).act, live: !!(_snap['Fit-Gap Agent']||{}).busy},
+      {name:'Deliverable Agent', status: (_snap['Deliverable Agent']||{}).busy?'Running':'Idle', act: (_snap['Deliverable Agent']||{}).act, live: !!(_snap['Deliverable Agent']||{}).busy},
+      {name:'Quality & Risk Agent', status: (_snap['Quality & Risk Agent']||{}).busy?'Running':'Idle', act: (_snap['Quality & Risk Agent']||{}).act, live: !!(_snap['Quality & Risk Agent']||{}).busy},
+      {name:'System Intelligence Agent', status:'Idle', act: (_snap['System Intelligence Agent']||{}).act, live:false},
+      {name:'Cutover Agent', status:'Idle', act: (_snap['Cutover Agent']||{}).act, live:false}
     ];
     const agentLiveMap = this.state.agentLive || {};
     const agentsScanning = !!this.state.agentsScanning || _reviewRunningLive;
     const aiOnline = (typeof window!=='undefined' && window.claude && window.claude.complete);
     const agents = agentsRaw.map(a=>{
       const ov = agentLiveMap[a.name];
-      const busy = !!(ov && ov.busy) || (_reviewRunningLive && (a.name==='Fit-Gap Agent'||a.name==='Deliverable Agent'||a.name==='Quality & Risk Agent'));
-      const act = busy ? ((ov && ov.act) || a.act) : ((ov && ov.act) ? ov.act : a.act);
-      const status = busy ? 'Running' : a.status;
-      const isLive = busy || a.live;
-      const dot = busy ? '#6366F1' : (isLive ? '#16A34A' : '#C2C8D2');
-      const stColor = busy ? '#4F46E5' : (isLive && status==='Running' ? '#15803D' : '#8A93A3');
-      const stBg = busy ? '#EEF0FF' : (isLive && status==='Running' ? '#F0FBF4' : '#F4F6F9');
-      const stBd = busy ? '#DEE0FF' : (isLive && status==='Running' ? '#CDEBD7' : '#E5E9F0');
+      const snapBusy = !!(_snap[a.name] && _snap[a.name].busy);
+      const busy = !!(ov && ov.busy) || snapBusy || (_reviewRunningLive && (a.name==='Fit-Gap Agent'||a.name==='Deliverable Agent'||a.name==='Quality & Risk Agent'));
+      const act = (ov && ov.act) ? ov.act : (a.act || ((_snap[a.name]||{}).act) || '');
+      const status = busy ? 'Running' : 'Idle';
+      const isLive = busy;
+      const dot = busy ? (agentsScanning ? '#6366F1' : '#16A34A') : '#C2C8D2';
+      const stColor = busy ? (agentsScanning ? '#4F46E5' : '#15803D') : '#8A93A3';
+      const stBg = busy ? (agentsScanning ? '#EEF0FF' : '#F0FBF4') : '#F4F6F9';
+      const stBd = busy ? (agentsScanning ? '#DEE0FF' : '#CDEBD7') : '#E5E9F0';
       return { ...a, dot, stColor, stBg, stBd, act, status, busy, isLive };
     });
-    const liveAgents = agents.filter(a=>a.busy || a.status==='Running').length;
-    const agentsLiveBadge = aiOnline ? (agentsScanning ? 'SCANNING TENANT' : 'LIVE · CLAUDE') : 'DEMO';
+    const liveAgents = agents.filter(a=>a.busy).length;
+    const agentsHeaderLabel = agentsScanning
+      ? (liveAgents ? (liveAgents+' super agent'+(liveAgents===1?'':'s')+' scanning') : 'Scanning tenant…')
+      : (liveAgents ? (liveAgents+' super agent'+(liveAgents===1?'':'s')+' running') : 'All agents idle · ready');
+    const agentsHeaderColor = agentsScanning ? '#4F46E5' : (liveAgents ? '#15803D' : '#8A93A3');
+    const agentsHeaderDot = agentsScanning ? '#6366F1' : (liveAgents ? '#16A34A' : '#C2C8D2');
+    const agentsHeaderPulse = (agentsScanning || liveAgents>0) ? 'animation:cgpulse 1.8s ease-in-out infinite' : '';
+    const agentsLiveBadge = aiOnline ? (agentsScanning ? 'SCANNING TENANT' : 'LIVE · CLAUDE') : (agentsScanning ? 'SCANNING' : 'DEMO');
     const agentsLiveOn = aiOnline;
-    const agentsBadgeColor = aiOnline ? (agentsScanning ? '#4F46E5' : '#15803D') : '#8A93A3';
-    const agentsBadgeBg = aiOnline ? (agentsScanning ? '#EEF0FF' : '#F0FBF4') : '#F4F6F9';
-    const agentsBadgeBd = aiOnline ? (agentsScanning ? '#DEE0FF' : '#CDEBD7') : '#E5E9F0';
-    const agentsBadgePulse = (aiOnline && agentsScanning) ? 'animation:cgpulse 1.4s ease-in-out infinite' : '';
+    const agentsBadgeColor = agentsScanning ? '#4F46E5' : (aiOnline ? '#15803D' : '#8A93A3');
+    const agentsBadgeBg = agentsScanning ? '#EEF0FF' : (aiOnline ? '#F0FBF4' : '#F4F6F9');
+    const agentsBadgeBd = agentsScanning ? '#DEE0FF' : (aiOnline ? '#CDEBD7' : '#E5E9F0');
+    const agentsBadgePulse = agentsScanning ? 'animation:cgpulse 1.4s ease-in-out infinite' : '';
     const agentsRefreshSpin = agentsScanning ? 'cgxorbit 0.8s linear infinite' : 'none';
     const refreshAgents = ()=>{ try{ this.refreshLiveAgents(true); }catch(e){} };
     const promptSets = {
@@ -9021,6 +9085,7 @@ class Component extends DCLogic {
       role, roleAbbr, roleList, roleMenuOpen:this.state.roleMenuOpen, toggleRoleMenu:()=>this.toggleRoleMenu(), caps, perm, gates,
       signHint: perm.approve ? 'Stamps name, timestamp & content hash' : 'Your role cannot sign — switch to Approver',
       copilotOpen: this.state.copilotOpen, openCopilot:()=>this.toggleCopilot(true), closeCopilot:()=>this.toggleCopilot(false), agents, liveAgents, prompts,
+      agentsHeaderLabel, agentsHeaderColor, agentsHeaderDot, agentsHeaderPulse,
       agentsLiveBadge, agentsLiveOn, agentsScanning, refreshAgents, agentsBadgeColor, agentsBadgeBg, agentsBadgeBd, agentsBadgePulse, agentsRefreshSpin,
       openValueCase:()=>{ this.toggleCopilot(true); this.sendAsk('How much modification debt did we cut, and why do the numbers hold up?'); },
       goReconcileGap:()=>{ this.setState({ killerBacklogOpen:true }); this.showToast('17 shadow processes — observed live but undocumented. Each is tracked in the killer backlog and routed to an owner before sign-off.'); },
