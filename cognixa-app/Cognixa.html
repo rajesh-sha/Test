@@ -2705,11 +2705,37 @@
               <button onClick="{{ goBuild }}" style="font-size:11.5px;font-weight:600;color:var(--accent,#4F46E5);background:#fff;border:1px solid #D8DEE8;border-radius:8px;padding:7px 10px;cursor:pointer">Build Readiness</button>
             </div>
           </div>
-          <div style="display:flex;justify-content:flex-end;width:100%;margin-top:-6px">
+          <!-- How we connect & deploy — researched best path per edition -->
+          <div style="background:#fff;border:1px solid #E5E9F0;border-radius:14px;padding:16px 18px;margin:0 0 14px;width:100%">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:12px">
+              <div>
+                <div style="font-size:13.5px;font-weight:700;color:#131826">How Cognixa connects &amp; deploys configuration</div>
+                <div style="font-size:11.5px;color:#5A6473;margin-top:3px;line-height:1.5">{{ cfgConnectResearchLead }}</div>
+              </div>
+              <span style="font-size:10.5px;font-weight:700;color:#4F46E5;background:#EEF0FF;padding:3px 9px;border-radius:20px;font-family:'IBM Plex Mono',monospace">RESEARCHED PATH</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+              <sc-for list="{{ cfgConnectResearchCards }}" as="r" hint-placeholder-count="3">
+              <div style="background:#FAFBFD;border:1px solid {{ r.bd }};border-radius:11px;padding:12px 13px">
+                <div style="font-size:10px;letter-spacing:.07em;font-weight:700;color:{{ r.accent }}">{{ r.tier }}</div>
+                <div style="font-size:12.5px;font-weight:700;color:#131826;margin-top:5px">{{ r.title }}</div>
+                <div style="font-size:11.5px;color:#5A6473;margin-top:5px;line-height:1.45">{{ r.body }}</div>
+              </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:12px;font-size:11.5px;color:#5A6473;line-height:1.5"><b style="color:#1B2230">When is a bot required?</b> {{ cfgConnectBotWhen }}</div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;width:100%;margin-top:-6px">
             <button onClick="{{ openCfgBot }}" style="display:inline-flex;align-items:center;gap:8px;background:#0E1525;border:none;color:#fff;font-weight:600;font-size:12.5px;padding:9px 15px;border-radius:10px;cursor:pointer" style-hover="background:#1B2440">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="11" rx="2.5"/><path d="M12 8V5M9 3h6M9 13h.01M15 13h.01M9.5 16.5h5"/></svg>
-              Watch Configuration Bot run CBC → DEV → TEST
+              {{ cfgBotCta }}
             </button>
+            <sc-if value="{{ cfgIsOnPremEdition }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ openCfgBotGui }}" style="display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #E8D4B0;color:#7A4B12;font-weight:600;font-size:12.5px;padding:9px 15px;border-radius:10px;cursor:pointer" style-hover="background:#FFF8EB">
+              Residual SAP GUI bot (no BC Set / no API)
+            </button>
+            </sc-if>
           </div>
 
         <!-- source → target strip -->
@@ -2744,11 +2770,11 @@
             <div style="flex:none;width:46px;height:2px;background:{{ cfgPipeLine12 }}"></div>
             <div onClick="{{ cfgPipeStep2Act }}" style="flex:1;text-align:center;cursor:pointer" style-hover="opacity:.82"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep2Bg }};display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><path d="{{ cfgPipeStep2Icon }}"/></svg></div><div style="font-size:11.5px;color:#fff;font-weight:600">{{ cfgPipeStep2Title }}</div><div style="font-size:10px;color:#9DA8FF;margin-top:2px;text-decoration:underline">{{ cfgPipeStep2Sub }}</div></div>
             <div style="flex:none;width:46px;height:2px;background:{{ cfgPipeLine23 }}"></div>
-            <div onClick="{{ cfgPipeStep3Act }}" style="flex:1;text-align:center;cursor:pointer" style-hover="opacity:.82"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep3Bg }};border:{{ cfgPipeStep3Border }};display:flex;align-items:center;justify-content:center;margin:0 auto 7px;box-shadow:{{ cfgPipeStep3Shadow }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="{{ cfgPipeStep3Icon }}"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep3Title }};font-weight:600">3 · DEV customizing</div><div style="font-size:10px;color:#9DA8FF;margin-top:2px;text-decoration:underline">{{ cfgPipeStep3Sub }}</div></div>
+            <div onClick="{{ cfgPipeStep3Act }}" style="flex:1;text-align:center;cursor:pointer" style-hover="opacity:.82"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep3Bg }};border:{{ cfgPipeStep3Border }};display:flex;align-items:center;justify-content:center;margin:0 auto 7px;box-shadow:{{ cfgPipeStep3Shadow }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="{{ cfgPipeStep3Icon }}"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep3Title }};font-weight:600">{{ cfgPipeStep3Label }}</div><div style="font-size:10px;color:#9DA8FF;margin-top:2px;text-decoration:underline">{{ cfgPipeStep3Sub }}</div></div>
             <div style="flex:none;width:46px;height:2px;background:{{ cfgPipeLine34 }}"></div>
-            <div onClick="{{ cfgPipeStep4Act }}" style="flex:1;text-align:center;cursor:pointer" style-hover="opacity:.82"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep4Bg }};border:{{ cfgPipeStep4Border }};display:flex;align-items:center;justify-content:center;margin:0 auto 7px;box-shadow:{{ cfgPipeStep4Shadow }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{{ cfgPipeStep4Stroke }}" stroke-width="2"><path d="{{ cfgPipeStep4Icon }}"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep4Title }};font-weight:600">4 · Export + ALM gate</div><div style="font-size:10px;color:{{ cfgPipeStep4SubColor }};margin-top:2px;text-decoration:underline">{{ cfgPipeStep4Sub }}</div></div>
+            <div onClick="{{ cfgPipeStep4Act }}" style="flex:1;text-align:center;cursor:pointer" style-hover="opacity:.82"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep4Bg }};border:{{ cfgPipeStep4Border }};display:flex;align-items:center;justify-content:center;margin:0 auto 7px;box-shadow:{{ cfgPipeStep4Shadow }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{{ cfgPipeStep4Stroke }}" stroke-width="2"><path d="{{ cfgPipeStep4Icon }}"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep4Title }};font-weight:600">{{ cfgPipeStep4Label }}</div><div style="font-size:10px;color:{{ cfgPipeStep4SubColor }};margin-top:2px;text-decoration:underline">{{ cfgPipeStep4Sub }}</div></div>
             <div style="flex:none;width:46px;height:2px;background:{{ cfgPipeLine45 }}"></div>
-            <div onClick="{{ cfgPipeStep5Act }}" style="flex:1;text-align:center;cursor:pointer" style-hover="opacity:.82"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep5Bg }};border:{{ cfgPipeStep5Border }};display:flex;align-items:center;justify-content:center;margin:0 auto 7px;box-shadow:{{ cfgPipeStep5Shadow }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{{ cfgPipeStep5Stroke }}" stroke-width="2"><path d="{{ cfgPipeStep5Icon }}"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep5Title }};font-weight:600">5 · Import TEST → PROD</div><div style="font-size:10px;color:{{ cfgPipeStep5SubColor }};margin-top:2px;text-decoration:underline">{{ cfgPipeStep5Sub }}</div></div>
+            <div onClick="{{ cfgPipeStep5Act }}" style="flex:1;text-align:center;cursor:pointer" style-hover="opacity:.82"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep5Bg }};border:{{ cfgPipeStep5Border }};display:flex;align-items:center;justify-content:center;margin:0 auto 7px;box-shadow:{{ cfgPipeStep5Shadow }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{{ cfgPipeStep5Stroke }}" stroke-width="2"><path d="{{ cfgPipeStep5Icon }}"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep5Title }};font-weight:600">{{ cfgPipeStep5Label }}</div><div style="font-size:10px;color:{{ cfgPipeStep5SubColor }};margin-top:2px;text-decoration:underline">{{ cfgPipeStep5Sub }}</div></div>
           </div>
         </div>
 
@@ -2818,7 +2844,7 @@
               <button onClick="{{ cfgImportTest }}" style="width:100%;margin-top:8px;font-size:12px;font-weight:600;color:#3A4252;background:#fff;border:1px solid #D8DEE8;border-radius:9px;padding:9px;cursor:pointer" style-hover="background:var(--surface,#F4F6F9)">{{ cfgImportLabel }}</button>
               <button onClick="{{ cfgAlmApprove }}" style="width:100%;margin-top:8px;font-size:12px;font-weight:600;color:#fff;background:var(--accent,#4F46E5);border:none;border-radius:9px;padding:9px;cursor:pointer">{{ cfgAlmLabel }}</button>
               <sc-if value="{{ cfgCanForwardProd }}" hint-placeholder-val="{{ false }}">
-              <button onClick="{{ cfgForwardProd }}" style="width:100%;margin-top:8px;font-size:12px;font-weight:600;color:#fff;background:#16A34A;border:none;border-radius:9px;padding:9px;cursor:pointer">Forward Import Collection → PROD</button>
+              <button onClick="{{ cfgForwardProd }}" style="width:100%;margin-top:8px;font-size:12px;font-weight:600;color:#fff;background:#16A34A;border:none;border-radius:9px;padding:9px;cursor:pointer">{{ cfgForwardProdLabel }}</button>
               </sc-if>
             </div>
             <div style="background:#FFF8EB;border:1px solid #F0E2CC;border-radius:14px;padding:14px 16px">
@@ -2828,8 +2854,8 @@
             <div style="background:#fff;border:1px solid #E5E9F0;border-radius:14px;padding:14px 16px">
               <div style="font-size:12.5px;font-weight:700;color:#131826;margin-bottom:8px">Active transports</div>
               <div style="display:flex;flex-direction:column;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11px">
-                <div style="display:flex;justify-content:space-between"><span style="color:#8A93A3">CBC request</span><span style="color:#1B2230">{{ cfgTrCbcLabel }}</span></div>
-                <div style="display:flex;justify-content:space-between"><span style="color:#8A93A3">BC request</span><span style="color:#1B2230">{{ cfgTrBcLabel }}</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:#8A93A3">{{ cfgTrPrimaryLabel }}</span><span style="color:#1B2230">{{ cfgTrCbcLabel }}</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:#8A93A3">{{ cfgTrSecondaryLabel }}</span><span style="color:#1B2230">{{ cfgTrBcLabel }}</span></div>
                 <div style="display:flex;justify-content:space-between"><span style="color:#8A93A3">Pipeline</span><span style="color:var(--accent,#4F46E5)">{{ cfgPipelineStatus }}</span></div>
               </div>
             </div>
@@ -3074,7 +3100,7 @@
             <div style="padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #1F2A40">
               <div style="display:flex;align-items:center;gap:10px">
                 <span style="width:30px;height:30px;border-radius:8px;background:linear-gradient(140deg,#6366F1,#4338CA);display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="4" y="8" width="16" height="11" rx="2.5"/><path d="M12 8V5M9 3h6M9 13h.01M15 13h.01M9.5 16.5h5"/></svg></span>
-                <div><div style="font-size:13.5px;font-weight:700;color:#fff">Configuration Bot</div><div style="font-size:10.5px;color:#8A93A3">Public Cloud · CBC activity Define Company Code AU01 → DEV customizing</div></div>
+                <div><div style="font-size:13.5px;font-weight:700;color:#fff">Configuration Bot</div><div style="font-size:10.5px;color:#8A93A3">{{ cfgBotOpen.subtitle }}</div></div>
               </div>
               <div style="display:flex;align-items:center;gap:10px">
                 <span style="font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:20px;background:{{ cfgBotOpen.statusBg }};color:{{ cfgBotOpen.statusColor }}">{{ cfgBotOpen.statusLabel }}</span>
@@ -3097,38 +3123,38 @@
                   </div>
                   <div style="background:#0A6ED1;padding:14px 16px;display:flex;align-items:center;gap:9px">
                     <span style="font-weight:800;font-size:15px;color:#fff;letter-spacing:.04em">SAP</span>
-                    <span style="font-size:12px;color:#CFE3FB;font-weight:600">Central Business Configuration</span>
+                    <span style="font-size:12px;color:#CFE3FB;font-weight:600">{{ cfgBotOpen.productName }}</span>
                   </div>
                   <div style="padding:18px 18px 22px;background:#F7F8FA">
                     <div style="display:flex;flex-direction:column;gap:11px">
                       <div>
-                        <div style="font-size:10px;color:#8A93A3;font-weight:600;margin-bottom:4px">PROJECT / TARGET</div>
-                        <div style="border:1.5px solid #D8DEE8;background:#fff;border-radius:7px;padding:8px 11px;font-size:12px;color:#131826;font-family:'IBM Plex Mono',monospace">AU_SCOPE · DEV customizing 100</div>
+                        <div style="font-size:10px;color:#8A93A3;font-weight:600;margin-bottom:4px">{{ cfgBotOpen.targetLabel }}</div>
+                        <div style="border:1.5px solid #D8DEE8;background:#fff;border-radius:7px;padding:8px 11px;font-size:12px;color:#131826;font-family:'IBM Plex Mono',monospace">{{ cfgBotOpen.targetValue }}</div>
                       </div>
                       <div>
-                        <div style="font-size:10px;color:#8A93A3;font-weight:600;margin-bottom:4px">USER (technical)</div>
+                        <div style="font-size:10px;color:#8A93A3;font-weight:600;margin-bottom:4px">{{ cfgBotOpen.userLabel }}</div>
                         <div style="border:1.5px solid {{ cfgBotLgUserBd }};background:{{ cfgBotLgUserBg }};border-radius:7px;padding:8px 11px;font-size:12px;color:#131826;font-family:'IBM Plex Mono',monospace;min-height:16px">{{ cfgBotLgUserVal }}</div>
                       </div>
                       <div>
-                        <div style="font-size:10px;color:#8A93A3;font-weight:600;margin-bottom:4px">CREDENTIAL (OAuth client secret)</div>
+                        <div style="font-size:10px;color:#8A93A3;font-weight:600;margin-bottom:4px">{{ cfgBotOpen.credLabel }}</div>
                         <div style="border:1.5px solid {{ cfgBotLgPassBd }};background:{{ cfgBotLgPassBg }};border-radius:7px;padding:8px 11px;font-size:12px;color:#131826;font-family:'IBM Plex Mono',monospace;letter-spacing:2px;min-height:16px">{{ cfgBotLgPassVal }}</div>
                       </div>
                       <button style="margin-top:4px;border:none;border-radius:8px;padding:10px;font-size:12.5px;font-weight:700;color:#fff;background:{{ cfgBotOpen.lgBtnBg }};cursor:default">{{ cfgBotOpen.lgBtnLabel }}</button>
                     </div>
                   </div>
                 </div>
-                <div style="font-size:10.5px;color:#6B7488;line-height:1.5;margin-top:12px">Shown for illustration. In reality there's no password screen — the agent presents an OAuth token to the CBC Communication Arrangement. Technical user only; CBC can deploy into DEV customizing, never straight to PROD.</div>
+                <div style="font-size:10.5px;color:#6B7488;line-height:1.5;margin-top:12px">{{ cfgBotOpen.loginHint }}</div>
                 </sc-if>
 
                 <sc-if value="{{ cfgBotOpen.showForm }}" hint-placeholder-val="{{ false }}">
                 <div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 10px 30px -12px rgba(0,0,0,.5)">
                   <div style="background:#354A5F;padding:9px 14px;display:flex;align-items:center;gap:8px">
                     <span style="width:9px;height:9px;border-radius:50%;background:#fff;opacity:.6"></span>
-                    <span style="font-size:11px;color:#fff;font-weight:600">CBC — Define Company Code (SSCUI)</span>
-                    <span style="margin-left:auto;font-size:9.5px;color:#C7D2DD;font-family:'IBM Plex Mono',monospace">DEV·100 · CGX_CFG_BOT</span>
+                    <span style="font-size:11px;color:#fff;font-weight:600">{{ cfgBotOpen.formTitle }}</span>
+                    <span style="margin-left:auto;font-size:9.5px;color:#C7D2DD;font-family:'IBM Plex Mono',monospace">{{ cfgBotOpen.formMeta }}</span>
                   </div>
                   <div style="padding:16px 18px 20px;background:#F7F8FA">
-                    <div style="font-size:11px;color:#8A93A3;margin-bottom:12px">Configuration activity · values from signed BDCQ workbook</div>
+                    <div style="font-size:11px;color:#8A93A3;margin-bottom:12px">{{ cfgBotOpen.formLead }}</div>
                     <div style="display:flex;flex-direction:column;gap:10px">
                       <sc-for list="{{ cfgBotOpen.fields }}" as="f" hint-placeholder-count="6">
                       <div style="display:grid;grid-template-columns:.7fr 1.3fr;gap:10px;align-items:center">
@@ -3140,16 +3166,15 @@
                   </div>
                 </div>
                 </sc-if>
-                <div style="font-size:10.5px;color:#6B7488;line-height:1.5;margin-top:12px">Simulation of the Public Cloud path. The bot confirms CBC activities into the DEV customizing tenant, then advances Export → Import Collection (TEST) under the Cloud ALM gate — never direct to PROD.</div>
+                <div style="font-size:10.5px;color:#6B7488;line-height:1.5;margin-top:12px">{{ cfgBotOpen.simNote }}</div>
 
                 <!-- run context: who/where/how it logs in -->
                 <div style="margin-top:14px;background:#141D30;border:1px solid #1F2A40;border-radius:11px;padding:13px 15px">
-                  <div style="font-size:10px;letter-spacing:.06em;color:#8A93A3;font-weight:700;margin-bottom:9px">RUN CONTEXT — PUBLIC CLOUD CBC</div>
+                  <div style="font-size:10px;letter-spacing:.06em;color:#8A93A3;font-weight:700;margin-bottom:9px">{{ cfgBotOpen.contextTitle }}</div>
                   <div style="display:flex;flex-direction:column;gap:9px">
-                    <div style="display:flex;gap:10px"><span style="font-size:10.5px;color:#8A93A3;width:74px;flex:none">Runner</span><span style="font-size:11px;color:#C7D2DD;line-height:1.45">A headless Cognixa agent on SAP BTP (Cloud Foundry) — no desktop, no browser session. A server runs it, not a person.</span></div>
-                    <div style="display:flex;gap:10px"><span style="font-size:10.5px;color:#8A93A3;width:74px;flex:none">Identity</span><span style="font-size:11px;color:#C7D2DD;line-height:1.45">Technical user <b style="color:#fff;font-family:'IBM Plex Mono',monospace">CGX_CFG_BOT</b> — OAuth 2.0 client credentials into CBC / Communication Arrangement.</span></div>
-                    <div style="display:flex;gap:10px"><span style="font-size:10.5px;color:#8A93A3;width:74px;flex:none">Reaches it</span><span style="font-size:11px;color:#C7D2DD;line-height:1.45">CBC project experience linked to the 3SL Public Edition landscape — deploy target is DEV customizing only.</span></div>
-                    <div style="display:flex;gap:10px"><span style="font-size:10.5px;color:#8A93A3;width:74px;flex:none">Pipeline</span><span style="font-size:11px;color:#C7D2DD;line-height:1.45">After DEV: Export Customizing Transports → Import Collection (TEST) → Cloud ALM quality approval → forward PROD.</span></div>
+                    <sc-for list="{{ cfgBotOpen.contextRows }}" as="cx" hint-placeholder-count="4">
+                    <div style="display:flex;gap:10px"><span style="font-size:10.5px;color:#8A93A3;width:74px;flex:none">{{ cx.k }}</span><span style="font-size:11px;color:#C7D2DD;line-height:1.45">{{ cx.v }}</span></div>
+                    </sc-for>
                   </div>
                 </div>
               </div>
@@ -3160,12 +3185,12 @@
 
                 <!-- what tells the bot what to do -->
                 <div style="background:#141D30;border:1px solid #1F2A40;border-radius:10px;padding:11px 13px;margin-bottom:13px">
-                  <div style="font-size:10px;letter-spacing:.06em;color:#8A93A3;font-weight:700;margin-bottom:7px">DRIVEN BY — SIGNED SCOPE → CBC</div>
+                  <div style="font-size:10px;letter-spacing:.06em;color:#8A93A3;font-weight:700;margin-bottom:7px">{{ cfgBotOpen.drivenTitle }}</div>
                   <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9DA8FF" stroke-width="2" style="flex:none"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5z"/></svg>
-                    <span style="font-size:11px;color:#C7D2DD">Playbook <b style="color:#fff;font-family:'IBM Plex Mono',monospace">CFG-BOT/CBC/FI/0001</b> · SSCUI · Company Code</span>
+                    <span style="font-size:11px;color:#C7D2DD">{{ cfgBotOpen.drivenPlaybook }}</span>
                   </div>
-                  <div style="font-size:10.5px;color:#8A93A3;line-height:1.5">Steps come from the <b style="color:#C7D2DD">Accelerator Library</b>; values come from the signed BDCQ / config workbook. Bot confirms into CBC, deploys to DEV customizing, then walks Export → Import Collection under Cloud ALM.</div>
+                  <div style="font-size:10.5px;color:#8A93A3;line-height:1.5">{{ cfgBotOpen.drivenBody }}</div>
                 </div>
                 <div style="flex:1;display:flex;flex-direction:column;gap:8px;font-family:'IBM Plex Mono',monospace">
                   <sc-for list="{{ cfgBotOpen.steps }}" as="s" hint-placeholder-count="6">
@@ -3181,7 +3206,7 @@
                 </div>
                 <div style="display:flex;gap:9px;margin-top:12px">
                   <sc-if value="{{ cfgBotOpen.done }}" hint-placeholder-val="{{ false }}">
-                  <button onClick="{{ cfgBotOpen.signoff }}" style="flex:1;background:#16A34A;border:none;color:#fff;font-weight:600;font-size:12px;padding:10px;border-radius:9px;cursor:pointer">Forward Import Collection → PROD</button>
+                  <button onClick="{{ cfgBotOpen.signoff }}" style="flex:1;background:#16A34A;border:none;color:#fff;font-weight:600;font-size:12px;padding:10px;border-radius:9px;cursor:pointer">{{ cfgBotOpen.signoffLabel }}</button>
                   <button onClick="{{ cfgBotOpen.replay }}" style="flex:none;background:#1C2435;border:1px solid #2F3B52;color:#C7D2DD;font-weight:600;font-size:12px;padding:10px 14px;border-radius:9px;cursor:pointer">Replay</button>
                   </sc-if>
                   <sc-if value="{{ cfgBotNotDone }}" hint-placeholder-val="{{ true }}">
@@ -3221,6 +3246,16 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"/></svg>
             {{ remRunLabel }}
           </button>
+        </div>
+
+        <div style="background:#FAFBFD;border:1px solid #E5E9F0;border-radius:12px;padding:14px 16px;margin:0 0 16px">
+          <div style="font-size:12.5px;font-weight:700;color:#131826">How code connects &amp; deploys</div>
+          <div style="font-size:11.5px;color:#5A6473;margin-top:4px;line-height:1.5">{{ remConnectResearch }}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+            <span style="font-size:10.5px;font-weight:600;color:#3A4252;background:#EEF0FF;padding:3px 9px;border-radius:20px;font-family:'IBM Plex Mono',monospace">{{ remDeployChip1 }}</span>
+            <span style="font-size:10.5px;font-weight:600;color:#3A4252;background:#E7F6EC;padding:3px 9px;border-radius:20px;font-family:'IBM Plex Mono',monospace">{{ remDeployChip2 }}</span>
+            <span style="font-size:10.5px;font-weight:600;color:#7A4B12;background:#FFF8EB;padding:3px 9px;border-radius:20px;font-family:'IBM Plex Mono',monospace">{{ remDeployChip3 }}</span>
+          </div>
         </div>
 
         <!-- source → engine → target -->
@@ -5447,9 +5482,19 @@ class Component extends DCLogic {
   saveEditCap(){ const d=this.state.capDraft||{}; const who=(this.state.name||'').trim()||'You'; if(!(d.text||'').trim()){ this.showToast('Add the item text first'); return; } const e=this.state.capEditing; const rec={ text:d.text.trim(), kind:d.kind||'decision', owner:d.owner||who, route:(d.route||'').trim()||'Unassigned', by:who }; if(e==='new'){ this.setState(s=>({ capAdded:[...(s.capAdded||[]), rec], capEditing:null, capDraft:null })); this.showToast('Manual item added — stamped “Added · '+who+'”. AI fused count is unchanged; provenance is kept for audit.','adding a manual item'); } else if(typeof e==='string' && e[0]==='m'){ const j=+e.slice(1); this.setState(s=>{ const arr=(s.capAdded||[]).slice(); if(arr[j]) arr[j]=Object.assign({}, arr[j], rec); return { capAdded:arr, capEditing:null, capDraft:null }; }); this.showToast('Manual item updated — stamped “Manual · '+who+'”.','editing a manual item'); } else { this.setState(s=>({ capEdits: Object.assign({}, s.capEdits, { [e]: rec }), capEditing:null, capDraft:null })); this.showToast('Item corrected — stamped “Edited · '+who+'”. The original AI value is kept in the audit trail.','editing an item'); } }
   acceptAllCap(){ const all={}; for(let i=0;i<9;i++) all[i]=true; this.setState({ capRouted: all }); this.showToast('9 items routed — 4 to Jira, 2 to Cloud ALM, 3 to decision log', 'routing the workshop items'); }
   parkAssign(i){ this.setState(s=>({ parkAssigned: Object.assign({}, s.parkAssigned, { [i]: true }) })); this.showToast('Open item given an owner + decide-by date — added to the program RAID so it can\'t slip', 'tracking the open item'); }
-  openCfgBot(){ if(this._botT){ clearInterval(this._botT); this._botT=null; } this.setState({ cfgBot:{ step:0, playing:false, done:false } }); }
+  _cfgBotMode(mode){
+    const d=this.state.deploy||this._deployDefaults();
+    const onprem=(d.s4Edition||'public')==='onprem';
+    if(mode==='gui') return 'gui';
+    if(mode==='bcset' || mode==='cbc') return mode;
+    return onprem ? 'bcset' : 'cbc';
+  }
+  openCfgBot(mode){ if(this._botT){ clearInterval(this._botT); this._botT=null; } const m=this._cfgBotMode(mode); this.setState({ cfgBot:{ step:0, playing:false, done:false, mode:m } }); }
+  openCfgBotGui(){ this.openCfgBot('gui'); }
   _cfgBotSyncDeploy(n, done){
     const d=this.state.deploy||this._deployDefaults();
+    const onprem=(d.s4Edition||'public')==='onprem';
+    const mode=((this.state.cfgBot||{}).mode)|| (onprem?'bcset':'cbc');
     const patch={ cfgConnOk:true };
     if(n>=2 || done) patch.cfgStage=Math.max(d.cfgStage||0,1);
     if(n>=11 || done){
@@ -5457,40 +5502,59 @@ class Component extends DCLogic {
       patch.cfgStaged=staged;
       patch.cfgOrgDone=true;
       patch.cfgStage=Math.max(patch.cfgStage||d.cfgStage||0,2);
-      patch.cfgTrCbc=d.cfgTrCbc||('CBC'+String(900000+((staged*7)%90000)));
-      patch.cfgTrBc=d.cfgTrBc||('BC'+String(910000+((staged*11)%80000)));
+      if(onprem){
+        patch.cfgTrCbc=d.cfgTrCbc||('DEVK'+String(900000+((staged*7)%90000)));
+        patch.cfgTrBc=d.cfgTrBc||('SCPR20·AU_ORG');
+      } else {
+        patch.cfgTrCbc=d.cfgTrCbc||('CBC'+String(900000+((staged*7)%90000)));
+        patch.cfgTrBc=d.cfgTrBc||('BC'+String(910000+((staged*11)%80000)));
+      }
     }
     if(n>=12 || done){ patch.cfgExported=true; patch.cfgStage=Math.max(patch.cfgStage||d.cfgStage||0,3); }
     if(n>=13 || done){ patch.cfgImportedTest=true; patch.cfgStage=Math.max(patch.cfgStage||d.cfgStage||0,4); }
     if(n>=14 || done){ patch.cfgAlmApproved=true; patch.cfgStage=Math.max(patch.cfgStage||d.cfgStage||0,5); }
+    if(mode==='gui' && (n>=11 || done)){ patch.cfgGuiResidual=true; }
     this._setDeploy(patch);
   }
   startCfgBot(){ if(this._botT){ clearInterval(this._botT); }
+    const mode=this._cfgBotMode((this.state.cfgBot||{}).mode);
     this._setDeploy({ cfgConnOk:true, cfgStage:Math.max((this.state.deploy||{}).cfgStage||0,1) });
-    this.setState({ cfgBot:{ step:0, playing:true, done:false } });
+    this.setState({ cfgBot:{ step:0, playing:true, done:false, mode } });
     this._botT = setInterval(()=>{
-      const b=this.state.cfgBot||{step:0}; const n=(b.step||0)+1;
+      const b=this.state.cfgBot||{step:0,mode}; const n=(b.step||0)+1; const m=b.mode||mode;
       if(n>=14){ if(this._botT){ clearInterval(this._botT); this._botT=null; }
         this._cfgBotSyncDeploy(14,true);
-        this.setState({ cfgBot:{ step:14, playing:false, done:true } });
-        this.showToast('Bot complete — CBC → DEV customizing → Export → Import TEST · Cloud ALM quality gate recorded. Forward to PROD when ready.','Configuration Bot');
+        this.setState({ cfgBot:{ step:14, playing:false, done:true, mode:m } });
+        const toast = m==='gui'
+          ? 'Residual GUI bot complete — SPRO step applied in DEV · CTS request released · import QAS under Cloud ALM / STMS. Prefer BC Sets when available.'
+          : (m==='bcset'
+            ? 'Bot complete — BC Set activation → DEV customizing → CTS release → import QAS · Cloud ALM/STMS gate. Forward to PRD when ready.'
+            : 'Bot complete — CBC → DEV customizing → Export → Import TEST · Cloud ALM quality gate recorded. Forward to PROD when ready.');
+        this.showToast(toast,'Configuration Bot');
         return;
       }
       this._cfgBotSyncDeploy(n,false);
-      this.setState({ cfgBot:{ step:n, playing:true, done:false } });
+      this.setState({ cfgBot:{ step:n, playing:true, done:false, mode:m } });
     }, 720);
   }
   closeCfgBot(){ if(this._botT){ clearInterval(this._botT); this._botT=null; } this.setState({ cfgBot:null }); }
   cfgBotSignoff(){
+    const mode=((this.state.cfgBot||{}).mode)||this._cfgBotMode();
     this.closeCfgBot();
     this._cfgBotSyncDeploy(14,true);
     let d=this._deployDefaults();
     try{ d=Object.assign(d, JSON.parse(localStorage.getItem('dl_cgx_deploy')||'{}')); }catch(e){}
+    const onprem=(d.s4Edition||'public')==='onprem';
     if(d.cfgAlmApproved && (d.cfgStage|0)<6){
       this._setDeploy({ cfgStage:6 });
-      this.showToast('Forwarded collection to PROD via Import Collection. Reminder: '+((d.cfgCurrentPending|0)||3)+' current settings stay local (not transported).','forwarding to PROD');
+      this.showToast(onprem
+        ? 'Imported customizing transport to PRD via STMS / Cloud ALM Feature Deployment. Reminder: '+((d.cfgCurrentPending|0)||3)+' client-dependent current settings stay local.'
+        : 'Forwarded collection to PROD via Import Collection. Reminder: '+((d.cfgCurrentPending|0)||3)+' current settings stay local (not transported).',
+        onprem ? 'importing to PRD' : 'forwarding to PROD');
     } else {
-      this.showToast('Public Cloud pipeline complete through Cloud ALM — use Guardrails if you need to re-run a step');
+      this.showToast(onprem
+        ? (mode==='gui' ? 'Residual GUI path complete through QAS — prefer BC Sets / CTS for the bulk of IMG next time.' : 'On-Prem pipeline complete through QAS / ALM — use Guardrails if you need to re-run a step')
+        : 'Public Cloud pipeline complete through Cloud ALM — use Guardrails if you need to re-run a step');
     }
   }
   startRcBot(){ if(this._rcT){ clearInterval(this._rcT); }
@@ -5503,12 +5567,12 @@ class Component extends DCLogic {
   }
   closeRcBot(){ if(this._rcT){ clearInterval(this._rcT); this._rcT=null; } this.setState({ rcBot:null }); }
   /* —— Configure / Remediate / Convert: live demo engines —— */
-  _deployDefaults(){ return { cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, cfgTrCbc:null, cfgTrBc:null, cfgExported:false, cfgImportedTest:false, cfgAlmApproved:false, cfgCurrentPending:3, s4Edition:'public', cfgPath:'fit', cfgEccHarvested:false, cfgEccDeltaMapped:false, cfgMigReady:false, cfgEccBusy:false, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; }
+  _deployDefaults(){ return { cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, cfgTrCbc:null, cfgTrBc:null, cfgExported:false, cfgImportedTest:false, cfgAlmApproved:false, cfgCurrentPending:3, s4Edition:'public', cfgPath:'fit', cfgEccHarvested:false, cfgEccDeltaMapped:false, cfgMigReady:false, cfgEccBusy:false, cfgGuiResidual:false, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; }
   _loadDeploy(){ try{ const raw=localStorage.getItem('dl_cgx_deploy'); if(!raw) return this._deployDefaults(); return Object.assign(this._deployDefaults(), JSON.parse(raw)); }catch(e){ return this._deployDefaults(); } }
   _saveDeploy(patch){ const d=Object.assign({}, this.state.deploy||this._deployDefaults(), patch||{}); try{ localStorage.setItem('dl_cgx_deploy', JSON.stringify(d)); }catch(e){} return d; }
   _setDeploy(patch, extra){ const d=this._saveDeploy(patch); this.setState(Object.assign({ deploy:d }, extra||{})); }
-  cfgRunConnect(){ const d=this.state.deploy||this._deployDefaults(); if(d.cfgChecking) return; this._setDeploy({ cfgChecking:true, cfgConnOk:false }); const ecc=(d.cfgPath||'fit')==='ecc'; this.showToast(ecc ? 'Checking ECC RFC + Public Cloud links — ECC source · CBC workspace · DEV customizing · Migration Cockpit · Cloud ALM…' : 'Checking S/4HANA Cloud Public Edition links — CBC workspace · DEV customizing · Cloud ALM · transport apps…'); clearTimeout(this._cfgConnT); this._cfgConnT=setTimeout(()=>{ this._setDeploy({ cfgChecking:false, cfgConnOk:true }); this.showToast(ecc ? 'Healthy — ECC PRD (read-only) · CBC · DEV 100 · Migration Cockpit · Cloud ALM · Import Collection' : 'Healthy — CBC workspace, DEV customizing 100, Cloud ALM, Export Customizing Transports, Import Collection','the connection check'); }, 1400); }
-  cfgStagePush(){ const d=this.state.deploy||this._deployDefaults(); if(d.cfgChecking) return; if(!d.cfgConnOk && d.cfgConnOk!==undefined){ this.showToast('Run connection check first — CBC must reach the DEV customizing tenant'); return; } this.showToast('Deploying transportable config via CBC → DEV customizing tenant (100). Current settings are held — not on this transport.'); clearTimeout(this._cfgPushT); this._cfgPushT=setTimeout(()=>{ const n=(d.cfgStaged||0)+186; const cbc=d.cfgTrCbc||('CBC'+String(900000+((n*7)%90000))); const bc=d.cfgTrBc||('BC'+String(910000+((n*11)%80000))); this._setDeploy({ cfgStaged:n, cfgStage:Math.max(d.cfgStage||0,2), cfgOrgDone:true, cfgTrCbc:cbc, cfgTrBc:bc, cfgExported:false }); this.showToast(n+' values on '+cbc+' / '+bc+' in DEV customizing — next: Export Customizing Transports','deploying to DEV customizing'); }, 1500); }
+  cfgRunConnect(){ const d=this.state.deploy||this._deployDefaults(); if(d.cfgChecking) return; this._setDeploy({ cfgChecking:true, cfgConnOk:false }); const onprem=(d.s4Edition||'public')==='onprem'; const ecc=!onprem && (d.cfgPath||'fit')==='ecc'; this.showToast(onprem ? 'Checking On-Prem / Private links — RFC to DEV · IMG/SPRO · CTS/STMS · QAS/PRD routes · Cloud ALM Features…' : (ecc ? 'Checking ECC RFC + Public Cloud links — ECC source · CBC workspace · DEV customizing · Migration Cockpit · Cloud ALM…' : 'Checking S/4HANA Cloud Public Edition links — CBC workspace · DEV customizing · Cloud ALM · transport apps…')); clearTimeout(this._cfgConnT); this._cfgConnT=setTimeout(()=>{ this._setDeploy({ cfgChecking:false, cfgConnOk:true }); this.showToast(onprem ? 'Healthy — DEV RFC · SPRO · CTS/STMS · QAS/PRD · Cloud ALM Feature Deployment' : (ecc ? 'Healthy — ECC PRD (read-only) · CBC · DEV 100 · Migration Cockpit · Cloud ALM · Import Collection' : 'Healthy — CBC workspace, DEV customizing 100, Cloud ALM, Export Customizing Transports, Import Collection'),'the connection check'); }, 1400); }
+  cfgStagePush(){ const d=this.state.deploy||this._deployDefaults(); if(d.cfgChecking) return; const onprem=(d.s4Edition||'public')==='onprem'; if(!d.cfgConnOk && d.cfgConnOk!==undefined){ this.showToast(onprem ? 'Run connection check first — RFC must reach DEV for IMG / BC Sets' : 'Run connection check first — CBC must reach the DEV customizing tenant'); return; } this.showToast(onprem ? 'Activating BC Sets / applying transportable IMG in DEV. Client-dependent current settings are held — not on this transport.' : 'Deploying transportable config via CBC → DEV customizing tenant (100). Current settings are held — not on this transport.'); clearTimeout(this._cfgPushT); this._cfgPushT=setTimeout(()=>{ const n=(d.cfgStaged||0)+186; const cbc=d.cfgTrCbc||(onprem?('DEVK'+String(900000+((n*7)%90000))):('CBC'+String(900000+((n*7)%90000)))); const bc=d.cfgTrBc||(onprem?'SCPR20·AU_ORG':('BC'+String(910000+((n*11)%80000)))); this._setDeploy({ cfgStaged:n, cfgStage:Math.max(d.cfgStage||0,2), cfgOrgDone:true, cfgTrCbc:cbc, cfgTrBc:bc, cfgExported:false }); this.showToast(onprem ? (n+' values on '+cbc+' / '+bc+' in DEV — next: release CTS & import QAS') : (n+' values on '+cbc+' / '+bc+' in DEV customizing — next: Export Customizing Transports'), onprem?'deploying to DEV':'deploying to DEV customizing'); }, 1500); }
   cfgGenerateRun(){
     const d=this.state.deploy||this._deployDefaults();
     const onprem=(d.s4Edition||'public')==='onprem';
@@ -5526,6 +5590,11 @@ class Component extends DCLogic {
       'generating configuration');
   }
   setCfgPath(path){
+    const d=this.state.deploy||this._deployDefaults();
+    if((d.s4Edition||'public')==='onprem' && path==='ecc'){
+      this.showToast('ECC → Public Cloud path is for Public Edition only. On-Prem/Private: use IMG configuration, Code Remediation, or System Conversion.');
+      return;
+    }
     const p=(path==='ecc')?'ecc':'fit';
     this._setDeploy({ cfgPath:p });
     this.showToast(p==='ecc'
@@ -5540,8 +5609,8 @@ class Component extends DCLogic {
     this._setDeploy(patch);
     if(e==='public' && this.state.screen==='convert'){ this.go('config'); }
     this.showToast(e==='public'
-      ? 'Edition: Public Cloud — Configuration = CBC/SSCUIs · Code = clean-core extensibility (BTP / ABAP Cloud). No system conversion.'
-      : 'Edition: On-Premise / Private Cloud — Configuration = IMG/SPRO + CTS · Code = ATC + TMS/gCTS · Conversion (SUM/DMO) available.',
+      ? 'Edition: Public Cloud — Config deploy = CBC → Export/Import (+ bot: no CBC write API) · Code = Software Collection / BTP. No system conversion.'
+      : 'Edition: On-Prem / Private — Config deploy = BC Sets + CTS (GUI bot last resort) · Code = ATC + TMS/gCTS · Conversion (SUM/DMO) available.',
       'S/4 edition');
   }
   cfgHarvestEcc(){
@@ -5574,11 +5643,11 @@ class Component extends DCLogic {
     this._setDeploy({ cfgMigReady:true, cfgStage:Math.max(d.cfgStage||0,2) });
     this.showToast('Migration Cockpit ready — Direct Transfer from ECC 6.0 (or Staging Tables). Master + open transactional data only; config stays in CBC.','Migration Cockpit');
   }
-  cfgApplyWl(key, ready, name){ if(!ready){ this.showToast('No ready/transportable items — clear prerequisites, decide held items, or maintain current settings in each system'); return; } const d=this.state.deploy||this._deployDefaults(); const applied=Object.assign({}, d.cfgApplied||{}); applied[key]=(applied[key]||0)+ready; const n=(d.cfgStaged||0)+ready; const cbc=d.cfgTrCbc||('CBC'+String(900000+((n*7)%90000))); const bc=d.cfgTrBc||('BC'+String(910000+((n*11)%80000))); this._setDeploy({ cfgApplied:applied, cfgStage:Math.max(d.cfgStage||0,2), cfgStaged:n, cfgOrgDone:true, cfgTrCbc:cbc, cfgTrBc:bc, cfgExported:false }, { cfgWl:null }); this.showToast((name||key)+': '+ready+' transportable activit'+(ready===1?'y':'ies')+' written to DEV customizing on '+bc,'applying config worklist'); }
-  cfgExportTransports(){ const d=this.state.deploy||this._deployDefaults(); if(!(d.cfgStaged|0) && !d.cfgOrgDone){ this.showToast('Deploy to DEV customizing first — nothing to export yet'); return; } if(d.cfgExported){ this.showToast('Already exported — open Cloud ALM feature or Import Collection on TEST'); return; } this.showToast('Releasing CBC + BC transports in Export Customizing Transports (DEV)…'); clearTimeout(this._cfgExpT); this._cfgExpT=setTimeout(()=>{ const cbc=d.cfgTrCbc||'CBC900421'; const bc=d.cfgTrBc||'BC910118'; this._setDeploy({ cfgExported:true, cfgStage:Math.max(d.cfgStage||0,3), cfgTrCbc:cbc, cfgTrBc:bc }); this.showToast('Exported '+cbc+' + '+bc+' — sequence locked. Import Collection on TEST next (Cloud ALM quality gate).','exporting customizing transports'); }, 1300); }
-  cfgImportTest(){ const d=this.state.deploy||this._deployDefaults(); if(!d.cfgExported){ this.showToast('Export Customizing Transports from DEV first — Import Collection needs a released collection'); return; } if(d.cfgImportedTest){ this.showToast('Already in TEST — record Cloud ALM quality approval to unlock PROD forward'); return; } this.showToast('Import Collection → TEST tenant 100 — validating CBC then BC sequence…'); clearTimeout(this._cfgImpT); this._cfgImpT=setTimeout(()=>{ this._setDeploy({ cfgImportedTest:true, cfgStage:Math.max(d.cfgStage||0,4) }); this.showToast('Imported to TEST — run regression, then Cloud ALM quality approval before PROD','importing to TEST'); }, 1400); }
-  cfgAlmApprove(){ const d=this.state.deploy||this._deployDefaults(); if(!d.cfgImportedTest){ this.showToast('Import to TEST and finish regression before Cloud ALM quality approval'); return; } if(d.cfgAlmApproved){ this.showToast('Cloud ALM feature already quality-approved — ready to forward Import Collection to PROD'); return; } this._setDeploy({ cfgAlmApproved:true, cfgStage:Math.max(d.cfgStage||0,5) }); this.showToast('Cloud ALM quality approval recorded — transports may forward to PROD. Maintain current settings in Implementation Activities per system.','Cloud ALM approval'); }
-  cfgForwardProd(){ const d=this.state.deploy||this._deployDefaults(); if(!d.cfgAlmApproved){ this.showToast('Cloud ALM quality approval required before forwarding to PROD'); return; } this._setDeploy({ cfgStage:6 }); this.showToast('Forwarded collection to PROD via Import Collection. Reminder: '+((d.cfgCurrentPending|0)||3)+' current settings must be maintained directly in TEST/PROD (not transported).','forwarding to PROD'); }
+  cfgApplyWl(key, ready, name){ if(!ready){ this.showToast('No ready/transportable items — clear prerequisites, decide held items, or maintain current settings in each system'); return; } const d=this.state.deploy||this._deployDefaults(); const onprem=(d.s4Edition||'public')==='onprem'; const applied=Object.assign({}, d.cfgApplied||{}); applied[key]=(applied[key]||0)+ready; const n=(d.cfgStaged||0)+ready; const cbc=d.cfgTrCbc||(onprem?('DEVK'+String(900000+((n*7)%90000))):('CBC'+String(900000+((n*7)%90000)))); const bc=d.cfgTrBc||(onprem?'SCPR20·AU_ORG':('BC'+String(910000+((n*11)%80000)))); this._setDeploy({ cfgApplied:applied, cfgStage:Math.max(d.cfgStage||0,2), cfgStaged:n, cfgOrgDone:true, cfgTrCbc:cbc, cfgTrBc:bc, cfgExported:false }, { cfgWl:null }); this.showToast((name||key)+': '+ready+' transportable activit'+(ready===1?'y':'ies')+' written to DEV on '+bc,'applying config worklist'); }
+  cfgExportTransports(){ const d=this.state.deploy||this._deployDefaults(); const onprem=(d.s4Edition||'public')==='onprem'; if(!(d.cfgStaged|0) && !d.cfgOrgDone){ this.showToast(onprem ? 'Apply BC Sets / IMG in DEV first — nothing to release yet' : 'Deploy to DEV customizing first — nothing to export yet'); return; } if(d.cfgExported){ this.showToast(onprem ? 'Already released — import to QAS via STMS / Cloud ALM Feature Deployment' : 'Already exported — open Cloud ALM feature or Import Collection on TEST'); return; } this.showToast(onprem ? 'Releasing customizing transport in SE09 / STMS (DEV)…' : 'Releasing CBC + BC transports in Export Customizing Transports (DEV)…'); clearTimeout(this._cfgExpT); this._cfgExpT=setTimeout(()=>{ const cbc=d.cfgTrCbc||(onprem?'DEVK900421':'CBC900421'); const bc=d.cfgTrBc||(onprem?'SCPR20·AU_ORG':'BC910118'); this._setDeploy({ cfgExported:true, cfgStage:Math.max(d.cfgStage||0,3), cfgTrCbc:cbc, cfgTrBc:bc }); this.showToast(onprem ? ('Released '+cbc+' — import QAS next (STMS / Cloud ALM).') : ('Exported '+cbc+' + '+bc+' — sequence locked. Import Collection on TEST next (Cloud ALM quality gate).'), onprem?'releasing CTS':'exporting customizing transports'); }, 1300); }
+  cfgImportTest(){ const d=this.state.deploy||this._deployDefaults(); const onprem=(d.s4Edition||'public')==='onprem'; if(!d.cfgExported){ this.showToast(onprem ? 'Release CTS from DEV first — QAS import needs a released request' : 'Export Customizing Transports from DEV first — Import Collection needs a released collection'); return; } if(d.cfgImportedTest){ this.showToast(onprem ? 'Already in QAS — record Cloud ALM / CAB approval to unlock PRD import' : 'Already in TEST — record Cloud ALM quality approval to unlock PROD forward'); return; } this.showToast(onprem ? 'STMS import → QAS — validating customizing request sequence…' : 'Import Collection → TEST tenant 100 — validating CBC then BC sequence…'); clearTimeout(this._cfgImpT); this._cfgImpT=setTimeout(()=>{ this._setDeploy({ cfgImportedTest:true, cfgStage:Math.max(d.cfgStage||0,4) }); this.showToast(onprem ? 'Imported to QAS — run regression, then Cloud ALM / CAB approval before PRD' : 'Imported to TEST — run regression, then Cloud ALM quality approval before PROD', onprem?'importing to QAS':'importing to TEST'); }, 1400); }
+  cfgAlmApprove(){ const d=this.state.deploy||this._deployDefaults(); const onprem=(d.s4Edition||'public')==='onprem'; if(!d.cfgImportedTest){ this.showToast(onprem ? 'Import to QAS and finish regression before approval' : 'Import to TEST and finish regression before Cloud ALM quality approval'); return; } if(d.cfgAlmApproved){ this.showToast(onprem ? 'Already approved — ready to import to PRD via STMS' : 'Cloud ALM feature already quality-approved — ready to forward Import Collection to PROD'); return; } this._setDeploy({ cfgAlmApproved:true, cfgStage:Math.max(d.cfgStage||0,5) }); this.showToast(onprem ? 'Cloud ALM Feature / CAB approval recorded — transports may import to PRD. Maintain current settings per client.' : 'Cloud ALM quality approval recorded — transports may forward to PROD. Maintain current settings in Implementation Activities per system.','Cloud ALM approval'); }
+  cfgForwardProd(){ const d=this.state.deploy||this._deployDefaults(); const onprem=(d.s4Edition||'public')==='onprem'; if(!d.cfgAlmApproved){ this.showToast(onprem ? 'Approval required before importing to PRD' : 'Cloud ALM quality approval required before forwarding to PROD'); return; } this._setDeploy({ cfgStage:6 }); this.showToast(onprem ? ('Imported to PRD via STMS. Reminder: '+((d.cfgCurrentPending|0)||3)+' current settings must be maintained directly in QAS/PRD (not transported).') : ('Forwarded collection to PROD via Import Collection. Reminder: '+((d.cfgCurrentPending|0)||3)+' current settings must be maintained directly in TEST/PROD (not transported).'), onprem?'importing to PRD':'forwarding to PROD'); }
   remRescan(){ const d=this.state.deploy||this._deployDefaults(); if(d.remChecking) return; this._setDeploy({ remChecking:true }); this.showToast('Re-scanning ECC — read-only RFC + remote ATC + UPL/SCMON…'); clearTimeout(this._remScanT); this._remScanT=setTimeout(()=>{ this._setDeploy({ remChecking:false, remScanned:true, remStage:Math.max(d.remStage||0,2) }); this.showToast('Rescan complete — 4,820 custom objects · ATC findings refreshed · 13-month usage window','re-scanning ECC'); }, 1500); }
   remRunEngine(){ const d=this.state.deploy||this._deployDefaults(); if(d.remRunning) return; this._setDeploy({ remRunning:true, remProgress:0, remStage:3, remFilter:null }); this.showToast('Remediation engine running — classify → design-check → disposition → ATC re-run…'); if(this._remRunT) clearInterval(this._remRunT); this._remRunT=setInterval(()=>{ const cur=(this.state.deploy||{}).remProgress||0; const n=Math.min(100, cur+14); if(n>=100){ clearInterval(this._remRunT); this._remRunT=null; this._setDeploy({ remRunning:false, remProgress:100, remStage:4 }); this.showToast('Remediation complete — 1,180 auto-fixed · 420 → BTP · 232 developer · 2,988 retired','running remediation'); } else { this._setDeploy({ remProgress:n, remRunning:true, remStage:3 }); } }, 260); }
   remPackage(){ const d=this.state.deploy||this._deployDefaults(); if((d.remProgress||0)<100 && (d.remStage||0)<4){ this.showToast('Run the remediation engine to green first — only ATC-green objects can be packaged'); return; } const n=(d.remPackaged||0)||1180; this._setDeploy({ remPackaged:n, remStage:5 }); this.showToast(n+' green objects packaged into transport CGXK9A001 — TMS/gCTS DEV → QA → PRD under sign-off','packaging transports'); }
@@ -8156,12 +8225,18 @@ class Component extends DCLogic {
     }
     const cfgPipeIsSpec = cfgPipeKey==='spec';
 
-    // ---- Configuration Bot: Public Cloud CBC → DEV → Export → Import demo ----
+    const deploy = this.state.deploy || (this._deployDefaults ? this._deployDefaults() : {});
+    const cfgIsPublicEdition = (deploy.s4Edition||'public')!=='onprem';
+    const cfgIsOnPremEdition = !cfgIsPublicEdition;
+
+    // ---- Configuration Bot: edition-aware (CBC / BC Sets+CTS / residual SAP GUI) ----
     const _bot = this.state.cfgBot || null;
     let cfgBotOpen = null;
+    const _botModeDefault = cfgIsOnPremEdition ? 'bcset' : 'cbc';
+    const _botMode = _bot ? ((_bot.mode==='gui'||_bot.mode==='bcset'||_bot.mode==='cbc') ? _bot.mode : _botModeDefault) : _botModeDefault;
     if(_bot){
-      const cur = _bot.step||0; const done = !!_bot.done;
-      const LOG = [
+      const cur = _bot.step||0; const done = !!_bot.done; const mode = _botMode;
+      const LOG_CBC = [
         'Bot runner starting on Cognixa runtime (SAP BTP · Cloud Foundry)…',
         'Opening CBC project AU_SCOPE · target DEV customizing 100',
         'Requesting OAuth 2.0 token — CBC Communication Arrangement',
@@ -8177,6 +8252,39 @@ class Component extends DCLogic {
         'Export Customizing Transports — collection released from DEV',
         'Import Collection → TEST · Cloud ALM quality gate recorded'
       ];
+      const LOG_BCSET = [
+        'Bot runner starting — prefer standard APIs over GUI…',
+        'RFC destination CGX_DEV · SID DEV · client 100',
+        'Authenticating technical user CGX_CFG_BOT (SNC / RFC)',
+        'Session OK · write scope: DEV customizing only',
+        'Loading SAP Best Practices / Solution Builder catalogue',
+        'Selecting BC Set AU_ORG_FI · Company Code foundation',
+        'Activating BC Set via SCPR20 (not manual SPRO typing)',
+        'Company Code = AU01 applied from BC Set',
+        'Company Name = Meridian Foods Pty Ltd',
+        'City = Perth · Country = AU',
+        'Currency = AUD · Language = EN',
+        'BC Set activation logged · customizing request DEVK* created',
+        'CTS release (SE09/STMS) — transport released from DEV',
+        'STMS import → QAS · Cloud ALM Feature Deployment gate recorded'
+      ];
+      const LOG_GUI = [
+        'LAST RESORT — no BC Set / no API for this residual IMG step…',
+        'Launching SAP GUI scripting host (Desktop Agent / Build Process Automation)',
+        'SAP Logon → system DEV · client 100',
+        'Logging on as CGX_CFG_BOT (scripting flag sapgui/user_scripting=TRUE)',
+        'SAP GUI session open — theme/scripting fragile · DEV only',
+        'Transaction SPRO → Enterprise Structure → Define Company Code',
+        'Opening IMG activity (manual path — not BC Set)',
+        'Entering Company Code = AU01',
+        'Entering Company Name = Meridian Foods Pty Ltd',
+        'Entering City = Perth · Country = AU',
+        'Entering Currency = AUD · Language = EN',
+        'Saving IMG · assigning to customizing request DEVK*',
+        'CTS release from DEV',
+        'STMS import → QAS · prefer BC Sets for the next bulk wave'
+      ];
+      const LOG = mode==='gui' ? LOG_GUI : (mode==='bcset' ? LOG_BCSET : LOG_CBC);
       const steps = LOG.map((t,i)=>({ t, done: done || i<cur, active: !done && i===cur, pending: !done && i>cur,
         dot: (done||i<cur) ? '#16A34A' : (i===cur ? '#6366F1' : '#3A4358'),
         color: (done||i<=cur) ? '#E7ECF5' : '#6B7488' }));
@@ -8192,17 +8300,70 @@ class Component extends DCLogic {
         return { k:f.k, v: filled ? f.v : '', filled, typing,
           border: typing ? '#6366F1' : (filled ? '#CDEBD7' : '#D8DEE8'),
           bg: typing ? '#F3F4FF' : (filled ? '#F4FBF6' : '#fff') }; });
-      cfgBotOpen = { steps, fields, playing: !!_bot.playing, done,
+      const ctxCbc = [
+        {k:'Runner', v:'A headless Cognixa agent on SAP BTP (Cloud Foundry) — no desktop, no browser session. A server runs it, not a person.'},
+        {k:'Identity', v:'Technical user CGX_CFG_BOT — OAuth 2.0 client credentials into CBC / Communication Arrangement.'},
+        {k:'Reaches it', v:'CBC project experience linked to the 3SL Public Edition landscape — deploy target is DEV customizing only.'},
+        {k:'Pipeline', v:'After DEV: Export Customizing Transports → Import Collection (TEST) → Cloud ALM quality approval → forward PROD.'}
+      ];
+      const ctxBc = [
+        {k:'Runner', v:'Cognixa agent over RFC / Cloud ALM Feature Deployment — standard ABAP tooling, not a desktop bot.'},
+        {k:'Identity', v:'Technical user CGX_CFG_BOT — RFC/SNC into DEV. Prefer BC Sets (SCPR20) + CTS over GUI scripting.'},
+        {k:'Reaches it', v:'On-Prem / Private DEV · IMG catalogue + BC Set library. No CBC/SSCUI on this edition.'},
+        {k:'Pipeline', v:'After DEV: CTS release → STMS import QAS → Cloud ALM/CAB gate → import PRD.'}
+      ];
+      const ctxGui = [
+        {k:'Runner', v:'SAP Build Process Automation / SAP GUI scripting Desktop Agent — only when no BC Set and no API exist.'},
+        {k:'Identity', v:'Dialog/technical user CGX_CFG_BOT with sapgui/user_scripting enabled. Fragile across themes & patches.'},
+        {k:'Reaches it', v:'SAP Logon → DEV → SPRO residual IMG node that cannot be activated via BC Set.'},
+        {k:'Pipeline', v:'Save to CTS → release → STMS QAS/PRD. Re-evaluate BC Set coverage before the next wave.'}
+      ];
+      const statusReady = mode==='gui' ? 'Ready · residual SAP GUI bot' : (mode==='bcset' ? 'Ready · BC Sets + CTS (preferred)' : 'Ready to run Public Cloud bot');
+      const statusRun = mode==='gui' ? 'Bot running SAP GUI residual…' : (mode==='bcset' ? 'Bot running BC Set / CTS pipeline…' : 'Bot running CBC pipeline…');
+      cfgBotOpen = { steps, fields, playing: !!_bot.playing, done, mode,
+        subtitle: mode==='gui' ? 'On-Prem · residual SAP GUI · SPRO Define Company Code AU01 → DEV' : (mode==='bcset' ? 'On-Prem · BC Set SCPR20 AU_ORG_FI → DEV · CTS' : 'Public Cloud · CBC activity Define Company Code AU01 → DEV customizing'),
+        productName: mode==='gui' ? 'SAP GUI · S/4HANA DEV' : (mode==='bcset' ? 'S/4HANA · BC Sets / IMG' : 'Central Business Configuration'),
+        targetLabel: mode==='cbc' ? 'PROJECT / TARGET' : 'SYSTEM / CLIENT',
+        targetValue: mode==='cbc' ? 'AU_SCOPE · DEV customizing 100' : 'DEV · client 100 · customizing',
+        userLabel: mode==='gui' ? 'USER (dialog / scripting)' : 'USER (technical)',
+        credLabel: mode==='cbc' ? 'CREDENTIAL (OAuth client secret)' : (mode==='gui' ? 'PASSWORD (SAP GUI logon)' : 'CREDENTIAL (RFC / SNC)'),
+        loginHint: mode==='cbc'
+          ? 'Shown for illustration. In reality there is no password screen — the agent presents an OAuth token to the CBC Communication Arrangement. Technical user only; CBC can deploy into DEV customizing, never straight to PROD.'
+          : (mode==='bcset'
+            ? 'Preferred On-Prem path: RFC + BC Set activation (SCPR20) + classic CTS. No SAP GUI login for the bulk of configuration.'
+            : 'Residual only: SAP GUI scripting / Build Process Automation when there is no BC Set and no API. Requires sapgui/user_scripting; breaks on theme/patch changes.'),
+        formTitle: mode==='gui' ? 'SPRO — Define Company Code (IMG)' : (mode==='bcset' ? 'SCPR20 — Activate BC Set AU_ORG_FI' : 'CBC — Define Company Code (SSCUI)'),
+        formMeta: 'DEV·100 · CGX_CFG_BOT',
+        formLead: mode==='gui' ? 'Residual IMG activity · values from signed config workbook (no BC Set available)' : (mode==='bcset' ? 'BC Set activation · values from Best Practices / signed workbook' : 'Configuration activity · values from signed BDCQ workbook'),
+        simNote: mode==='gui'
+          ? 'Simulation of residual On-Prem GUI automation. Prefer BC Sets + CTS for the bulk; use GUI bot only for leftover no-API IMG steps — never as the primary deploy mechanism.'
+          : (mode==='bcset'
+            ? 'Simulation of the preferred On-Prem path. BC Sets activate into DEV; CTS/STMS moves customizing DEV → QAS → PRD. Cloud ALM can orchestrate Feature Deployment.'
+            : 'Simulation of the Public Cloud path. The bot confirms CBC activities into the DEV customizing tenant, then advances Export → Import Collection (TEST) under the Cloud ALM gate — never direct to PROD.'),
+        contextTitle: mode==='gui' ? 'RUN CONTEXT — SAP GUI RESIDUAL (LAST RESORT)' : (mode==='bcset' ? 'RUN CONTEXT — ON-PREM BC SETS + CTS' : 'RUN CONTEXT — PUBLIC CLOUD CBC'),
+        contextRows: mode==='gui' ? ctxGui : (mode==='bcset' ? ctxBc : ctxCbc),
+        drivenTitle: mode==='gui' ? 'DRIVEN BY — SIGNED SCOPE → RESIDUAL SPRO' : (mode==='bcset' ? 'DRIVEN BY — SIGNED SCOPE → BC SETS' : 'DRIVEN BY — SIGNED SCOPE → CBC'),
+        drivenPlaybook: mode==='gui' ? 'Playbook CFG-BOT/GUI/FI/0001 · SPRO residual · Company Code' : (mode==='bcset' ? 'Playbook CFG-BOT/BCSET/FI/0001 · SCPR20 · Company Code' : 'Playbook CFG-BOT/CBC/FI/0001 · SSCUI · Company Code'),
+        drivenBody: mode==='gui'
+          ? 'Used only when no BC Set / API covers the IMG node. Values from the signed workbook; save to CTS, then STMS. Revisit BC Set coverage next sprint.'
+          : (mode==='bcset'
+            ? 'Steps from Best Practices / Solution Builder; values from the signed IMG workbook. Activate BC Sets, release CTS, import QAS under Cloud ALM/CAB.'
+            : 'Steps come from the Accelerator Library; values come from the signed BDCQ / config workbook. Bot confirms into CBC, deploys to DEV customizing, then walks Export → Import Collection under Cloud ALM.'),
         showLogin: !done && cur < 5, showForm: done || cur >= 5,
         lgUser: done || cur >= 1, lgPass: done || cur >= 2, lgAuthing: !done && cur === 3, lgAuthed: done || cur >= 4,
         lgBtnLabel: (done || cur >= 4) ? 'Authenticated ✓' : (cur === 3 ? 'Authenticating…' : 'Log On'),
         lgBtnBg: (done || cur >= 4) ? '#16A34A' : (cur >= 1 ? '#0A6ED1' : '#9AA4B2'),
-        statusLabel: done ? 'Pipeline advanced · ALM gate recorded' : (_bot.playing ? 'Bot running CBC pipeline…' : 'Ready to run Public Cloud bot'),
+        statusLabel: done ? 'Pipeline advanced · ALM gate recorded' : (_bot.playing ? statusRun : statusReady),
         statusColor: done ? '#15803D' : (_bot.playing ? '#4F46E5' : '#8A93A3'),
         statusBg: done ? '#E7F6EC' : (_bot.playing ? '#EEF0FF' : '#F0F1F4'),
         run: ()=>this.startCfgBot(), replay: ()=>this.startCfgBot(), close: ()=>this.closeCfgBot(),
-        timeNote: done ? 'CBC → DEV → TEST in ~10s (demo)' : (_bot.playing ? 'Running… ~'+Math.round(cur*0.72)+'s elapsed' : 'Typical demo run: under a minute'),
-        manualNote: 'Manual CBC confirm + Export + Import Collection across 3SL ≈ hours — bot walks the same gates automatically in the demo.',
+        timeNote: done ? (mode==='cbc' ? 'CBC → DEV → TEST in ~10s (demo)' : 'DEV → QAS in ~10s (demo)') : (_bot.playing ? 'Running… ~'+Math.round(cur*0.72)+'s elapsed' : 'Typical demo run: under a minute'),
+        manualNote: mode==='gui'
+          ? 'Manual SPRO + CTS across landscape ≈ hours; GUI bots are brittle — keep them residual.'
+          : (mode==='bcset'
+            ? 'Manual SCPR20 + SE09 + STMS across DEV/QAS/PRD ≈ hours — bot walks the same gates in the demo.'
+            : 'Manual CBC confirm + Export + Import Collection across 3SL ≈ hours — bot walks the same gates automatically in the demo.'),
+        signoffLabel: mode==='cbc' ? 'Forward Import Collection → PROD' : 'Import CTS → PRD',
         signoff: ()=>this.cfgBotSignoff() };
     }
     const _bcur = _bot ? (_bot.step||0) : 0; const _bdone = _bot && _bot.done;
@@ -8212,13 +8373,10 @@ class Component extends DCLogic {
     const cfgBotLgUserBg = (_bdone || _bcur>=1) ? '#F4FBF6' : '#fff';
     const cfgBotLgPassBd = (_bdone || _bcur>=2) ? '#CDEBD7' : '#D8DEE8';
     const cfgBotLgPassBg = (_bdone || _bcur>=2) ? '#F4FBF6' : '#fff';
-    const _bfull = 'https://cbc.eu10.sapcloud.services/ui#Project-home';
-    const cfgBotUrl = _bcur===0 ? 'https://cbc.eu10.sapcloud.servic' : _bfull;
+    const _bfull = _botMode==='cbc' ? 'https://cbc.eu10.sapcloud.services/ui#Project-home' : (_botMode==='gui' ? 'sapgui://DEV/100/SPRO' : 'rfc://CGX_DEV/100/SCPR20');
+    const cfgBotUrl = _bcur===0 ? (_botMode==='cbc' ? 'https://cbc.eu10.sapcloud.servic' : (_botMode==='gui' ? 'sapgui://DEV/100/SPR' : 'rfc://CGX_DEV/100/SCPR')) : _bfull;
     const cfgBotUrlTyping = _bcur===0;
 
-    const deploy = this.state.deploy || (this._deployDefaults ? this._deployDefaults() : {});
-    const cfgIsPublicEdition = (deploy.s4Edition||'public')!=='onprem';
-    const cfgIsOnPremEdition = !cfgIsPublicEdition;
     const showConvertNav = cfgIsOnPremEdition;
     const edPubBg = cfgIsPublicEdition ? 'var(--accent,#4F46E5)' : 'transparent';
     const edPubColor = cfgIsPublicEdition ? '#fff' : '#9AA6BC';
@@ -8295,6 +8453,28 @@ class Component extends DCLogic {
     const cfgPipeTitle = cfgIsOnPremEdition ? 'ON-PREM CONFIG PIPELINE — IMG → DEV → QAS → PRD' : (cfgIsEccPath ? 'ECC → PUBLIC CLOUD — HARVEST → CBC → MIGRATE → 3SL' : 'PUBLIC CLOUD PIPELINE — CBC → DEV → TEST → PROD');
     const cfgPipeSub = cfgIsOnPremEdition ? 'CTS · STMS routes · no CBC' : (cfgIsEccPath ? 'New impl · Migration Cockpit · Cloud ALM gate' : '3SL · Export/Import Collection · Cloud ALM gate');
     const cfgOrgBadge = cfgIsOnPremEdition ? 'on-prem IMG · AU' : (cfgIsEccPath ? 'ECC→Public Cloud · AU' : 'greenfield · AU');
+    const cfgConnectResearchLead = cfgIsOnPremEdition
+      ? 'Preferred: BC Sets (SCPR20) + IMG/SPRO + classic CTS/STMS. Cloud ALM Feature Deployment can orchestrate transports. SAP GUI bots are last resort only when no BC Set / API exists.'
+      : 'Preferred: CBC Project Experience → DEV customizing → Export Customizing Transports → Import Collection → Cloud ALM. There is no public CBC write API for full automation — the Configuration Bot demos the UI/OAuth path.';
+    const cfgConnectBotWhen = cfgIsOnPremEdition
+      ? 'Not for the bulk path. Use a bot only for residual IMG nodes with no BC Set and no API (SAP GUI scripting / Build Process Automation). Prefer fixing coverage with BC Sets.'
+      : 'Required for write automation today: CBC has no full public write API. Bot uses OAuth/Communication Arrangement into CBC Project Experience, then standard Export/Import apps.';
+    const cfgConnectResearchCards = cfgIsOnPremEdition ? [
+      {tier:'1 · PREFERRED', title:'BC Sets + CTS', body:'Activate Best Practices / custom BC Sets (SCPR20), release customizing transports, STMS DEV→QAS→PRD.', accent:'#15803D', bd:'#CDEBD7'},
+      {tier:'2 · ORCHESTRATE', title:'Cloud ALM Features', body:'Feature Deployment can create/release/import CTS requests across the ABAP landscape with quality gates.', accent:'#4F46E5', bd:'#C7CBF8'},
+      {tier:'3 · LAST RESORT', title:'SAP GUI bot', body:'GUI scripting / BPA only for leftover no-API IMG steps. Fragile (theme, scripting flags). Never primary.', accent:'#B45309', bd:'#F0E2CC'}
+    ] : [
+      {tier:'1 · PREFERRED', title:'CBC + Export/Import', body:'Confirm activities in CBC → DEV, Export Customizing Transports, Import Collection to TEST/PROD under ALM.', accent:'#15803D', bd:'#CDEBD7'},
+      {tier:'2 · TRACEABILITY', title:'Cloud ALM Features', body:'Group CBC/BC transports, record quality approval, forward collections in sequence — orchestration growing via APIs.', accent:'#4F46E5', bd:'#C7CBF8'},
+      {tier:'3 · BOT (NO WRITE API)', title:'CBC Configuration Bot', body:'No public CBC write API for full automation — bot demos OAuth + Project Experience + pipeline gates.', accent:'#B45309', bd:'#F0E2CC'}
+    ];
+    const cfgBotCta = cfgIsOnPremEdition ? 'Watch preferred bot: BC Sets → DEV → QAS' : 'Watch Configuration Bot run CBC → DEV → TEST';
+    const remConnectResearch = cfgIsPublicEdition
+      ? 'Public Cloud code deploys as clean-core extensibility: BTP side-by-side, ABAP Cloud on-stack, or Key User — then Export Software Collection / Import Collection. Not classic TMS modifications. gCTS applies on BTP ABAP environment, not as classic abapGit into the warehouse tenant.'
+      : 'On-Prem / Private code uses ATC remediation then classic CTS/TMS, or modern gCTS + Project Piper CI/CD. Separate from IMG configuration and from SUM/DMO conversion.';
+    const remDeployChip1 = cfgIsPublicEdition ? 'Software Collection' : 'TMS / gCTS';
+    const remDeployChip2 = cfgIsPublicEdition ? 'Released APIs only' : 'ATC green gate';
+    const remDeployChip3 = cfgIsPublicEdition ? 'No classic mods' : 'Not IMG · not SUM/DMO';
     const cfgGuardrails = cfgIsOnPremEdition ? [
       {b:'IMG / SPRO only here.', t:'On-Prem and Private Cloud configure in the Implementation Guide — not CBC/SSCUIs.'},
       {b:'CTS transports DEV → QAS → PRD.', t:'Release customizing requests in sequence; no Export/Import Collection apps.'},
@@ -8323,7 +8503,14 @@ class Component extends DCLogic {
     const _cfgChk = !!deploy.cfgChecking;
     const _cfgOk = deploy.cfgConnOk !== false && !_cfgChk;
     const _cfgDot = _cfgChk ? '#F59E0B' : (_cfgOk ? '#16A34A' : '#EF4444');
-    const cfgConn = ([
+    const cfgConn = cfgIsOnPremEdition ? [
+      { name:'RFC · DEV (SID DEV)', detail:_cfgChk?'pinging RFC…':(_cfgOk?'client 100 · customizing ready':'RFC down'), dot:_cfgDot },
+      { name:'IMG / SPRO', detail:_cfgChk?'checking SPRO tree…':(_cfgOk?'Implementation Guide reachable':'SPRO offline'), dot:_cfgDot },
+      { name:'BC Sets (SCPR20)', detail:_cfgChk?'loading catalogue…':(_cfgOk?(deploy.cfgStaged?'AU_ORG_FI activated':'Best Practices available'):'catalogue unavailable'), dot: (deploy.cfgStaged|0) ? '#16A34A' : _cfgDot },
+      { name:'CTS / STMS', detail:_cfgChk?'checking routes…':(_cfgOk?(deploy.cfgExported?'released · awaiting QAS':'DEV→QAS→PRD routes OK'):'STMS offline'), dot: deploy.cfgExported ? '#16A34A' : _cfgDot },
+      { name:'QAS / PRD import', detail:_cfgChk?'checking buffers…':(_cfgOk?(deploy.cfgImportedTest?'QAS imported':'waiting for release'):'import offline'), dot: deploy.cfgImportedTest ? '#16A34A' : _cfgDot },
+      { name:'SAP Cloud ALM · Features', detail:_cfgChk?'syncing features…':(_cfgOk?(deploy.cfgAlmApproved?'deployment approved':'feature open · awaiting QA'):'ALM offline'), dot: deploy.cfgAlmApproved ? '#16A34A' : _cfgDot }
+    ] : ([
       cfgIsEccPath ? { name:'ECC source (PRD)', detail:_cfgChk?'RFC read-only check…':(_cfgOk?(_eccHarv?'harvested · SI deltas ready':'linked · awaiting harvest'):'ECC RFC down'), dot: _eccHarv ? '#16A34A' : _cfgDot } : null,
       { name:'CBC workspace', detail:_cfgChk?'opening project experience…':(_cfgOk?'scope AU · org structure deployed':'CBC unreachable'), dot:_cfgDot },
       { name:'DEV customizing tenant 100', detail:_cfgChk?'pinging customizing…':(_cfgOk?'CBC target linked · ready':'customizing offline'), dot:_cfgDot },
@@ -8331,19 +8518,36 @@ class Component extends DCLogic {
       { name:'Import Collection (TEST/PROD)', detail:_cfgChk?'checking app…':(_cfgOk?(deploy.cfgImportedTest?'TEST imported':'waiting for export'):'app unavailable'), dot: deploy.cfgImportedTest ? '#16A34A' : _cfgDot },
       { name:'SAP Cloud ALM · Features', detail:_cfgChk?'syncing features…':(_cfgOk?(deploy.cfgAlmApproved?'quality approved':'feature open · awaiting QA'):'ALM offline'), dot: deploy.cfgAlmApproved ? '#16A34A' : _cfgDot }
     ]).filter(Boolean);
-    const cfgHealthLabel = _cfgChk ? 'Checking…' : (_cfgOk ? (cfgIsEccPath ? 'ECC + Public Cloud OK' : 'Public Cloud OK') : 'Degraded');
+    const cfgHealthLabel = _cfgChk ? 'Checking…' : (_cfgOk ? (cfgIsOnPremEdition ? 'On-Prem / Private OK' : (cfgIsEccPath ? 'ECC + Public Cloud OK' : 'Public Cloud OK')) : 'Degraded');
     const cfgHealthColor = _cfgChk ? '#B45309' : (_cfgOk ? '#15803D' : '#B91C1C');
     const cfgHealthBg = _cfgChk ? '#FBF1DD' : (_cfgOk ? '#E7F6EC' : '#FEE2E2');
-    const cfgConnectLabel = _cfgChk ? (cfgIsEccPath ? 'Checking ECC + Public Cloud…' : 'Checking Public Cloud links…') : (cfgIsEccPath ? 'Run ECC + Public Cloud check' : 'Run Public Cloud connection check');
-    const cfgPushLabel = (deploy.cfgStaged|0) > 0 ? ('DEV customizing · '+(deploy.cfgStaged)+' values · deploy more') : 'Deploy to DEV customizing (CBC)';
-    const cfgExportLabel = deploy.cfgExported ? ('Exported '+(deploy.cfgTrCbc||'CBC')+' / '+(deploy.cfgTrBc||'BC')) : 'Export Customizing Transports';
-    const cfgImportLabel = deploy.cfgImportedTest ? 'Imported to TEST · ready for ALM' : 'Import Collection → TEST';
-    const cfgAlmLabel = deploy.cfgAlmApproved ? 'Cloud ALM quality approved' : 'Record Cloud ALM quality approval';
+    const cfgConnectLabel = _cfgChk
+      ? (cfgIsOnPremEdition ? 'Checking On-Prem links…' : (cfgIsEccPath ? 'Checking ECC + Public Cloud…' : 'Checking Public Cloud links…'))
+      : (cfgIsOnPremEdition ? 'Run On-Prem connection check' : (cfgIsEccPath ? 'Run ECC + Public Cloud check' : 'Run Public Cloud connection check'));
+    const cfgPushLabel = cfgIsOnPremEdition
+      ? ((deploy.cfgStaged|0) > 0 ? ('DEV · '+(deploy.cfgStaged)+' values · activate more BC Sets') : 'Activate BC Sets / apply IMG in DEV')
+      : ((deploy.cfgStaged|0) > 0 ? ('DEV customizing · '+(deploy.cfgStaged)+' values · deploy more') : 'Deploy to DEV customizing (CBC)');
+    const cfgExportLabel = cfgIsOnPremEdition
+      ? (deploy.cfgExported ? ('Released '+(deploy.cfgTrCbc||'DEVK')) : 'Release CTS (SE09 / STMS)')
+      : (deploy.cfgExported ? ('Exported '+(deploy.cfgTrCbc||'CBC')+' / '+(deploy.cfgTrBc||'BC')) : 'Export Customizing Transports');
+    const cfgImportLabel = cfgIsOnPremEdition
+      ? (deploy.cfgImportedTest ? 'Imported to QAS · ready for approval' : 'STMS import → QAS')
+      : (deploy.cfgImportedTest ? 'Imported to TEST · ready for ALM' : 'Import Collection → TEST');
+    const cfgAlmLabel = deploy.cfgAlmApproved
+      ? (cfgIsOnPremEdition ? 'Cloud ALM / CAB approved' : 'Cloud ALM quality approved')
+      : (cfgIsOnPremEdition ? 'Record Cloud ALM / CAB approval' : 'Record Cloud ALM quality approval');
     const cfgCanForwardProd = !!(deploy.cfgAlmApproved && (deploy.cfgStage|0) < 6);
+    const cfgForwardProdLabel = cfgIsOnPremEdition ? 'Import CTS → PRD' : 'Forward Import Collection → PROD';
+    const cfgTrPrimaryLabel = cfgIsOnPremEdition ? 'CTS request' : 'CBC request';
+    const cfgTrSecondaryLabel = cfgIsOnPremEdition ? 'BC Set' : 'BC request';
     const cfgTrCbcLabel = deploy.cfgTrCbc || '— not created';
     const cfgTrBcLabel = deploy.cfgTrBc || '— not created';
-    const cfgPipelineStatus = (deploy.cfgStage|0)>=6 ? 'PROD forwarded' : (deploy.cfgAlmApproved ? 'ALM approved' : (deploy.cfgImportedTest ? 'In TEST' : (deploy.cfgExported ? 'Exported' : ((deploy.cfgStaged|0)?'In DEV customizing':'Awaiting deploy'))));
-    const cfgCurrentNote = ((deploy.cfgCurrentPending|0)||3)+' current-setting activities stay out of transports — maintain them in Implementation Activities on TEST and PROD after import (e.g. number ranges, user defaults).';
+    const cfgPipelineStatus = (deploy.cfgStage|0)>=6
+      ? (cfgIsOnPremEdition ? 'PRD imported' : 'PROD forwarded')
+      : (deploy.cfgAlmApproved ? 'ALM approved' : (deploy.cfgImportedTest ? (cfgIsOnPremEdition ? 'In QAS' : 'In TEST') : (deploy.cfgExported ? (cfgIsOnPremEdition ? 'Released' : 'Exported') : ((deploy.cfgStaged|0)?(cfgIsOnPremEdition?'In DEV':'In DEV customizing'):'Awaiting deploy'))));
+    const cfgCurrentNote = cfgIsOnPremEdition
+      ? (((deploy.cfgCurrentPending|0)||3)+' client-dependent current settings stay out of CTS — maintain them in each client after import (e.g. number ranges, user defaults).')
+      : (((deploy.cfgCurrentPending|0)||3)+' current-setting activities stay out of transports — maintain them in Implementation Activities on TEST and PROD after import (e.g. number ranges, user defaults).');
     const cfgStage = deploy.cfgStage|0;
     const _pipeDevDone = !!(deploy.cfgStaged|0) || cfgStage>=2;
     const _pipeExpDone = !!(deploy.cfgExported || deploy.cfgAlmApproved || cfgStage>=3);
@@ -8377,15 +8581,18 @@ class Component extends DCLogic {
     const cfgPipeLine23 = _pipeDevDone ? '#16A34A' : 'linear-gradient(90deg,#16A34A,#6366F1)';
     const cfgPipeLine34 = _pipeDevDone ? '#16A34A' : 'linear-gradient(90deg,#6366F1,#3A4358)';
     const cfgPipeLine45 = _pipeExpDone ? '#16A34A' : '#3A4358';
-    const cfgPipeStep1Title = cfgIsEccPath ? '1 · Harvest ECC' : '1 · Signed scope';
-    const cfgPipeStep1Sub = cfgIsEccPath ? (_eccHarv ? '2,146 IMG' : 'run harvest') : 'view document';
-    const cfgPipeStep1Bg = cfgIsEccPath ? (_eccHarv ? '#16A34A' : 'var(--accent-bright,#6366F1)') : '#16A34A';
-    const cfgPipeStep1Icon = (cfgIsEccPath ? _eccHarv : true) ? 'M20 6L9 17l-5-5' : 'M12 2v6M12 16v6M2 12h6M16 12h6';
+    const cfgPipeStep3Label = cfgIsOnPremEdition ? '3 · DEV (IMG / BC Sets)' : '3 · DEV customizing';
+    const cfgPipeStep4Label = cfgIsOnPremEdition ? '4 · CTS release + ALM' : '4 · Export + ALM gate';
+    const cfgPipeStep5Label = cfgIsOnPremEdition ? '5 · Import QAS → PRD' : '5 · Import TEST → PROD';
+    const cfgPipeStep1Title = cfgIsOnPremEdition ? '1 · Signed specs' : (cfgIsEccPath ? '1 · Harvest ECC' : '1 · Signed scope');
+    const cfgPipeStep1Sub = cfgIsOnPremEdition ? 'view document' : (cfgIsEccPath ? (_eccHarv ? '2,146 IMG' : 'run harvest') : 'view document');
+    const cfgPipeStep1Bg = cfgIsOnPremEdition ? '#16A34A' : (cfgIsEccPath ? (_eccHarv ? '#16A34A' : 'var(--accent-bright,#6366F1)') : '#16A34A');
+    const cfgPipeStep1Icon = (cfgIsOnPremEdition || (cfgIsEccPath ? _eccHarv : true)) ? 'M20 6L9 17l-5-5' : 'M12 2v6M12 16v6M2 12h6M16 12h6';
     const cfgPipeStep1Act = ()=>{ if(cfgIsEccPath){ if(!_eccHarv) this.cfgHarvestEcc(); else this.showToast('ECC harvest on file — next: IMG→SSCUI delta'); } else this.setState({cfgPipe:'spec'}); };
-    const cfgPipeStep2Title = cfgIsEccPath ? '2 · IMG→SSCUI delta' : '2 · CBC activities';
-    const cfgPipeStep2Sub = cfgIsEccPath ? (_eccDelta ? '892 mapped' : (_eccHarv ? 'map delta' : 'locked')) : '1,284 values';
-    const cfgPipeStep2Bg = cfgIsEccPath ? (_eccDelta ? '#16A34A' : (_eccHarv ? 'var(--accent-bright,#6366F1)' : '#1C2435')) : '#16A34A';
-    const cfgPipeStep2Icon = (cfgIsEccPath ? _eccDelta : true) ? 'M20 6L9 17l-5-5' : 'M12 2v6M12 16v6M2 12h6M16 12h6';
+    const cfgPipeStep2Title = cfgIsOnPremEdition ? '2 · IMG / BC Sets' : (cfgIsEccPath ? '2 · IMG→SSCUI delta' : '2 · CBC activities');
+    const cfgPipeStep2Sub = cfgIsOnPremEdition ? '1,284 values' : (cfgIsEccPath ? (_eccDelta ? '892 mapped' : (_eccHarv ? 'map delta' : 'locked')) : '1,284 values');
+    const cfgPipeStep2Bg = cfgIsOnPremEdition ? '#16A34A' : (cfgIsEccPath ? (_eccDelta ? '#16A34A' : (_eccHarv ? 'var(--accent-bright,#6366F1)' : '#1C2435')) : '#16A34A');
+    const cfgPipeStep2Icon = (cfgIsOnPremEdition || (cfgIsEccPath ? _eccDelta : true)) ? 'M20 6L9 17l-5-5' : 'M12 2v6M12 16v6M2 12h6M16 12h6';
     const cfgPipeStep2Act = ()=>{ if(cfgIsEccPath){ if(!_eccHarv){ this.showToast('Harvest ECC first'); return; } if(!_eccDelta) this.cfgMapEccDelta(); else this.cfgGenerateRun(); } else this.setState({cfgPipe:'book'}); };
     const cfgPipeLine12 = cfgIsEccPath ? (_eccHarv ? '#16A34A' : 'linear-gradient(90deg,#6366F1,#3A4358)') : '#16A34A';
 
@@ -9237,11 +9444,12 @@ class Component extends DCLogic {
       cfgAlmApprove:()=>this.cfgAlmApprove(),
       cfgForwardProd:()=>this.cfgForwardProd(),
       cfgModuleAct:(m)=>this.setState({cfgWl: m==='Finance'?'finance': m==='Order to Cash'?'o2c': m==='Procurement'?'mm': null}),
-      cfgModules, cfgConn, cfgOrg, cfgWlOpen, cfgDocOpen, cfgDocFinColor, cfgDocFinBar, cfgDocO2cColor, cfgDocO2cBar, cfgPipeOpen, cfgBotOpen, cfgBotLgUserVal, cfgBotLgPassVal, cfgBotLgUserBd, cfgBotLgUserBg, cfgBotLgPassBd, cfgBotLgPassBg, cfgBotUrl, cfgBotUrlTyping, cfgBotNotDone: !!(cfgBotOpen && !cfgBotOpen.done), cfgBotRunLabel: (cfgBotOpen && cfgBotOpen.playing) ? 'Running…' : 'Run bot', openCfgBot:()=>this.openCfgBot(), cfgPipeToggleLabel: cfgPipeIsSpec ? 'View generated workbook →' : '← View signed spec', cfgShowSpec:()=>this.setState({cfgPipe:'spec'}), cfgShowBook:()=>this.setState({cfgPipe:'book'}), stopProp:(e)=>{ try{ e.stopPropagation(); }catch(_){} },
-      cfgHealthLabel, cfgHealthColor, cfgHealthBg, cfgConnectLabel, cfgPushLabel, cfgExportLabel, cfgImportLabel, cfgAlmLabel, cfgCanForwardProd, cfgTrCbcLabel, cfgTrBcLabel, cfgPipelineStatus, cfgCurrentNote,
-      cfgPipeStep3Sub, cfgPipeStep3Bg, cfgPipeStep3Title, cfgPipeStep3Border, cfgPipeStep3Shadow, cfgPipeStep3Icon, cfgPipeStep3Act,
-      cfgPipeStep4Bg, cfgPipeStep4Title, cfgPipeStep4Sub, cfgPipeStep4SubColor, cfgPipeStep4Border, cfgPipeStep4Shadow, cfgPipeStep4Stroke, cfgPipeStep4Icon, cfgPipeStep4Act,
-      cfgPipeStep5Bg, cfgPipeStep5Title, cfgPipeStep5Sub, cfgPipeStep5SubColor, cfgPipeStep5Border, cfgPipeStep5Shadow, cfgPipeStep5Stroke, cfgPipeStep5Icon, cfgPipeStep5Act,
+      cfgModules, cfgConn, cfgOrg, cfgWlOpen, cfgDocOpen, cfgDocFinColor, cfgDocFinBar, cfgDocO2cColor, cfgDocO2cBar, cfgPipeOpen, cfgBotOpen, cfgBotLgUserVal, cfgBotLgPassVal, cfgBotLgUserBd, cfgBotLgUserBg, cfgBotLgPassBd, cfgBotLgPassBg, cfgBotUrl, cfgBotUrlTyping, cfgBotNotDone: !!(cfgBotOpen && !cfgBotOpen.done), cfgBotRunLabel: (cfgBotOpen && cfgBotOpen.playing) ? 'Running…' : 'Run bot', openCfgBot:()=>this.openCfgBot(), openCfgBotGui:()=>this.openCfgBotGui(), cfgBotCta, cfgConnectResearchLead, cfgConnectBotWhen, cfgConnectResearchCards, cfgPipeToggleLabel: cfgPipeIsSpec ? 'View generated workbook →' : '← View signed spec', cfgShowSpec:()=>this.setState({cfgPipe:'spec'}), cfgShowBook:()=>this.setState({cfgPipe:'book'}), stopProp:(e)=>{ try{ e.stopPropagation(); }catch(_){} },
+      cfgHealthLabel, cfgHealthColor, cfgHealthBg, cfgConnectLabel, cfgPushLabel, cfgExportLabel, cfgImportLabel, cfgAlmLabel, cfgCanForwardProd, cfgForwardProdLabel, cfgTrPrimaryLabel, cfgTrSecondaryLabel, cfgTrCbcLabel, cfgTrBcLabel, cfgPipelineStatus, cfgCurrentNote,
+      remConnectResearch, remDeployChip1, remDeployChip2, remDeployChip3,
+      cfgPipeStep3Label, cfgPipeStep3Sub, cfgPipeStep3Bg, cfgPipeStep3Title, cfgPipeStep3Border, cfgPipeStep3Shadow, cfgPipeStep3Icon, cfgPipeStep3Act,
+      cfgPipeStep4Label, cfgPipeStep4Bg, cfgPipeStep4Title, cfgPipeStep4Sub, cfgPipeStep4SubColor, cfgPipeStep4Border, cfgPipeStep4Shadow, cfgPipeStep4Stroke, cfgPipeStep4Icon, cfgPipeStep4Act,
+      cfgPipeStep5Label, cfgPipeStep5Bg, cfgPipeStep5Title, cfgPipeStep5Sub, cfgPipeStep5SubColor, cfgPipeStep5Border, cfgPipeStep5Shadow, cfgPipeStep5Stroke, cfgPipeStep5Icon, cfgPipeStep5Act,
       cfgPipeLine23, cfgPipeLine34, cfgPipeLine45,
       remConnect, remRun, remDeploy, remCards, remObjects, remConn, remRunLabel, remDeployLabel, remConnectLabel, remHealthLabel, remHealthColor, remHealthBg, remFilterActive, remFilterLabel, remClearFilter, remPipeStep3Sub, remPipeStep3Bg, remPipeStep4Bg, remPipeStep4Title, remPipeStep4Sub, remPipeStep5Bg, remPipeStep5Title, remPipeStep5Sub, remPipeLine34, remPipeLine45,
       cvPhases, cvReadiness, cvMand, cvKeep, cvConn, cvLand, cvIntf, cvIntfDetailOpen, cvTest, cvTestDetailOpen, cvTabs, cvTabOv, cvTabLand, cvTabConv, cvTabIntg, cvTabTest, cvTabAuto, cvGoLandscape:()=>this.setState({cvTab:'landscape'}), rcBotOpen, rcBotNotDone: !!(rcBotOpen && !rcBotOpen.done), rcBotRunLabel: (rcBotOpen && rcBotOpen.playing) ? 'Analysing…' : 'Run analysis',
