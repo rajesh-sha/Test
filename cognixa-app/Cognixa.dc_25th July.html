@@ -3115,22 +3115,22 @@
 
         <!-- Configuration Bot — Public Cloud CBC → DEV → Export → Import demo -->
         <sc-if value="{{ cfgBotOpen }}" hint-placeholder-val="{{ false }}">
-        <div onClick="{{ cfgBotOpen.close }}" style="position:fixed;inset:0;background:rgba(14,21,37,.55);z-index:62;display:flex;align-items:center;justify-content:center;padding:30px 20px">
-          <div onClick="{{ stopProp }}" style="width:940px;max-width:97vw;background:#0E1525;border-radius:16px;box-shadow:0 30px 80px -20px rgba(0,0,0,.6);overflow:hidden">
-            <div style="padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #1F2A40">
-              <div style="display:flex;align-items:center;gap:10px">
-                <span style="width:30px;height:30px;border-radius:8px;background:linear-gradient(140deg,#6366F1,#4338CA);display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="4" y="8" width="16" height="11" rx="2.5"/><path d="M12 8V5M9 3h6M9 13h.01M15 13h.01M9.5 16.5h5"/></svg></span>
-                <div><div style="font-size:13.5px;font-weight:700;color:#fff">Configuration Bot</div><div style="font-size:10.5px;color:#8A93A3">{{ cfgBotOpen.subtitle }}</div></div>
+        <div onClick="{{ cfgBotOpen.close }}" style="position:fixed;inset:0;background:rgba(14,21,37,.55);z-index:62;display:flex;align-items:flex-start;justify-content:center;padding:16px 12px;overflow-y:auto">
+          <div onClick="{{ stopProp }}" style="width:960px;max-width:100%;margin:8px auto 24px;background:#0E1525;border-radius:16px;box-shadow:0 30px 80px -20px rgba(0,0,0,.6);overflow:hidden;display:flex;flex-direction:column;max-height:calc(100vh - 32px)">
+            <div style="padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #1F2A40;flex:none">
+              <div style="display:flex;align-items:center;gap:10px;min-width:0">
+                <span style="width:30px;height:30px;border-radius:8px;background:linear-gradient(140deg,#6366F1,#4338CA);display:flex;align-items:center;justify-content:center;flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="4" y="8" width="16" height="11" rx="2.5"/><path d="M12 8V5M9 3h6M9 13h.01M15 13h.01M9.5 16.5h5"/></svg></span>
+                <div style="min-width:0"><div style="font-size:13.5px;font-weight:700;color:#fff">Configuration Bot</div><div style="font-size:10.5px;color:#8A93A3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:56vw">{{ cfgBotOpen.subtitle }}</div></div>
               </div>
-              <div style="display:flex;align-items:center;gap:10px">
+              <div style="display:flex;align-items:center;gap:10px;flex:none">
                 <span style="font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:20px;background:{{ cfgBotOpen.statusBg }};color:{{ cfgBotOpen.statusColor }}">{{ cfgBotOpen.statusLabel }}</span>
                 <button onClick="{{ cfgBotOpen.close }}" style="background:none;border:none;color:#8A93A3;cursor:pointer;font-size:22px;line-height:1;padding:2px 6px">&times;</button>
               </div>
             </div>
 
-            <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:0">
+            <div style="display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:0;min-height:0;flex:1;overflow:auto">
               <!-- mock SAP screen -->
-              <div style="padding:18px 20px;border-right:1px solid #1F2A40">
+              <div style="padding:16px 18px;border-right:1px solid #1F2A40;min-width:0">
                 <sc-if value="{{ cfgBotOpen.showLogin }}" hint-placeholder-val="{{ true }}">
                 <div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 10px 30px -12px rgba(0,0,0,.5)">
                   <!-- browser chrome -->
@@ -3181,7 +3181,8 @@
                       <button style="margin-top:4px;border:none;border-radius:8px;padding:10px;font-size:12.5px;font-weight:700;color:#fff;background:{{ cfgBotOpen.lgBtnBg }};cursor:default">{{ cfgBotOpen.lgBtnLabel }}</button>
                     </div>
                   </div>
-                                <div style="font-size:10.5px;color:#6B7488;line-height:1.5;margin-top:12px">{{ cfgBotOpen.loginHint }}</div>
+                </div>
+                <div style="font-size:10.5px;color:#6B7488;line-height:1.45;margin-top:10px">{{ cfgBotOpen.loginHint }}</div>
                 </sc-if>
 
                 <sc-if value="{{ cfgBotOpen.showForm }}" hint-placeholder-val="{{ false }}">
@@ -3204,22 +3205,24 @@
                   </div>
                 </div>
                 </sc-if>
-                <div style="font-size:10.5px;color:#6B7488;line-height:1.5;margin-top:12px">{{ cfgBotOpen.simNote }}</div>
+                <sc-if value="{{ cfgBotOpen.showForm }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:10.5px;color:#6B7488;line-height:1.45;margin-top:12px">{{ cfgBotOpen.simNote }}</div>
+                </sc-if>
 
                 <!-- run context: who/where/how it logs in -->
-                <div style="margin-top:14px;background:#141D30;border:1px solid #1F2A40;border-radius:11px;padding:13px 15px">
-                  <div style="font-size:10px;letter-spacing:.06em;color:#8A93A3;font-weight:700;margin-bottom:9px">{{ cfgBotOpen.contextTitle }}</div>
-                  <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="margin-top:12px;background:#141D30;border:1px solid #1F2A40;border-radius:11px;padding:12px 13px">
+                  <div style="font-size:10px;letter-spacing:.06em;color:#8A93A3;font-weight:700;margin-bottom:8px">{{ cfgBotOpen.contextTitle }}</div>
+                  <div style="display:flex;flex-direction:column;gap:7px">
                     <sc-for list="{{ cfgBotOpen.contextRows }}" as="cx" hint-placeholder-count="4">
-                    <div style="display:flex;gap:10px"><span style="font-size:10.5px;color:#8A93A3;width:74px;flex:none">{{ cx.k }}</span><span style="font-size:11px;color:#C7D2DD;line-height:1.45">{{ cx.v }}</span></div>
+                    <div style="display:flex;gap:8px;align-items:flex-start"><span style="font-size:10px;color:#8A93A3;width:68px;flex:none;padding-top:1px">{{ cx.k }}</span><span style="font-size:10.5px;color:#C7D2DD;line-height:1.4;word-break:break-word">{{ cx.v }}</span></div>
                     </sc-for>
                   </div>
                 </div>
               </div>
 
               <!-- run log -->
-              <div style="padding:18px 20px;display:flex;flex-direction:column">
-                <div style="font-size:11px;letter-spacing:.06em;color:#8A93A3;font-weight:700;margin-bottom:10px">RUN LOG</div>
+              <div style="padding:16px 18px;display:flex;flex-direction:column;min-width:0;min-height:0">
+                <div style="font-size:11px;letter-spacing:.06em;color:#8A93A3;font-weight:700;margin-bottom:10px;flex:none">RUN LOG</div>
 
                 <!-- what tells the bot what to do -->
                 <div style="background:#141D30;border:1px solid #1F2A40;border-radius:10px;padding:11px 13px;margin-bottom:13px">
@@ -3230,19 +3233,19 @@
                   </div>
                   <div style="font-size:10.5px;color:#8A93A3;line-height:1.5">{{ cfgBotOpen.drivenBody }}</div>
                 </div>
-                <div style="flex:1;display:flex;flex-direction:column;gap:8px;font-family:'IBM Plex Mono',monospace">
+                <div style="flex:1;overflow:auto;display:flex;flex-direction:column;gap:8px;font-family:'IBM Plex Mono',monospace;min-height:120px;max-height:42vh;padding-right:4px">
                   <sc-for list="{{ cfgBotOpen.steps }}" as="s" hint-placeholder-count="6">
                   <div style="display:flex;gap:9px;align-items:flex-start">
                     <span style="width:7px;height:7px;border-radius:50%;background:{{ s.dot }};flex:none;margin-top:5px"></span>
-                    <span style="font-size:11px;line-height:1.5;color:{{ s.color }}">{{ s.t }}</span>
+                    <span style="font-size:11px;line-height:1.5;color:{{ s.color }};word-break:break-word">{{ s.t }}</span>
                   </div>
                   </sc-for>
                 </div>
-                <div style="display:flex;align-items:center;gap:8px;margin-top:14px;padding:9px 12px;background:#141D30;border:1px solid #1F2A40;border-radius:9px">
+                <div style="display:flex;align-items:center;gap:8px;margin-top:12px;padding:9px 12px;background:#141D30;border:1px solid #1F2A40;border-radius:9px;flex:none">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9DA8FF" stroke-width="2" style="flex:none"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
                   <div style="min-width:0"><div style="font-size:11.5px;color:#E7ECF5;font-weight:600">{{ cfgBotOpen.timeNote }}</div><div style="font-size:10px;color:#8A93A3;line-height:1.45">{{ cfgBotOpen.manualNote }}</div></div>
                 </div>
-                <div style="display:flex;gap:9px;margin-top:12px">
+                <div style="display:flex;gap:9px;margin-top:12px;flex:none;position:sticky;bottom:0;background:#0E1525;padding-top:4px">
                   <sc-if value="{{ cfgBotOpen.done }}" hint-placeholder-val="{{ false }}">
                   <button onClick="{{ cfgBotOpen.signoff }}" style="flex:1;background:#16A34A;border:none;color:#fff;font-weight:600;font-size:12px;padding:10px;border-radius:9px;cursor:pointer">{{ cfgBotOpen.signoffLabel }}</button>
                   <button onClick="{{ cfgBotOpen.replay }}" style="flex:none;background:#1C2435;border:1px solid #2F3B52;color:#C7D2DD;font-weight:600;font-size:12px;padding:10px 14px;border-radius:9px;cursor:pointer">Replay</button>
@@ -5691,6 +5694,9 @@ class Component extends DCLogic {
   }
   startCfgBot(){ if(this._botT){ clearInterval(this._botT); }
     const mode=this._cfgBotMode((this.state.cfgBot||{}).mode);
+    if(mode==='gui' && !this.state.sapGuiPwSet){
+      this.showToast('Running demo without a stored password — for a real Desktop Agent, enter the password first.','SAP GUI bot');
+    }
     this._setDeploy({ cfgConnOk:true, cfgStage:Math.max((this.state.deploy||{}).cfgStage||0,1) });
     this.setState({ cfgBot:{ step:0, playing:true, done:false, mode } });
     this._botT = setInterval(()=>{
@@ -8525,13 +8531,13 @@ class Component extends DCLogic {
         userLabel: mode==='gui' ? 'USER *' : 'USER (technical)',
         credLabel: mode==='cbc' ? 'CREDENTIAL (OAuth client secret)' : (mode==='gui' ? 'PASSWORD *' : 'CREDENTIAL (RFC / SNC)'),
         showGuiClient: mode==='gui',
-        showPwPrompt: mode==='gui' && !done && !_bot.playing && !this.state.sapGuiPwSet && cur===0,
+        showPwPrompt: mode==='gui' && !done && !_bot.playing && !this.state.sapGuiPwSet && cur<5,
         savePw: ()=>this.saveSapGuiPw(),
         loginHint: mode==='cbc'
           ? 'Shown for illustration. In reality there is no password screen — the agent presents an OAuth token to the CBC Communication Arrangement. Technical user only; CBC can deploy into DEV customizing, never straight to PROD.'
           : (mode==='bcset'
             ? 'Preferred On-Prem path: RFC + BC Set activation (SCPR20) + classic CTS. No SAP GUI login for the bulk of configuration.'
-            : 'Matches your SAP Logon pad. Cognixa walks the tiny SPRO example in-demo; a Desktop Agent would drive the real SAP GUI on your PC (sapgui/user_scripting). Password is session-only.'),
+            : 'Demo of your A4H Logon pad. Enter password (optional), then click Run bot on the right.'),
         formTitle: mode==='gui' ? ('IMG — Define company code · '+LIVE.exampleCc) : (mode==='bcset' ? 'SCPR20 — Activate BC Set AU_ORG_FI' : 'CBC — Define Company Code (SSCUI)'),
         formMeta: mode==='gui' ? (LIVE.sid+'·'+LIVE.client+' · '+LIVE.user) : 'DEV·100 · CGX_CFG_BOT',
         formLead: mode==='gui' ? ('Tiny residual example on '+LIVE.product+' — Create '+LIVE.exampleCc+' then save to a customizing request') : (mode==='bcset' ? 'BC Set activation · values from Best Practices / signed workbook' : 'Configuration activity · values from signed BDCQ workbook'),
@@ -8551,8 +8557,8 @@ class Component extends DCLogic {
             : 'Steps come from the Accelerator Library; values come from the signed BDCQ / config workbook. Bot confirms into CBC, deploys to DEV customizing, then walks Export → Import Collection under Cloud ALM.'),
         showLogin: !done && cur < 5, showForm: done || cur >= 5,
         lgUser: done || cur >= 1, lgPass: done || cur >= 2, lgAuthing: !done && cur === 3, lgAuthed: done || cur >= 4,
-        lgBtnLabel: (done || cur >= 4) ? 'Authenticated ✓' : (cur === 3 ? 'Authenticating…' : 'Log On'),
-        lgBtnBg: (done || cur >= 4) ? '#16A34A' : (cur >= 1 ? '#0A6ED1' : '#9AA4B2'),
+        lgBtnLabel: (done || cur >= 4) ? 'Authenticated ✓' : (cur === 3 ? 'Authenticating…' : (mode==='gui' && this.state.sapGuiPwSet ? 'Password ready · Run bot →' : (mode==='gui' ? 'Enter password (optional) · or Run bot →' : 'Log On'))),
+        lgBtnBg: (done || cur >= 4) ? '#16A34A' : (cur >= 1 || (mode==='gui' && this.state.sapGuiPwSet) ? '#0A6ED1' : (mode==='gui' ? '#B45309' : '#9AA4B2')),
         statusLabel: done ? 'Pipeline advanced · ALM gate recorded' : (_bot.playing ? statusRun : statusReady),
         statusColor: done ? '#15803D' : (_bot.playing ? '#4F46E5' : '#8A93A3'),
         statusBg: done ? '#E7F6EC' : (_bot.playing ? '#EEF0FF' : '#F0F1F4'),
@@ -8568,18 +8574,19 @@ class Component extends DCLogic {
     }
     const _bcur = _bot ? (_bot.step||0) : 0; const _bdone = _bot && _bot.done;
     const _liveP = (this._sapGuiLiveProfile ? this._sapGuiLiveProfile() : {user:'Rajesh1',client:'800',language:'EN',sid:'A4H',host:'115.245.150.98',instance:'18',name:'S4HANA2023 SHARED GUI'});
-    const cfgBotLgUserVal = (_bdone || _bcur>=1) ? (_botMode==='gui' ? _liveP.user : 'CGX_CFG_BOT') : '';
-    const cfgBotLgPassVal = (_bdone || _bcur>=2) ? '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022' : '';
-    const cfgBotLgUserBd = (_bdone || _bcur>=1) ? '#CDEBD7' : '#D8DEE8';
-    const cfgBotLgUserBg = (_bdone || _bcur>=1) ? '#F4FBF6' : '#fff';
-    const cfgBotLgPassBd = (_bdone || _bcur>=2) ? '#CDEBD7' : '#D8DEE8';
-    const cfgBotLgPassBg = (_bdone || _bcur>=2) ? '#F4FBF6' : '#fff';
-    const cfgBotLgClientVal = (_bdone || _bcur>=1) ? _liveP.client : '';
-    const cfgBotLgLangVal = (_bdone || _bcur>=1) ? _liveP.language : '';
-    const cfgBotLgClientBd = (_bdone || _bcur>=1) ? '#CDEBD7' : '#D8DEE8';
-    const cfgBotLgClientBg = (_bdone || _bcur>=1) ? '#F4FBF6' : '#fff';
-    const cfgBotLgLangBd = (_bdone || _bcur>=1) ? '#CDEBD7' : '#D8DEE8';
-    const cfgBotLgLangBg = (_bdone || _bcur>=1) ? '#F4FBF6' : '#fff';
+    const _guiReady = _botMode==='gui';
+    const cfgBotLgUserVal = (_guiReady || _bdone || _bcur>=1) ? (_botMode==='gui' ? _liveP.user : ((_bdone || _bcur>=1) ? 'CGX_CFG_BOT' : '')) : '';
+    const cfgBotLgPassVal = (_bdone || _bcur>=2 || (_guiReady && this.state.sapGuiPwSet)) ? '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022' : '';
+    const cfgBotLgUserBd = (_guiReady || _bdone || _bcur>=1) ? '#CDEBD7' : '#D8DEE8';
+    const cfgBotLgUserBg = (_guiReady || _bdone || _bcur>=1) ? '#F4FBF6' : '#fff';
+    const cfgBotLgPassBd = (_bdone || _bcur>=2 || (_guiReady && this.state.sapGuiPwSet)) ? '#CDEBD7' : '#D8DEE8';
+    const cfgBotLgPassBg = (_bdone || _bcur>=2 || (_guiReady && this.state.sapGuiPwSet)) ? '#F4FBF6' : '#fff';
+    const cfgBotLgClientVal = _guiReady ? _liveP.client : ((_bdone || _bcur>=1) ? _liveP.client : '');
+    const cfgBotLgLangVal = _guiReady ? _liveP.language : ((_bdone || _bcur>=1) ? _liveP.language : '');
+    const cfgBotLgClientBd = _guiReady ? '#CDEBD7' : '#D8DEE8';
+    const cfgBotLgClientBg = _guiReady ? '#F4FBF6' : '#fff';
+    const cfgBotLgLangBd = _guiReady ? '#CDEBD7' : '#D8DEE8';
+    const cfgBotLgLangBg = _guiReady ? '#F4FBF6' : '#fff';
     const _bfull = _botMode==='cbc' ? 'https://cbc.eu10.sapcloud.services/ui#Project-home' : (_botMode==='gui' ? ('sapgui://'+_liveP.sid+'/'+_liveP.client+'/SPRO') : 'rfc://CGX_DEV/100/SCPR20');
     const cfgBotUrl = _bcur===0 ? (_botMode==='cbc' ? 'https://cbc.eu10.sapcloud.servic' : (_botMode==='gui' ? ('SAP Logon · '+_liveP.name) : 'rfc://CGX_DEV/100/SCPR')) : _bfull;
     const cfgBotUrlTyping = _bcur===0;
