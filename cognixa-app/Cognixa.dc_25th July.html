@@ -2859,6 +2859,24 @@
                 <div style="display:flex;justify-content:space-between"><span style="color:#8A93A3">Pipeline</span><span style="color:var(--accent,#4F46E5)">{{ cfgPipelineStatus }}</span></div>
               </div>
             </div>
+            <div style="background:#F0FBF4;border:1px solid #CDEBD7;border-radius:14px;padding:14px 16px">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+                <div style="font-size:12.5px;font-weight:700;color:#15803D">IP ruleset · compounds</div>
+                <span style="font-size:10.5px;font-weight:700;color:#15803D;background:#E7F6EC;padding:2px 8px;border-radius:20px;font-family:'IBM Plex Mono',monospace">{{ cfgIpRuleCount }}</span>
+              </div>
+              <div style="font-size:11.5px;color:#2A6140;line-height:1.5;margin-bottom:10px">{{ cfgIpRulesLead }}</div>
+              <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:12px">
+                <sc-for list="{{ cfgIpRulesPreview }}" as="r" hint-placeholder-count="3">
+                <div style="background:#fff;border:1px solid #CDEBD7;border-radius:9px;padding:8px 10px">
+                  <div style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:#4F46E5;font-weight:700">{{ r.playbook }}</div>
+                  <div style="font-size:11px;color:#1B2230;margin-top:3px;line-height:1.4">{{ r.activity }}</div>
+                  <div style="font-size:10px;color:#5A6473;margin-top:3px">{{ r.meta }}</div>
+                </div>
+                </sc-for>
+              </div>
+              <button onClick="{{ exportCfgEvidence }}" style="width:100%;font-size:12px;font-weight:600;color:#fff;background:#15803D;border:none;border-radius:9px;padding:9px;cursor:pointer">Export evidence pack</button>
+              <button onClick="{{ goIpLib }}" style="width:100%;margin-top:7px;font-size:11.5px;font-weight:600;color:#15803D;background:#fff;border:1px solid #CDEBD7;border-radius:9px;padding:8px;cursor:pointer">Open Accelerators / IP Library</button>
+            </div>
           </div>
         </div>
 
@@ -2871,14 +2889,15 @@
             </div>
             <span style="font-size:11px;color:#8A93A3;font-family:'IBM Plex Mono',monospace">{{ cfgOrgBadge }}</span>
           </div>
-          <div style="display:grid;grid-template-columns:1.5fr .8fr 1.4fr 1fr .9fr;gap:0;font-size:10px;letter-spacing:.06em;color:#8A93A3;font-weight:700;padding:0 20px 8px;border-bottom:1px solid #EEF1F6">
-            <div>ORGANISATIONAL UNIT</div><div>VALUE</div><div>SOURCE CLAUSE</div><div>METHOD</div><div style="text-align:right">STATUS</div>
+          <div style="display:grid;grid-template-columns:1.3fr .7fr 1.1fr 1.4fr .9fr .9fr;gap:0;font-size:10px;letter-spacing:.06em;color:#8A93A3;font-weight:700;padding:0 20px 8px;border-bottom:1px solid #EEF1F6">
+            <div>ORGANISATIONAL UNIT</div><div>VALUE</div><div>SOURCE CLAUSE</div><div>PLAYBOOK</div><div>METHOD</div><div style="text-align:right">STATUS</div>
           </div>
           <sc-for list="{{ cfgOrg }}" as="o" hint-placeholder-count="7">
-          <div style="display:grid;grid-template-columns:1.5fr .8fr 1.4fr 1fr .9fr;gap:0;font-size:12.5px;color:#2A3140;padding:11px 20px;border-bottom:1px solid #F4F6F9;align-items:center">
+          <div style="display:grid;grid-template-columns:1.3fr .7fr 1.1fr 1.4fr .9fr .9fr;gap:0;font-size:12.5px;color:#2A3140;padding:11px 20px;border-bottom:1px solid #F4F6F9;align-items:center">
             <div style="font-weight:500;color:#131826">{{ o.unit }}</div>
             <div style="font-family:'IBM Plex Mono',monospace;color:#1B2230">{{ o.val }}</div>
             <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent,#4F46E5)">{{ o.clause }}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#4F46E5;font-weight:600">{{ o.playbook }}</div>
             <div style="font-size:11.5px;color:#5A6473">{{ o.method }}</div>
             <div style="text-align:right"><span style="font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:20px;background:{{ o.stBg }};color:{{ o.stColor }}">{{ o.st }}</span></div>
           </div>
@@ -2931,6 +2950,7 @@
                     <div style="min-width:0">
                       <div style="font-size:13px;font-weight:600;color:#131826">{{ it.n }}</div>
                       <div style="font-size:10.5px;color:#8A93A3;font-family:'IBM Plex Mono',monospace;margin-top:2px">{{ it.s }} · {{ it.method }}</div>
+                      <div style="margin-top:6px;display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.03em;color:#4F46E5;background:#EEF0FF;border:1px solid #C7CBF8;padding:2px 8px;border-radius:5px;font-family:'IBM Plex Mono',monospace">{{ it.playbook }}</div>
                     </div>
                     <span style="flex:none;font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:20px;background:{{ it.stBg }};color:{{ it.stColor }}">{{ it.st }}</span>
                   </div>
@@ -3074,14 +3094,14 @@
                 <span>{{ cfgPipeOpen.id }}</span><span>{{ cfgPipeOpen.count }} values · machine-readable</span>
               </div>
               <div style="border:1px solid #E5E9F0;border-radius:10px;overflow:hidden">
-                <div style="display:grid;grid-template-columns:1.4fr 1.4fr .5fr .9fr .7fr .9fr;font-size:9.5px;letter-spacing:.04em;color:#8A93A3;font-weight:700;padding:9px 14px;background:#FAFBFD;border-bottom:1px solid #EEF1F6"><div>KEY</div><div>VALUE</div><div>MOD</div><div>METHOD</div><div>CLIENT</div><div>STATUS</div></div>
+                <div style="display:grid;grid-template-columns:1.2fr 1.1fr .4fr 1.3fr .8fr .6fr .8fr;font-size:9.5px;letter-spacing:.04em;color:#8A93A3;font-weight:700;padding:9px 14px;background:#FAFBFD;border-bottom:1px solid #EEF1F6"><div>KEY</div><div>VALUE</div><div>MOD</div><div>PLAYBOOK</div><div>METHOD</div><div>CLIENT</div><div>STATUS</div></div>
                 <sc-for list="{{ cfgPipeOpen.rows }}" as="r" hint-placeholder-count="6">
-                <div style="display:grid;grid-template-columns:1.4fr 1.4fr .5fr .9fr .7fr .9fr;font-size:11px;color:#2A3140;padding:9px 14px;border-bottom:1px solid #F4F6F9;align-items:center">
-                  <div style="font-weight:500;color:#131826">{{ r.k }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5A6473">{{ r.v }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A93A3">{{ r.mod }}</div><div style="font-size:10.5px;color:#5A6473">{{ r.method }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A93A3">{{ r.cl }}</div><div style="font-size:10px;color:#5A6473">{{ r.st }}</div>
+                <div style="display:grid;grid-template-columns:1.2fr 1.1fr .4fr 1.3fr .8fr .6fr .8fr;font-size:11px;color:#2A3140;padding:9px 14px;border-bottom:1px solid #F4F6F9;align-items:center">
+                  <div style="font-weight:500;color:#131826">{{ r.k }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5A6473">{{ r.v }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A93A3">{{ r.mod }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#4F46E5;font-weight:600">{{ r.pb }}</div><div style="font-size:10.5px;color:#5A6473">{{ r.method }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A93A3">{{ r.cl }}</div><div style="font-size:10px;color:#5A6473">{{ r.st }}</div>
                 </div>
                 </sc-for>
               </div>
-              <div style="font-size:11px;color:#9AA4B2;margin-top:11px;line-height:1.5">Each row is generated from a signed clause and carries its method, target tenant and status — the same values CBC, Export Customizing Transports, and Import Collection consume.</div>
+              <div style="font-size:11px;color:#9AA4B2;margin-top:11px;line-height:1.5">Each row binds a signed clause to a playbook ID, method, target tenant and status — the same chain CBC/BC Sets, transports, and the evidence pack consume.</div>
               </sc-if>
             </div>
 
@@ -5482,6 +5502,109 @@ class Component extends DCLogic {
   saveEditCap(){ const d=this.state.capDraft||{}; const who=(this.state.name||'').trim()||'You'; if(!(d.text||'').trim()){ this.showToast('Add the item text first'); return; } const e=this.state.capEditing; const rec={ text:d.text.trim(), kind:d.kind||'decision', owner:d.owner||who, route:(d.route||'').trim()||'Unassigned', by:who }; if(e==='new'){ this.setState(s=>({ capAdded:[...(s.capAdded||[]), rec], capEditing:null, capDraft:null })); this.showToast('Manual item added — stamped “Added · '+who+'”. AI fused count is unchanged; provenance is kept for audit.','adding a manual item'); } else if(typeof e==='string' && e[0]==='m'){ const j=+e.slice(1); this.setState(s=>{ const arr=(s.capAdded||[]).slice(); if(arr[j]) arr[j]=Object.assign({}, arr[j], rec); return { capAdded:arr, capEditing:null, capDraft:null }; }); this.showToast('Manual item updated — stamped “Manual · '+who+'”.','editing a manual item'); } else { this.setState(s=>({ capEdits: Object.assign({}, s.capEdits, { [e]: rec }), capEditing:null, capDraft:null })); this.showToast('Item corrected — stamped “Edited · '+who+'”. The original AI value is kept in the audit trail.','editing an item'); } }
   acceptAllCap(){ const all={}; for(let i=0;i<9;i++) all[i]=true; this.setState({ capRouted: all }); this.showToast('9 items routed — 4 to Jira, 2 to Cloud ALM, 3 to decision log', 'routing the workshop items'); }
   parkAssign(i){ this.setState(s=>({ parkAssigned: Object.assign({}, s.parkAssigned, { [i]: true }) })); this.showToast('Open item given an owner + decide-by date — added to the program RAID so it can\'t slip', 'tracking the open item'); }
+  _loadIpRuleset(){ try{ const raw=localStorage.getItem('dl_cgx_ip_ruleset'); if(!raw) return []; const a=JSON.parse(raw); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
+  _saveIpRuleset(arr){ try{ localStorage.setItem('dl_cgx_ip_ruleset', JSON.stringify(arr||[])); }catch(e){} }
+  _compoundIpRuleset(entries){
+    if(!entries || !entries.length) return this._loadIpRuleset();
+    const d=this.state.deploy||this._deployDefaults();
+    const edition=(d.s4Edition||'public')==='onprem'?'onprem':'public';
+    const who=(this.state.name||'').trim()||'Consultant';
+    const now=new Date().toISOString();
+    const tr=(d.cfgTrCbc||'')+(d.cfgTrBc?(' / '+d.cfgTrBc):'');
+    let rules=this._loadIpRuleset();
+    const byPb={}; rules.forEach((r,i)=>{ if(r&&r.playbook) byPb[r.playbook]=i; });
+    (entries||[]).forEach(e=>{
+      if(!e||!e.playbook) return;
+      const row={
+        playbook:e.playbook,
+        activity:e.activity||e.playbook,
+        decision:e.decision||'apply',
+        edition: e.edition||edition,
+        transport: e.transport||tr||'—',
+        source: e.source||'configure',
+        clause: e.clause||'',
+        reuse: 1,
+        by: who,
+        at: now,
+        hash: 'cgx_'+Math.abs((e.playbook+now).split('').reduce((h,c)=>((h<<5)-h)+c.charCodeAt(0),0)).toString(16).slice(0,8)
+      };
+      if(byPb[e.playbook]!=null){
+        const i=byPb[e.playbook];
+        const prev=rules[i]||{};
+        rules[i]=Object.assign({}, prev, row, { reuse:(prev.reuse|0)+1, firstAt: prev.firstAt||prev.at||now });
+      } else {
+        row.firstAt=now;
+        byPb[e.playbook]=rules.length;
+        rules.push(row);
+      }
+    });
+    this._saveIpRuleset(rules);
+    this.setState({ ipRulesetRev:(this.state.ipRulesetRev|0)+1 });
+    return rules;
+  }
+  exportCfgEvidencePack(){
+    const d=this.state.deploy||this._deployDefaults();
+    const onprem=(d.s4Edition||'public')==='onprem';
+    const rules=this._loadIpRuleset();
+    const who=(this.state.name||'').trim()||'Consultant';
+    const now=new Date().toISOString();
+    const edition=onprem?'On-Premise / Private Cloud':'S/4HANA Cloud Public Edition';
+    const pathLabel=(!onprem && (d.cfgPath||'fit')==='ecc')?'ECC → Public Cloud (new impl)':(onprem?'IMG / BC Sets + CTS':'Fit-to-Standard · CBC');
+    const nl='\n';
+    const lines=[
+      '# Cognixa configuration evidence pack',
+      '',
+      '- Generated: '+now,
+      '- Engagement: Meridian Foods · AU',
+      '- Edition: '+edition,
+      '- Path: '+pathLabel,
+      '- Exported by: '+who,
+      '- Blueprint signed: '+(this.state.blueprintSigned||this.state.signCleared?'yes':'no'),
+      '',
+      '## Deploy chain',
+      '',
+      '| Step | Status | Artifact |',
+      '|---|---|---|',
+      '| Signed design | '+(this.state.blueprintSigned||this.state.signCleared?'signed':'pending')+' | FIN-CFG-001 / ORG-STR-001 |',
+      '| Playbook bind | '+(rules.length?rules.length+' rules':'none yet')+' | Accelerator Library |',
+      '| DEV apply | '+((d.cfgStaged|0)?'yes · '+(d.cfgStaged)+' values':'awaiting')+' | '+(d.cfgTrBc||d.cfgTrCbc||'—')+' |',
+      '| Release / export | '+(d.cfgExported?'yes':'no')+' | '+(d.cfgTrCbc||'—')+' |',
+      '| TEST/QAS import | '+(d.cfgImportedTest?'yes':'no')+' | Import Collection / STMS |',
+      '| Cloud ALM / CAB | '+(d.cfgAlmApproved?'approved':'open')+' | Features |',
+      '| PROD/PRD | '+((d.cfgStage|0)>=6?'forwarded/imported':'gated')+' | — |',
+      '',
+      '## IP ruleset (compounded decisions)',
+      ''
+    ];
+    if(!rules.length){
+      lines.push('_No rules yet — run Configuration Bot or Apply worklist to compound IP._');
+    } else {
+      lines.push('| Playbook | Activity | Decision | Edition | Transport | Reuse | Hash |');
+      lines.push('|---|---|---|---|---|---|---|');
+      rules.slice().reverse().forEach(r=>{
+        lines.push('| `'+r.playbook+'` | '+(r.activity||'').replace(/\|/g,'/')+' | '+(r.decision||'')+' | '+(r.edition||'')+' | `'+(r.transport||'—')+'` | '+(r.reuse||1)+' | `'+(r.hash||'')+'` |');
+      });
+    }
+    lines.push('');
+    lines.push('## Provenance principle');
+    lines.push('');
+    lines.push('Signed design → playbook ID → bot/CTS action → transport/collection → audit hash. Decisions write back to the Digitori IP ruleset so the next client scores automatically.');
+    lines.push('');
+    const md=lines.join(nl);
+    const json=JSON.stringify({ generated:now, by:who, edition, path:pathLabel, deploy:{
+      stage:d.cfgStage|0, staged:d.cfgStaged|0, trPrimary:d.cfgTrCbc||null, trSecondary:d.cfgTrBc||null,
+      exported:!!d.cfgExported, imported:!!d.cfgImportedTest, alm:!!d.cfgAlmApproved, s4Edition:d.s4Edition||'public'
+    }, rules }, null, 2);
+    try{
+      const blob=new Blob([md+nl+nl+'---'+nl+nl+json], {type:'text/markdown;charset=utf-8'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url; a.download='cognixa-config-evidence-'+now.slice(0,10)+'.md';
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{ try{ document.body.removeChild(a); URL.revokeObjectURL(url); }catch(e){} }, 0);
+    }catch(e){}
+    this.showToast('Evidence pack exported — signed design → playbook → transport → hash ('+rules.length+' IP rules).','exporting evidence');
+  }
   _cfgBotMode(mode){
     const d=this.state.deploy||this._deployDefaults();
     const onprem=(d.s4Edition||'public')==='onprem';
@@ -5525,11 +5648,19 @@ class Component extends DCLogic {
       if(n>=14){ if(this._botT){ clearInterval(this._botT); this._botT=null; }
         this._cfgBotSyncDeploy(14,true);
         this.setState({ cfgBot:{ step:14, playing:false, done:true, mode:m } });
+        const pb = m==='gui' ? 'CFG-BOT/GUI/FI/0001' : (m==='bcset' ? 'CFG-BOT/BCSET/FI/0001' : 'CFG-BOT/CBC/FI/0001');
+        const rules=this._compoundIpRuleset([{
+          playbook: pb,
+          activity: 'Define Company Code AU01',
+          decision: m==='gui' ? 'residual-gui-apply' : (m==='bcset' ? 'bcset-activate' : 'cbc-confirm'),
+          clause: 'ORG-STR-001 §2.1',
+          source: 'configuration-bot'
+        }]);
         const toast = m==='gui'
-          ? 'Residual GUI bot complete — SPRO step applied in DEV · CTS request released · import QAS under Cloud ALM / STMS. Prefer BC Sets when available.'
+          ? 'Residual GUI bot complete — playbook '+pb+' → IP ruleset ('+rules.length+' rules). Prefer BC Sets next.'
           : (m==='bcset'
-            ? 'Bot complete — BC Set activation → DEV customizing → CTS release → import QAS · Cloud ALM/STMS gate. Forward to PRD when ready.'
-            : 'Bot complete — CBC → DEV customizing → Export → Import TEST · Cloud ALM quality gate recorded. Forward to PROD when ready.');
+            ? 'Bot complete — BC Sets → CTS · '+pb+' compounded ('+rules.length+' IP rules). Forward to PRD when ready.'
+            : 'Bot complete — CBC pipeline · '+pb+' compounded ('+rules.length+' IP rules). Forward to PROD when ready.');
         this.showToast(toast,'Configuration Bot');
         return;
       }
@@ -5545,16 +5676,23 @@ class Component extends DCLogic {
     let d=this._deployDefaults();
     try{ d=Object.assign(d, JSON.parse(localStorage.getItem('dl_cgx_deploy')||'{}')); }catch(e){}
     const onprem=(d.s4Edition||'public')==='onprem';
+    const pb = mode==='gui' ? 'CFG-BOT/GUI/FI/0001' : (mode==='bcset' ? 'CFG-BOT/BCSET/FI/0001' : 'CFG-BOT/CBC/FI/0001');
+    const rules=this._compoundIpRuleset([{
+      playbook: pb,
+      activity: 'Define Company Code AU01',
+      decision: mode==='gui' ? 'residual-gui-apply' : (mode==='bcset' ? 'bcset-activate' : 'cbc-confirm'),
+      clause: 'ORG-STR-001 §2.1',
+      source: 'configuration-bot',
+      transport: (d.cfgTrCbc||'')+(d.cfgTrBc?(' / '+d.cfgTrBc):'')
+    }]);
     if(d.cfgAlmApproved && (d.cfgStage|0)<6){
       this._setDeploy({ cfgStage:6 });
       this.showToast(onprem
-        ? 'Imported customizing transport to PRD via STMS / Cloud ALM Feature Deployment. Reminder: '+((d.cfgCurrentPending|0)||3)+' client-dependent current settings stay local.'
-        : 'Forwarded collection to PROD via Import Collection. Reminder: '+((d.cfgCurrentPending|0)||3)+' current settings stay local (not transported).',
+        ? 'Imported to PRD · IP ruleset updated ('+rules.length+' playbooks) — evidence chain sealed.'
+        : 'Forwarded to PROD · IP ruleset updated ('+rules.length+' playbooks) — evidence chain sealed.',
         onprem ? 'importing to PRD' : 'forwarding to PROD');
     } else {
-      this.showToast(onprem
-        ? (mode==='gui' ? 'Residual GUI path complete through QAS — prefer BC Sets / CTS for the bulk of IMG next time.' : 'On-Prem pipeline complete through QAS / ALM — use Guardrails if you need to re-run a step')
-        : 'Public Cloud pipeline complete through Cloud ALM — use Guardrails if you need to re-run a step');
+      this.showToast((onprem?(mode==='gui'?'Residual GUI path':'On-Prem BC Set path'):'Public Cloud CBC path')+' complete · '+rules.length+' playbooks in IP ruleset','Configuration Bot');
     }
   }
   startRcBot(){ if(this._rcT){ clearInterval(this._rcT); }
@@ -5643,7 +5781,7 @@ class Component extends DCLogic {
     this._setDeploy({ cfgMigReady:true, cfgStage:Math.max(d.cfgStage||0,2) });
     this.showToast('Migration Cockpit ready — Direct Transfer from ECC 6.0 (or Staging Tables). Master + open transactional data only; config stays in CBC.','Migration Cockpit');
   }
-  cfgApplyWl(key, ready, name){ if(!ready){ this.showToast('No ready/transportable items — clear prerequisites, decide held items, or maintain current settings in each system'); return; } const d=this.state.deploy||this._deployDefaults(); const onprem=(d.s4Edition||'public')==='onprem'; const applied=Object.assign({}, d.cfgApplied||{}); applied[key]=(applied[key]||0)+ready; const n=(d.cfgStaged||0)+ready; const cbc=d.cfgTrCbc||(onprem?('DEVK'+String(900000+((n*7)%90000))):('CBC'+String(900000+((n*7)%90000)))); const bc=d.cfgTrBc||(onprem?'SCPR20·AU_ORG':('BC'+String(910000+((n*11)%80000)))); this._setDeploy({ cfgApplied:applied, cfgStage:Math.max(d.cfgStage||0,2), cfgStaged:n, cfgOrgDone:true, cfgTrCbc:cbc, cfgTrBc:bc, cfgExported:false }, { cfgWl:null }); this.showToast((name||key)+': '+ready+' transportable activit'+(ready===1?'y':'ies')+' written to DEV on '+bc,'applying config worklist'); }
+  cfgApplyWl(key, ready, name){ if(!ready){ this.showToast('No ready/transportable items — clear prerequisites, decide held items, or maintain current settings in each system'); return; } const d=this.state.deploy||this._deployDefaults(); const onprem=(d.s4Edition||'public')==='onprem'; const applied=Object.assign({}, d.cfgApplied||{}); applied[key]=(applied[key]||0)+ready; const n=(d.cfgStaged||0)+ready; const cbc=d.cfgTrCbc||(onprem?('DEVK'+String(900000+((n*7)%90000))):('CBC'+String(900000+((n*7)%90000)))); const bc=d.cfgTrBc||(onprem?'SCPR20·AU_ORG':('BC'+String(910000+((n*11)%80000)))); this._setDeploy({ cfgApplied:applied, cfgStage:Math.max(d.cfgStage||0,2), cfgStaged:n, cfgOrgDone:true, cfgTrCbc:cbc, cfgTrBc:bc, cfgExported:false }, { cfgWl:null }); const prefix=onprem?'CFG-BOT/BCSET':'CFG-BOT/CBC'; const mod=(key==='o2c'?'SD':(key==='mm'?'MM':'FI')); const entries=[]; for(let i=0;i<ready;i++){ entries.push({ playbook: prefix+'/'+mod+'/'+String(100+i).padStart(4,'0'), activity:(name||key)+' · ready item '+(i+1), decision:'worklist-apply', source:'config-worklist', transport:cbc+' / '+bc }); } const rules=this._compoundIpRuleset(entries); this.showToast((name||key)+': '+ready+' activit'+(ready===1?'y':'ies')+' → DEV on '+bc+' · '+rules.length+' playbooks in IP ruleset','applying config worklist'); }
   cfgExportTransports(){ const d=this.state.deploy||this._deployDefaults(); const onprem=(d.s4Edition||'public')==='onprem'; if(!(d.cfgStaged|0) && !d.cfgOrgDone){ this.showToast(onprem ? 'Apply BC Sets / IMG in DEV first — nothing to release yet' : 'Deploy to DEV customizing first — nothing to export yet'); return; } if(d.cfgExported){ this.showToast(onprem ? 'Already released — import to QAS via STMS / Cloud ALM Feature Deployment' : 'Already exported — open Cloud ALM feature or Import Collection on TEST'); return; } this.showToast(onprem ? 'Releasing customizing transport in SE09 / STMS (DEV)…' : 'Releasing CBC + BC transports in Export Customizing Transports (DEV)…'); clearTimeout(this._cfgExpT); this._cfgExpT=setTimeout(()=>{ const cbc=d.cfgTrCbc||(onprem?'DEVK900421':'CBC900421'); const bc=d.cfgTrBc||(onprem?'SCPR20·AU_ORG':'BC910118'); this._setDeploy({ cfgExported:true, cfgStage:Math.max(d.cfgStage||0,3), cfgTrCbc:cbc, cfgTrBc:bc }); this.showToast(onprem ? ('Released '+cbc+' — import QAS next (STMS / Cloud ALM).') : ('Exported '+cbc+' + '+bc+' — sequence locked. Import Collection on TEST next (Cloud ALM quality gate).'), onprem?'releasing CTS':'exporting customizing transports'); }, 1300); }
   cfgImportTest(){ const d=this.state.deploy||this._deployDefaults(); const onprem=(d.s4Edition||'public')==='onprem'; if(!d.cfgExported){ this.showToast(onprem ? 'Release CTS from DEV first — QAS import needs a released request' : 'Export Customizing Transports from DEV first — Import Collection needs a released collection'); return; } if(d.cfgImportedTest){ this.showToast(onprem ? 'Already in QAS — record Cloud ALM / CAB approval to unlock PRD import' : 'Already in TEST — record Cloud ALM quality approval to unlock PROD forward'); return; } this.showToast(onprem ? 'STMS import → QAS — validating customizing request sequence…' : 'Import Collection → TEST tenant 100 — validating CBC then BC sequence…'); clearTimeout(this._cfgImpT); this._cfgImpT=setTimeout(()=>{ this._setDeploy({ cfgImportedTest:true, cfgStage:Math.max(d.cfgStage||0,4) }); this.showToast(onprem ? 'Imported to QAS — run regression, then Cloud ALM / CAB approval before PRD' : 'Imported to TEST — run regression, then Cloud ALM quality approval before PROD', onprem?'importing to QAS':'importing to TEST'); }, 1400); }
   cfgAlmApprove(){ const d=this.state.deploy||this._deployDefaults(); const onprem=(d.s4Edition||'public')==='onprem'; if(!d.cfgImportedTest){ this.showToast(onprem ? 'Import to QAS and finish regression before approval' : 'Import to TEST and finish regression before Cloud ALM quality approval'); return; } if(d.cfgAlmApproved){ this.showToast(onprem ? 'Already approved — ready to import to PRD via STMS' : 'Cloud ALM feature already quality-approved — ready to forward Import Collection to PROD'); return; } this._setDeploy({ cfgAlmApproved:true, cfgStage:Math.max(d.cfgStage||0,5) }); this.showToast(onprem ? 'Cloud ALM Feature / CAB approval recorded — transports may import to PRD. Maintain current settings per client.' : 'Cloud ALM quality approval recorded — transports may forward to PROD. Maintain current settings in Implementation Activities per system.','Cloud ALM approval'); }
@@ -8210,16 +8348,16 @@ class Component extends DCLogic {
     } else if(cfgPipeKey==='book'){
       cfgPipeOpen = { kind:'book', title:'Configuration Workbook (generated)',
         id:'WB-AU01', ver:'auto', count:'1,284', isSpec:false, isBook:true,
-        rows:[
-          {k:'Company Code', v:'AU01', mod:'FI', method:'CBC activity', cl:'DEV·100', st:'Staged'},
-          {k:'Controlling Area', v:'A000', mod:'CO', method:'CBC activity', cl:'DEV·100', st:'Staged'},
-          {k:'Chart of Accounts', v:'YCOA', mod:'FI', method:'Config API', cl:'DEV·100', st:'Staged'},
-          {k:'Document type SA', v:'Rng 01·0100000000', mod:'FI', method:'Config API', cl:'DEV·100', st:'Staged'},
-          {k:'Tax code A1', v:'GST 10% · output', mod:'FI', method:'CBC activity', cl:'DEV·100', st:'Staged'},
-          {k:'Sales doc type OR', v:'Standard Order', mod:'SD', method:'Config API', cl:'DEV·100', st:'Staged'},
-          {k:'Pricing procedure', v:'ZAU001', mod:'SD', method:'CBC activity', cl:'—', st:'Held — decision'},
-          {k:'Plant', v:'1010 · Perth DC', mod:'ES', method:'CBC activity', cl:'—', st:'Held — sign-off'}
-        ],
+        rows:(()=>{ const op=((this.state.deploy||{}).s4Edition||'public')==='onprem'; const m=op?'BC Set / IMG':'CBC activity'; const a=op?'IMG / SPRO':'Config API'; const p=(pub,o)=>op?o:pub; return [
+          {k:'Company Code', v:'AU01', mod:'FI', pb:p('CFG-BOT/CBC/FI/0001','CFG-BOT/BCSET/FI/0001'), method:m, cl:'DEV·100', st:'Staged'},
+          {k:'Controlling Area', v:'A000', mod:'CO', pb:p('CFG-BOT/CBC/CO/0002','CFG-BOT/BCSET/CO/0002'), method:m, cl:'DEV·100', st:'Staged'},
+          {k:'Chart of Accounts', v:'YCOA', mod:'FI', pb:p('CFG-BOT/CBC/FI/0003','CFG-BOT/BCSET/FI/0003'), method:a, cl:'DEV·100', st:'Staged'},
+          {k:'Document type SA', v:'Rng 01·0100000000', mod:'FI', pb:p('CFG-BOT/CBC/FI/0101','CFG-BOT/BCSET/FI/0101'), method:a, cl:'DEV·100', st:'Staged'},
+          {k:'Tax code A1', v:'GST 10% · output', mod:'FI', pb:p('CFG-BOT/CBC/FI/0105','CFG-BOT/BCSET/FI/0105'), method:m, cl:'DEV·100', st:'Staged'},
+          {k:'Sales doc type OR', v:'Standard Order', mod:'SD', pb:p('CFG-BOT/CBC/SD/0200','CFG-BOT/BCSET/SD/0200'), method:a, cl:'DEV·100', st:'Staged'},
+          {k:'Pricing procedure', v:'ZAU001', mod:'SD', pb:p('CFG-BOT/CBC/SD/0201','CFG-BOT/GUI/SD/0201'), method:op?'SAP GUI residual':m, cl:'—', st:'Held — decision'},
+          {k:'Plant', v:'1010 · Perth DC', mod:'ES', pb:p('CFG-BOT/CBC/ES/0010','CFG-BOT/GUI/ES/0010'), method:op?'SAP GUI residual':m, cl:'—', st:'Held — sign-off'}
+        ]; })(),
         close:()=>this.setState({cfgPipe:null}),
         open:()=>this.setState({cfgPipe:'spec'}) };
     }
@@ -8475,6 +8613,19 @@ class Component extends DCLogic {
     const remDeployChip1 = cfgIsPublicEdition ? 'Software Collection' : 'TMS / gCTS';
     const remDeployChip2 = cfgIsPublicEdition ? 'Released APIs only' : 'ATC green gate';
     const remDeployChip3 = cfgIsPublicEdition ? 'No classic mods' : 'Not IMG · not SUM/DMO';
+    const _ipRulesAll = (typeof this._loadIpRuleset==='function') ? this._loadIpRuleset() : [];
+    void (this.state.ipRulesetRev|0);
+    const cfgIpRuleCount = String(_ipRulesAll.length);
+    const cfgIpRulesLead = _ipRulesAll.length
+      ? 'Decisions from Bot / worklist write back here — reuse count rises so the next client scores automatically.'
+      : 'Empty until you run Configuration Bot or Apply ready items — that is when Digitori IP compounds.';
+    const cfgIpRulesPreview = (_ipRulesAll.length ? _ipRulesAll.slice().reverse().slice(0,3) : [
+      { playbook: cfgIsOnPremEdition ? 'CFG-BOT/BCSET/FI/0001' : 'CFG-BOT/CBC/FI/0001', activity:'Define Company Code AU01 (seed)', meta:'Awaiting first bot / apply · demo seed' }
+    ]).map(r=>({
+      playbook: r.playbook,
+      activity: r.activity,
+      meta: r.reuse ? ('reuse ×'+r.reuse+' · '+(r.decision||'apply')+' · '+(r.hash||'pending')) : (r.meta||'pending')
+    }));
     const cfgGuardrails = cfgIsOnPremEdition ? [
       {b:'IMG / SPRO only here.', t:'On-Prem and Private Cloud configure in the Implementation Guide — not CBC/SSCUIs.'},
       {b:'CTS transports DEV → QAS → PRD.', t:'Release customizing requests in sequence; no Export/Import Collection apps.'},
@@ -8613,24 +8764,24 @@ class Component extends DCLogic {
     const _stMap = { done:{label:'Approved & transported',bg:'#E7F6EC',color:'#15803D',dot:'#16A34A'}, pending:{label:'Pending sign-off',bg:'#FBF1DD',color:'#B45309',dot:'#F59E0B'}, held:{label:'Held — upstream gate',bg:'#F0F1F4',color:'#5A6473',dot:'#94A0BC'} };
     const _wl = {
       finance: { name:'Finance', mod:'FI · CO · Treasury', prereq:['cc','ca','coa','fyv','cch','pch'], items:[
-        {n:'G/L account groups & field status', s:'FIN-CFG·SSCUI 100', dep:['coa'], method:'CBC activity', dec:false},
-        {n:'Document types & number ranges', s:'FIN-CFG·SSCUI 101', dep:['cc'], method:'Config API', dec:false},
-        {n:'Ledger & currency settings', s:'FIN-CFG·SSCUI 102', dep:['ca','fyv'], method:'CBC activity', dec:false},
-        {n:'Cost centre standard hierarchy', s:'CO-CFG·SSCUI 110', dep:['ca','cch'], method:'Config API', dec:false},
-        {n:'Profit centre accounting', s:'CO-CFG·SSCUI 111', dep:['pch'], method:'CBC activity', dec:false},
-        {n:'House bank & bank account mgmt', s:'FIN-CFG·SSCUI 120', dep:['cc'], method:'CBC activity', dec:true},
-        {n:'Number range — accounting docs', s:'FIN-CFG·Current 130', dep:['cc'], method:'Current setting', dec:false, current:true} ] },
+        {n:'G/L account groups & field status', s:'FIN-CFG·SSCUI 100', dep:['coa'], method:'CBC activity', pb:'CFG-BOT/CBC/FI/0100', pbOp:'CFG-BOT/BCSET/FI/0100', dec:false},
+        {n:'Document types & number ranges', s:'FIN-CFG·SSCUI 101', dep:['cc'], method:'Config API', pb:'CFG-BOT/CBC/FI/0101', pbOp:'CFG-BOT/BCSET/FI/0101', dec:false},
+        {n:'Ledger & currency settings', s:'FIN-CFG·SSCUI 102', dep:['ca','fyv'], method:'CBC activity', pb:'CFG-BOT/CBC/FI/0102', pbOp:'CFG-BOT/BCSET/FI/0102', dec:false},
+        {n:'Cost centre standard hierarchy', s:'CO-CFG·SSCUI 110', dep:['ca','cch'], method:'Config API', pb:'CFG-BOT/CBC/CO/0110', pbOp:'CFG-BOT/BCSET/CO/0110', dec:false},
+        {n:'Profit centre accounting', s:'CO-CFG·SSCUI 111', dep:['pch'], method:'CBC activity', pb:'CFG-BOT/CBC/CO/0111', pbOp:'CFG-BOT/BCSET/CO/0111', dec:false},
+        {n:'House bank & bank account mgmt', s:'FIN-CFG·SSCUI 120', dep:['cc'], method:'CBC activity', pb:'CFG-BOT/CBC/FI/0120', pbOp:'CFG-BOT/BCSET/FI/0120', dec:true},
+        {n:'Number range — accounting docs', s:'FIN-CFG·Current 130', dep:['cc'], method:'Current setting', pb:'CFG-BOT/CUR/FI/0130', pbOp:'CFG-BOT/CUR/FI/0130', dec:false, current:true} ] },
       o2c: { name:'Order to Cash', mod:'SD · BRIM', prereq:['cc','so','plant','sloc','coa'], items:[
-        {n:'Sales document types', s:'SD-CFG·SSCUI 200', dep:['so'], method:'Config API', dec:false},
-        {n:'Pricing procedure & condition types', s:'SD-CFG·SSCUI 201', dep:['so'], method:'CBC activity', dec:true},
-        {n:'Item categories & determination', s:'SD-CFG·SSCUI 202', dep:['so'], method:'Config API', dec:false},
-        {n:'Delivery types & shipping point', s:'SD-CFG·SSCUI 203', dep:['plant','sloc'], method:'CBC activity', dec:false},
-        {n:'Billing types & revenue account det.', s:'SD-CFG·SSCUI 204', dep:['coa'], method:'CBC activity', dec:false} ] },
+        {n:'Sales document types', s:'SD-CFG·SSCUI 200', dep:['so'], method:'Config API', pb:'CFG-BOT/CBC/SD/0200', pbOp:'CFG-BOT/BCSET/SD/0200', dec:false},
+        {n:'Pricing procedure & condition types', s:'SD-CFG·SSCUI 201', dep:['so'], method:'CBC activity', pb:'CFG-BOT/CBC/SD/0201', pbOp:'CFG-BOT/GUI/SD/0201', dec:true},
+        {n:'Item categories & determination', s:'SD-CFG·SSCUI 202', dep:['so'], method:'Config API', pb:'CFG-BOT/CBC/SD/0202', pbOp:'CFG-BOT/BCSET/SD/0202', dec:false},
+        {n:'Delivery types & shipping point', s:'SD-CFG·SSCUI 203', dep:['plant','sloc'], method:'CBC activity', pb:'CFG-BOT/CBC/SD/0203', pbOp:'CFG-BOT/BCSET/SD/0203', dec:false},
+        {n:'Billing types & revenue account det.', s:'SD-CFG·SSCUI 204', dep:['coa'], method:'CBC activity', pb:'CFG-BOT/CBC/SD/0204', pbOp:'CFG-BOT/BCSET/SD/0204', dec:false} ] },
       mm: { name:'Procurement', mod:'MM · Inventory', prereq:['cc','plant','sloc','po'], items:[
-        {n:'Purchasing org assignment', s:'MM-CFG·SSCUI 300', dep:['cc','po','plant'], method:'CBC activity', dec:false},
-        {n:'PO / PR document types', s:'MM-CFG·SSCUI 301', dep:['po'], method:'Config API', dec:false},
-        {n:'Material valuation & valuation area', s:'MM-CFG·SSCUI 302', dep:['plant'], method:'CBC activity', dec:false},
-        {n:'Release strategy (approvals)', s:'MM-CFG·SSCUI 303', dep:['cc'], method:'CBC activity', dec:true} ] }
+        {n:'Purchasing org assignment', s:'MM-CFG·SSCUI 300', dep:['cc','po','plant'], method:'CBC activity', pb:'CFG-BOT/CBC/MM/0300', pbOp:'CFG-BOT/BCSET/MM/0300', dec:false},
+        {n:'PO / PR document types', s:'MM-CFG·SSCUI 301', dep:['po'], method:'Config API', pb:'CFG-BOT/CBC/MM/0301', pbOp:'CFG-BOT/BCSET/MM/0301', dec:false},
+        {n:'Material valuation & valuation area', s:'MM-CFG·SSCUI 302', dep:['plant'], method:'CBC activity', pb:'CFG-BOT/CBC/MM/0302', pbOp:'CFG-BOT/BCSET/MM/0302', dec:false},
+        {n:'Release strategy (approvals)', s:'MM-CFG·SSCUI 303', dep:['cc'], method:'CBC activity', pb:'CFG-BOT/CBC/MM/0303', pbOp:'CFG-BOT/GUI/MM/0303', dec:true} ] }
     };
     const cfgWlKey = this.state.cfgWl || null;
     let cfgWlOpen = null;
@@ -8649,7 +8800,15 @@ class Component extends DCLogic {
           const blockText = it.current
             ? 'Not transported — maintain in Implementation Activities on each system (DEV/TEST/PROD)'
             : (blockers.length? ('Waiting on: '+blockers.join(', ')) : ('Prerequisites met: '+depNames));
-          return { n:it.n, s:it.s, method:it.method, st, stBg, stColor, blocked:blockers.length>0 || !!it.current, blockText };
+          const playbook = cfgIsOnPremEdition ? (it.pbOp||it.pb) : it.pb;
+          let method = it.method;
+          if(cfgIsOnPremEdition){
+            if(it.current) method='Current setting';
+            else if((it.pbOp||'').indexOf('/GUI/')>=0) method='SAP GUI residual';
+            else if((it.pbOp||'').indexOf('/BCSET/')>=0) method='BC Set / IMG';
+            else method='IMG / SPRO';
+          }
+          return { n:it.n, s:it.s, method, playbook, st, stBg, stColor, blocked:blockers.length>0 || !!it.current, blockText };
         });
         const ready = items.filter(i=>i.st==='Ready to apply').length;
         const blocked = items.filter(i=>i.blocked).length;
@@ -8663,14 +8822,17 @@ class Component extends DCLogic {
     const _stD = { bg:'#FBF1DD', color:'#B45309' };
     const _stH = { bg:'#F0F1F4', color:'#5A6473' };
     const _orgStaged = !!(deploy.cfgOrgDone || (deploy.cfgStaged|0)>0);
+    const _methOrg = cfgIsOnPremEdition ? 'BC Set / IMG' : 'CBC activity';
+    const _methApi = cfgIsOnPremEdition ? 'IMG / SPRO' : 'Config API';
+    const _pb = (pub, op)=> cfgIsOnPremEdition ? op : pub;
     const cfgOrg = [
-      { unit:'Company Code', val:'AU01', clause:'ORG-STR-001 §2.1', method:'CBC activity', st:_orgStaged?'Staged': 'Ready', stBg:_stO.bg, stColor:_stO.color },
-      { unit:'Controlling Area', val:'A000', clause:'ORG-STR-001 §2.2', method:'CBC activity', st:_orgStaged?'Staged': 'Ready', stBg:_stO.bg, stColor:_stO.color },
-      { unit:'Chart of Accounts', val:'YCOA', clause:'FIN-CFG-001 §3.1', method:'Config API', st:_orgStaged?'Staged': 'Ready', stBg:_stO.bg, stColor:_stO.color },
-      { unit:'Fiscal Year Variant', val:'K4', clause:'FIN-CFG-001 §3.4', method:'CBC activity', st:_orgStaged?'Staged': 'Ready', stBg:_stO.bg, stColor:_stO.color },
-      { unit:'Plant — Perth DC', val:'1010', clause:'ORG-STR-001 §3.1', method:'CBC activity', st:_orgStaged?'Needs decision':'Needs decision', stBg:_stD.bg, stColor:_stD.color },
-      { unit:'Sales Organisation', val:'1010', clause:'ORG-STR-001 §3.2', method:'Config API', st:_orgStaged?'Staged': 'Ready', stBg:_stO.bg, stColor:_stO.color },
-      { unit:'Purchasing Organisation', val:'1010', clause:'ORG-STR-001 §3.4', method:'CBC activity', st:'Held — MM sign-off', stBg:_stH.bg, stColor:_stH.color }
+      { unit:'Company Code', val:'AU01', clause:'ORG-STR-001 §2.1', playbook:_pb('CFG-BOT/CBC/FI/0001','CFG-BOT/BCSET/FI/0001'), method:_methOrg, st:_orgStaged?'Staged': 'Ready', stBg:_stO.bg, stColor:_stO.color },
+      { unit:'Controlling Area', val:'A000', clause:'ORG-STR-001 §2.2', playbook:_pb('CFG-BOT/CBC/CO/0002','CFG-BOT/BCSET/CO/0002'), method:_methOrg, st:_orgStaged?'Staged': 'Ready', stBg:_stO.bg, stColor:_stO.color },
+      { unit:'Chart of Accounts', val:'YCOA', clause:'FIN-CFG-001 §3.1', playbook:_pb('CFG-BOT/CBC/FI/0003','CFG-BOT/BCSET/FI/0003'), method:_methApi, st:_orgStaged?'Staged': 'Ready', stBg:_stO.bg, stColor:_stO.color },
+      { unit:'Fiscal Year Variant', val:'K4', clause:'FIN-CFG-001 §3.4', playbook:_pb('CFG-BOT/CBC/FI/0004','CFG-BOT/BCSET/FI/0004'), method:_methOrg, st:_orgStaged?'Staged': 'Ready', stBg:_stO.bg, stColor:_stO.color },
+      { unit:'Plant — Perth DC', val:'1010', clause:'ORG-STR-001 §3.1', playbook:_pb('CFG-BOT/CBC/ES/0010','CFG-BOT/GUI/ES/0010'), method: cfgIsOnPremEdition?'SAP GUI residual':_methOrg, st:_orgStaged?'Needs decision':'Needs decision', stBg:_stD.bg, stColor:_stD.color },
+      { unit:'Sales Organisation', val:'1010', clause:'ORG-STR-001 §3.2', playbook:_pb('CFG-BOT/CBC/SD/0012','CFG-BOT/BCSET/SD/0012'), method:_methApi, st:_orgStaged?'Staged': 'Ready', stBg:_stO.bg, stColor:_stO.color },
+      { unit:'Purchasing Organisation', val:'1010', clause:'ORG-STR-001 §3.4', playbook:_pb('CFG-BOT/CBC/MM/0014','CFG-BOT/BCSET/MM/0014'), method:_methOrg, st:'Held — MM sign-off', stBg:_stH.bg, stColor:_stH.color }
     ];
 
     // ===================== ECC → S/4HANA CODE REMEDIATION =====================
@@ -9444,7 +9606,7 @@ class Component extends DCLogic {
       cfgAlmApprove:()=>this.cfgAlmApprove(),
       cfgForwardProd:()=>this.cfgForwardProd(),
       cfgModuleAct:(m)=>this.setState({cfgWl: m==='Finance'?'finance': m==='Order to Cash'?'o2c': m==='Procurement'?'mm': null}),
-      cfgModules, cfgConn, cfgOrg, cfgWlOpen, cfgDocOpen, cfgDocFinColor, cfgDocFinBar, cfgDocO2cColor, cfgDocO2cBar, cfgPipeOpen, cfgBotOpen, cfgBotLgUserVal, cfgBotLgPassVal, cfgBotLgUserBd, cfgBotLgUserBg, cfgBotLgPassBd, cfgBotLgPassBg, cfgBotUrl, cfgBotUrlTyping, cfgBotNotDone: !!(cfgBotOpen && !cfgBotOpen.done), cfgBotRunLabel: (cfgBotOpen && cfgBotOpen.playing) ? 'Running…' : 'Run bot', openCfgBot:()=>this.openCfgBot(), openCfgBotGui:()=>this.openCfgBotGui(), cfgBotCta, cfgConnectResearchLead, cfgConnectBotWhen, cfgConnectResearchCards, cfgPipeToggleLabel: cfgPipeIsSpec ? 'View generated workbook →' : '← View signed spec', cfgShowSpec:()=>this.setState({cfgPipe:'spec'}), cfgShowBook:()=>this.setState({cfgPipe:'book'}), stopProp:(e)=>{ try{ e.stopPropagation(); }catch(_){} },
+      cfgModules, cfgConn, cfgOrg, cfgWlOpen, cfgDocOpen, cfgDocFinColor, cfgDocFinBar, cfgDocO2cColor, cfgDocO2cBar, cfgPipeOpen, cfgBotOpen, cfgBotLgUserVal, cfgBotLgPassVal, cfgBotLgUserBd, cfgBotLgUserBg, cfgBotLgPassBd, cfgBotLgPassBg, cfgBotUrl, cfgBotUrlTyping, cfgBotNotDone: !!(cfgBotOpen && !cfgBotOpen.done), cfgBotRunLabel: (cfgBotOpen && cfgBotOpen.playing) ? 'Running…' : 'Run bot', openCfgBot:()=>this.openCfgBot(), openCfgBotGui:()=>this.openCfgBotGui(), cfgBotCta, cfgConnectResearchLead, cfgConnectBotWhen, cfgConnectResearchCards, cfgIpRuleCount, cfgIpRulesLead, cfgIpRulesPreview, exportCfgEvidence:()=>this.exportCfgEvidencePack(), cfgPipeToggleLabel: cfgPipeIsSpec ? 'View generated workbook →' : '← View signed spec', cfgShowSpec:()=>this.setState({cfgPipe:'spec'}), cfgShowBook:()=>this.setState({cfgPipe:'book'}), stopProp:(e)=>{ try{ e.stopPropagation(); }catch(_){} },
       cfgHealthLabel, cfgHealthColor, cfgHealthBg, cfgConnectLabel, cfgPushLabel, cfgExportLabel, cfgImportLabel, cfgAlmLabel, cfgCanForwardProd, cfgForwardProdLabel, cfgTrPrimaryLabel, cfgTrSecondaryLabel, cfgTrCbcLabel, cfgTrBcLabel, cfgPipelineStatus, cfgCurrentNote,
       remConnectResearch, remDeployChip1, remDeployChip2, remDeployChip3,
       cfgPipeStep3Label, cfgPipeStep3Sub, cfgPipeStep3Bg, cfgPipeStep3Title, cfgPipeStep3Border, cfgPipeStep3Shadow, cfgPipeStep3Icon, cfgPipeStep3Act,
