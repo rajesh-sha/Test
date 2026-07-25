@@ -2632,11 +2632,11 @@
             <div style="flex:none;width:46px;height:2px;background:linear-gradient(90deg,#16A34A,#16A34A)"></div>
             <div onClick="{{ cfgShowBook }}" style="flex:1;text-align:center;cursor:pointer" style-hover="opacity:.82"><div style="width:30px;height:30px;border-radius:8px;background:#16A34A;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg></div><div style="font-size:11.5px;color:#fff;font-weight:600">2 · Config Workbook</div><div style="font-size:10px;color:#9DA8FF;margin-top:2px;text-decoration:underline">1,284 values</div></div>
             <div style="flex:none;width:46px;height:2px;background:linear-gradient(90deg,#16A34A,#6366F1)"></div>
-            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:var(--accent-bright,#6366F1);display:flex;align-items:center;justify-content:center;margin:0 auto 7px;box-shadow:0 0 0 4px rgba(99,102,241,.22)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="3"/></svg></div><div style="font-size:11.5px;color:#fff;font-weight:600">3 · Validate in sandbox</div><div style="font-size:10px;color:#9DA8FF;margin-top:2px">in progress</div></div>
-            <div style="flex:none;width:46px;height:2px;background:linear-gradient(90deg,#6366F1,#3A4358)"></div>
-            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:#1C2435;border:1.5px solid #3A4358;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7E89A8" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></div><div style="font-size:11.5px;color:#AEB7C7;font-weight:600">4 · Human gate</div><div style="font-size:10px;color:#7E89A8;margin-top:2px">consultant signs</div></div>
-            <div style="flex:none;width:46px;height:2px;background:#3A4358"></div>
-            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:#1C2435;border:1.5px solid #3A4358;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7E89A8" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div><div style="font-size:11.5px;color:#AEB7C7;font-weight:600">5 · Transport to QA → Prod</div><div style="font-size:10px;color:#7E89A8;margin-top:2px">on approval</div></div>
+            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep3Bg }};display:flex;align-items:center;justify-content:center;margin:0 auto 7px;box-shadow:0 0 0 4px rgba(99,102,241,.22)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="3"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep3Title }};font-weight:600">3 · Validate in sandbox</div><div style="font-size:10px;color:#9DA8FF;margin-top:2px">{{ cfgPipeStep3Sub }}</div></div>
+            <div style="flex:none;width:46px;height:2px;background:{{ cfgPipeLine34 }}"></div>
+            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep4Bg }};border:1.5px solid #3A4358;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7E89A8" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep4Title }};font-weight:600">4 · Human gate</div><div style="font-size:10px;color:#7E89A8;margin-top:2px">{{ cfgPipeStep4Sub }}</div></div>
+            <div style="flex:none;width:46px;height:2px;background:{{ cfgPipeLine45 }}"></div>
+            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:{{ cfgPipeStep5Bg }};border:1.5px solid #3A4358;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7E89A8" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div><div style="font-size:11.5px;color:{{ cfgPipeStep5Title }};font-weight:600">5 · Transport to QA → Prod</div><div style="font-size:10px;color:#7E89A8;margin-top:2px">{{ cfgPipeStep5Sub }}</div></div>
           </div>
         </div>
 
@@ -2681,7 +2681,7 @@
             <div style="background:#fff;border:1px solid #E5E9F0;border-radius:14px;padding:16px">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
                 <div style="font-size:13px;font-weight:700;color:#131826">System connection</div>
-                <span style="display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:#15803D;background:#E7F6EC;padding:2px 8px;border-radius:20px"><span style="width:6px;height:6px;border-radius:50%;background:#16A34A"></span>Healthy</span>
+                <span style="display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:{{ cfgHealthColor }};background:{{ cfgHealthBg }};padding:2px 8px;border-radius:20px"><span style="width:6px;height:6px;border-radius:50%;background:{{ cfgHealthColor }}"></span>{{ cfgHealthLabel }}</span>
               </div>
               <div style="display:flex;flex-direction:column;gap:9px">
                 <sc-for list="{{ cfgConn }}" as="c" hint-placeholder-count="5">
@@ -2691,7 +2691,7 @@
                 </div>
                 </sc-for>
               </div>
-              <button onClick="{{ cfgConnect }}" style="width:100%;margin-top:13px;font-size:12px;font-weight:600;color:#3A4252;background:#fff;border:1px solid #D8DEE8;border-radius:9px;padding:9px;cursor:pointer" style-hover="background:var(--surface,#F4F6F9)">Run connection check</button>
+              <button onClick="{{ cfgConnect }}" style="width:100%;margin-top:13px;font-size:12px;font-weight:600;color:#3A4252;background:#fff;border:1px solid #D8DEE8;border-radius:9px;padding:9px;cursor:pointer" style-hover="background:var(--surface,#F4F6F9)">{{ cfgConnectLabel }}</button>
             </div>
 
             <div style="background:#FBFBFE;border:1px solid #E7E9F5;border-radius:14px;padding:16px">
@@ -2702,7 +2702,7 @@
                 <div style="display:flex;gap:9px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.2" style="flex:none;margin-top:1px"><path d="M20 6L9 17l-5-5"/></svg><div style="font-size:11.5px;color:#3A4252;line-height:1.5"><b style="color:#1B2230">Judgement stays human.</b> Anything ambiguous is held at the gate for a consultant — not auto-applied.</div></div>
                 <div style="display:flex;gap:9px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.2" style="flex:none;margin-top:1px"><path d="M20 6L9 17l-5-5"/></svg><div style="font-size:11.5px;color:#3A4252;line-height:1.5"><b style="color:#1B2230">Full audit trail.</b> Each push carries the spec clause, value, method and a content hash — reversible and traceable.</div></div>
               </div>
-              <button onClick="{{ cfgPush }}" style="width:100%;margin-top:14px;font-size:12.5px;font-weight:600;color:#fff;background:#0E1525;border:none;border-radius:9px;padding:10px;cursor:pointer">Stage straight-through to sandbox</button>
+              <button onClick="{{ cfgPush }}" style="width:100%;margin-top:14px;font-size:12.5px;font-weight:600;color:#fff;background:#0E1525;border:none;border-radius:9px;padding:10px;cursor:pointer">{{ cfgPushLabel }}</button>
             </div>
           </div>
         </div>
@@ -3077,7 +3077,7 @@
           </div>
           <button onClick="{{ remRun }}" style="flex:none;display:inline-flex;align-items:center;gap:9px;background:var(--accent,#4F46E5);border:none;color:#fff;font-weight:600;font-size:13.5px;padding:12px 18px;border-radius:11px;cursor:pointer;box-shadow:0 6px 18px -6px rgba(79,70,229,.6)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"/></svg>
-            Run remediation engine
+            {{ remRunLabel }}
           </button>
         </div>
 
@@ -3113,11 +3113,11 @@
             <div style="flex:none;width:40px;height:2px;background:#16A34A"></div>
             <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:#16A34A;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg></div><div style="font-size:11.5px;color:#fff;font-weight:600">2 · Scan &amp; classify</div><div style="font-size:10px;color:#7E89A8;margin-top:2px">4,820 objects</div></div>
             <div style="flex:none;width:40px;height:2px;background:linear-gradient(90deg,#16A34A,#6366F1)"></div>
-            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:var(--accent-bright,#6366F1);display:flex;align-items:center;justify-content:center;margin:0 auto 7px;box-shadow:0 0 0 4px rgba(99,102,241,.22)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M14 4l6 6M3 21l3-1 11-11-2-2L4 18z"/></svg></div><div style="font-size:11.5px;color:#fff;font-weight:600">3 · Remediate</div><div style="font-size:10px;color:#9DA8FF;margin-top:2px">in progress</div></div>
-            <div style="flex:none;width:40px;height:2px;background:linear-gradient(90deg,#6366F1,#3A4358)"></div>
-            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:#1C2435;border:1.5px solid #3A4358;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7E89A8" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div style="font-size:11.5px;color:#AEB7C7;font-weight:600">4 · Test — ATC green</div><div style="font-size:10px;color:#7E89A8;margin-top:2px">+ unit tests</div></div>
-            <div style="flex:none;width:40px;height:2px;background:#3A4358"></div>
-            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:#1C2435;border:1.5px solid #3A4358;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7E89A8" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div><div style="font-size:11.5px;color:#AEB7C7;font-weight:600">5 · Deploy DEV→QA→PRD</div><div style="font-size:10px;color:#7E89A8;margin-top:2px">on sign-off</div></div>
+            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:{{ remPipeStep3Bg }};display:flex;align-items:center;justify-content:center;margin:0 auto 7px;box-shadow:0 0 0 4px rgba(99,102,241,.22)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M14 4l6 6M3 21l3-1 11-11-2-2L4 18z"/></svg></div><div style="font-size:11.5px;color:#fff;font-weight:600">3 · Remediate</div><div style="font-size:10px;color:#9DA8FF;margin-top:2px">{{ remPipeStep3Sub }}</div></div>
+            <div style="flex:none;width:40px;height:2px;background:{{ remPipeLine34 }}"></div>
+            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:{{ remPipeStep4Bg }};border:1.5px solid #3A4358;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7E89A8" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div style="font-size:11.5px;color:{{ remPipeStep4Title }};font-weight:600">4 · Test — ATC green</div><div style="font-size:10px;color:#7E89A8;margin-top:2px">{{ remPipeStep4Sub }}</div></div>
+            <div style="flex:none;width:40px;height:2px;background:{{ remPipeLine45 }}"></div>
+            <div style="flex:1;text-align:center"><div style="width:30px;height:30px;border-radius:8px;background:{{ remPipeStep5Bg }};border:1.5px solid #3A4358;display:flex;align-items:center;justify-content:center;margin:0 auto 7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7E89A8" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div><div style="font-size:11.5px;color:{{ remPipeStep5Title }};font-weight:600">5 · Deploy DEV→QA→PRD</div><div style="font-size:10px;color:#7E89A8;margin-top:2px">{{ remPipeStep5Sub }}</div></div>
           </div>
         </div>
 
@@ -3143,9 +3143,14 @@
 
             <!-- object worklist -->
             <div style="background:#fff;border:1px solid #E5E9F0;border-radius:14px;padding:18px 0 6px;overflow:hidden">
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px 14px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px 14px;gap:12px">
                 <div style="font-size:14px;font-weight:700;color:#131826">Object worklist</div>
-                <span style="font-size:11px;color:#8A93A3;font-family:'IBM Plex Mono',monospace">sorted by ATC severity</span>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span style="font-size:11px;color:#8A93A3;font-family:'IBM Plex Mono',monospace">{{ remFilterLabel }}</span>
+                  <sc-if value="{{ remFilterActive }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ remClearFilter }}" style="font-size:11px;font-weight:600;color:var(--accent,#4F46E5);background:none;border:none;cursor:pointer;padding:0">Clear</button>
+                  </sc-if>
+                </div>
               </div>
               <div style="display:grid;grid-template-columns:1.6fr .9fr 1.1fr .9fr 1.1fr 1fr;gap:0;font-size:10px;letter-spacing:.05em;color:#8A93A3;font-weight:700;padding:0 20px 8px;border-bottom:1px solid #EEF1F6">
                 <div>OBJECT</div><div>TYPE</div><div>ATC FINDINGS</div><div>USAGE</div><div>DISPOSITION</div><div style="text-align:right">TARGET</div>
@@ -3168,7 +3173,7 @@
             <div style="background:#fff;border:1px solid #E5E9F0;border-radius:14px;padding:16px">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
                 <div style="font-size:13px;font-weight:700;color:#131826">ECC connection</div>
-                <span style="display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:#15803D;background:#E7F6EC;padding:2px 8px;border-radius:20px"><span style="width:6px;height:6px;border-radius:50%;background:#16A34A"></span>Read-only</span>
+                <span style="display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:{{ remHealthColor }};background:{{ remHealthBg }};padding:2px 8px;border-radius:20px"><span style="width:6px;height:6px;border-radius:50%;background:{{ remHealthColor }}"></span>{{ remHealthLabel }}</span>
               </div>
               <div style="display:flex;flex-direction:column;gap:9px">
                 <sc-for list="{{ remConn }}" as="c" hint-placeholder-count="4">
@@ -3178,7 +3183,7 @@
                 </div>
                 </sc-for>
               </div>
-              <button onClick="{{ remConnect }}" style="width:100%;margin-top:13px;font-size:12px;font-weight:600;color:#3A4252;background:#fff;border:1px solid #D8DEE8;border-radius:9px;padding:9px;cursor:pointer" style-hover="background:var(--surface,#F4F6F9)">Re-scan source system</button>
+              <button onClick="{{ remConnect }}" style="width:100%;margin-top:13px;font-size:12px;font-weight:600;color:#3A4252;background:#fff;border:1px solid #D8DEE8;border-radius:9px;padding:9px;cursor:pointer" style-hover="background:var(--surface,#F4F6F9)">{{ remConnectLabel }}</button>
             </div>
 
             <div style="background:#FBFBFE;border:1px solid #E7E9F5;border-radius:14px;padding:16px">
@@ -3188,7 +3193,7 @@
                 <div style="display:flex;gap:9px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4338CA" stroke-width="2.2" style="flex:none;margin-top:1px"><path d="M20 6L9 17l-5-5"/></svg><div style="font-size:11.5px;color:#3A4252;line-height:1.5"><b style="color:#1B2230">Clean-core routing.</b> Eligible logic moves to BTP side-by-side — upgrade-safe, not re-dumped in the core.</div></div>
                 <div style="display:flex;gap:9px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4338CA" stroke-width="2.2" style="flex:none;margin-top:1px"><path d="M20 6L9 17l-5-5"/></svg><div style="font-size:11.5px;color:#3A4252;line-height:1.5"><b style="color:#1B2230">End-to-end.</b> Not just analysis — through test and transport to a running S/4 system, under sign-off.</div></div>
               </div>
-              <button onClick="{{ remDeploy }}" style="width:100%;margin-top:14px;font-size:12.5px;font-weight:600;color:#fff;background:#0E1525;border:none;border-radius:9px;padding:10px;cursor:pointer">Package green objects for transport</button>
+              <button onClick="{{ remDeploy }}" style="width:100%;margin-top:14px;font-size:12.5px;font-weight:600;color:#fff;background:#0E1525;border:none;border-radius:9px;padding:10px;cursor:pointer">{{ remDeployLabel }}</button>
             </div>
           </div>
         </div>
@@ -3206,7 +3211,7 @@
           </div>
           <button onClick="{{ cvRunReadiness }}" style="flex:none;display:inline-flex;align-items:center;gap:9px;background:var(--accent,#4F46E5);border:none;color:#fff;font-weight:600;font-size:13.5px;padding:12px 18px;border-radius:11px;cursor:pointer;box-shadow:0 6px 18px -6px rgba(79,70,229,.6)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-            Run SAP Readiness Check
+            {{ cvRunReadinessLabel }}
           </button>
         </div>
 
@@ -3317,7 +3322,7 @@
               <div>CONVERSION</div><div>WHY IT'S REQUIRED</div><div style="text-align:right">STATUS</div>
             </div>
             <sc-for list="{{ cvMand }}" as="m" hint-placeholder-count="6">
-            <div style="display:grid;grid-template-columns:1.7fr 1.6fr .8fr;gap:0;padding:12px 20px;border-bottom:1px solid #F4F6F9;align-items:center">
+            <div onClick="{{ m.act }}" style="display:grid;grid-template-columns:1.7fr 1.6fr .8fr;gap:0;padding:12px 20px;border-bottom:1px solid #F4F6F9;align-items:center;cursor:pointer" style-hover="background:#FAFBFE">
               <div style="font-size:12.5px;font-weight:600;color:#131826">{{ m.n }}</div>
               <div style="font-size:11.5px;color:#5A6473;line-height:1.45">{{ m.why }}</div>
               <div style="text-align:right"><span style="font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:20px;background:{{ m.s.bg }};color:{{ m.s.c }}">{{ m.s.l }}</span></div>
@@ -3346,10 +3351,10 @@
                 <div style="display:flex;justify-content:space-between;font-size:11px"><span style="color:#8A93A3">Database</span><span style="color:#1B2230">Oracle → HANA (DMO)</span></div>
                 <div style="display:flex;justify-content:space-between;font-size:11px"><span style="color:#8A93A3">Target</span><span style="color:#1B2230">S/4HANA 2023</span></div>
               </div>
-              <button onClick="{{ cvConnect }}" style="width:100%;margin-top:13px;font-size:12px;font-weight:600;color:#3A4252;background:#fff;border:1px solid #D8DEE8;border-radius:9px;padding:9px;cursor:pointer" style-hover="background:var(--surface,#F4F6F9)">Re-check source</button>
+              <button onClick="{{ cvConnect }}" style="width:100%;margin-top:13px;font-size:12px;font-weight:600;color:#3A4252;background:#fff;border:1px solid #D8DEE8;border-radius:9px;padding:9px;cursor:pointer" style-hover="background:var(--surface,#F4F6F9)">{{ cvConnectLabel }}</button>
             </div>
 
-            <button onClick="{{ cvPlanCutover }}" style="width:100%;font-size:12.5px;font-weight:600;color:#fff;background:#0E1525;border:none;border-radius:11px;padding:12px;cursor:pointer">Open cutover runbook →</button>
+            <button onClick="{{ cvPlanCutover }}" style="width:100%;font-size:12.5px;font-weight:600;color:#fff;background:#0E1525;border:none;border-radius:11px;padding:12px;cursor:pointer">{{ cvCutoverLabel }}</button>
           </div>
         </div>
 
@@ -3448,6 +3453,42 @@
 
         </sc-if>
         <!-- /AUTOMATION -->
+
+        <!-- cutover runbook drawer -->
+        <sc-if value="{{ cvCutoverOpen }}" hint-placeholder-val="{{ false }}">
+        <div onClick="{{ cvCutoverOpen.close }}" style="position:fixed;inset:0;background:rgba(14,21,37,.46);z-index:63;display:flex;justify-content:flex-end">
+          <div onClick="{{ stopProp }}" style="width:520px;max-width:95vw;height:100%;background:#F7F8FB;box-shadow:-12px 0 40px -12px rgba(0,0,0,.4);overflow-y:auto;display:flex;flex-direction:column">
+            <div style="padding:20px 24px;background:#fff;border-bottom:1px solid #E5E9F0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+              <div>
+                <div style="font-size:10px;letter-spacing:.07em;color:#8A93A3;font-weight:700">CUTOVER RUNBOOK</div>
+                <div style="font-size:18px;font-weight:700;color:#131826;margin-top:3px">PRD · nZDM go-live</div>
+                <div style="font-size:11.5px;color:#8A93A3;margin-top:2px">Downtime-optimised DMO · gated by QA sign-off</div>
+              </div>
+              <button onClick="{{ cvCutoverOpen.close }}" style="flex:none;background:none;border:none;color:#9AA4B2;cursor:pointer;font-size:24px;line-height:1;padding:2px 6px">&times;</button>
+            </div>
+            <div style="padding:20px 24px;flex:1">
+              <div style="font-size:12.5px;color:#5A6473;line-height:1.55;margin-bottom:16px">Every step is evidenced. Nothing writes to Production until the go/no-go clears. Rollback stays armed until the commit point.</div>
+              <div style="background:#fff;border:1px solid #E5E9F0;border-radius:12px;overflow:hidden;margin-bottom:18px">
+                <sc-for list="{{ cvCutoverOpen.steps }}" as="s" hint-placeholder-count="6">
+                <div style="display:flex;gap:12px;padding:12px 14px;border-bottom:1px solid #F4F6F9;align-items:flex-start">
+                  <span style="flex:none;font-size:11px;font-weight:700;color:var(--accent,#4F46E5);font-family:'IBM Plex Mono',monospace;min-width:54px">{{ s.t }}</span>
+                  <span style="font-size:12.5px;color:#1B2230;line-height:1.45">{{ s.d }}</span>
+                </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <sc-if value="{{ cvCutoverOpen.qaPending }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ cvCutoverOpen.completeQa }}" style="width:100%;background:var(--accent,#4F46E5);border:none;color:#fff;font-weight:600;font-size:13px;padding:12px;border-radius:10px;cursor:pointer">Record QA sign-off · unlock go-live</button>
+                </sc-if>
+                <sc-if value="{{ cvCutoverOpen.qaDone }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ cvCutoverOpen.goLive }}" style="width:100%;background:#16A34A;border:none;color:#fff;font-weight:600;font-size:13px;padding:12px;border-radius:10px;cursor:pointer">Start PRD cutover</button>
+                </sc-if>
+                <button onClick="{{ cvCutoverOpen.close }}" style="width:100%;background:#fff;border:1px solid #D8DEE8;color:#3A4252;font-weight:600;font-size:12.5px;padding:11px;border-radius:10px;cursor:pointer">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        </sc-if>
 
         <!-- interface drill-down drawer -->
         <sc-if value="{{ cvIntfDetailOpen }}" hint-placeholder-val="{{ false }}">
@@ -4855,7 +4896,7 @@
 <dc-import name="FeedbackToast" accent="#6366F1" soft="rgba(99,102,241,.12)" hint-size="0,0"></dc-import></x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1380,&quot;height&quot;:860},&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Iris&quot;,&quot;Teal&quot;,&quot;Violet&quot;,&quot;Royal&quot;],&quot;default&quot;:&quot;Iris&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;shell&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Ink&quot;,&quot;Slate&quot;,&quot;Graphite&quot;],&quot;default&quot;:&quot;Ink&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;surface&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Cool&quot;,&quot;Warm&quot;,&quot;Bright&quot;],&quot;default&quot;:&quot;Cool&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
 class Component extends DCLogic {
-  state = { screen: 'dashboard', ctLens: 'process', sel: 'O2C-021', ws: 'integration', specDoc: 'fs', fa: 'Finance (R2R)', settingsOpen: false, role: 'Administrator', roleMenuOpen: false, openGroups: { design: true }, navCollapsed: { 'hcm:DESIGN':true, 'hcm:BUILD':true, 'hcm:INTEGRATE':true, 'hcm:ASSURE':true, 'hcm:VALUE':true, 'roster:DESIGN':true, 'roster:INTEGRATE':true, 'roster:ASSURE':true, 'roster:VALUE':true }, solution: 's4', solnOpen: false, copilotOpen: false, notifOpen: false, authed: !!(this.props && this.props.boot === 'dashboard'), loginRole: 'Consultant', loginProduct: 'Cognixa', capRouted: {}, emailModal: null, riskOpen: (function(){ try{ return localStorage.getItem('dl_cgx_risk_closed')!=='1'; }catch(e){ return true; } })() , notifAllRead: false, aiKey: (function(){ try{ return localStorage.getItem('dl_cgx_ai_key')||sessionStorage.getItem('dl_cgx_ai_key')||''; }catch(e){ return ''; } })(), aiRemember: !!(function(){ try{ return !!localStorage.getItem('dl_cgx_ai_key'); }catch(e){ return false; } })(), aiConnected: !!(function(){ try{ return !!(localStorage.getItem('dl_cgx_ai_key')||sessionStorage.getItem('dl_cgx_ai_key')); }catch(e){ return false; } })() };
+  state = { screen: 'dashboard', ctLens: 'process', sel: 'O2C-021', ws: 'integration', specDoc: 'fs', fa: 'Finance (R2R)', settingsOpen: false, role: 'Administrator', roleMenuOpen: false, openGroups: { design: true }, navCollapsed: { 'hcm:DESIGN':true, 'hcm:BUILD':true, 'hcm:INTEGRATE':true, 'hcm:ASSURE':true, 'hcm:VALUE':true, 'roster:DESIGN':true, 'roster:INTEGRATE':true, 'roster:ASSURE':true, 'roster:VALUE':true }, solution: 's4', solnOpen: false, copilotOpen: false, notifOpen: false, authed: !!(this.props && this.props.boot === 'dashboard'), loginRole: 'Consultant', loginProduct: 'Cognixa', capRouted: {}, emailModal: null, riskOpen: (function(){ try{ return localStorage.getItem('dl_cgx_risk_closed')!=='1'; }catch(e){ return true; } })() , notifAllRead: false, aiKey: (function(){ try{ return localStorage.getItem('dl_cgx_ai_key')||sessionStorage.getItem('dl_cgx_ai_key')||''; }catch(e){ return ''; } })(), aiRemember: !!(function(){ try{ return !!localStorage.getItem('dl_cgx_ai_key'); }catch(e){ return false; } })(), aiConnected: !!(function(){ try{ return !!(localStorage.getItem('dl_cgx_ai_key')||sessionStorage.getItem('dl_cgx_ai_key')); }catch(e){ return false; } })(), deploy: (function(){ try{ const raw=localStorage.getItem('dl_cgx_deploy'); const base={ cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; if(!raw) return base; return Object.assign(base, JSON.parse(raw)); }catch(e){ return { cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; } })() };
   closeRisk(){ try{ localStorage.setItem('dl_cgx_risk_closed','1'); }catch(e){} this.setState({ riskOpen:false }); }
   openRisk(){ try{ localStorage.removeItem('dl_cgx_risk_closed'); }catch(e){} this.setState({ riskOpen:true }); }
 
@@ -5206,11 +5247,31 @@ class Component extends DCLogic {
     this.setState({ rcBot:{ step:0, playing:true, done:false } });
     this._rcT = setInterval(()=>{
       this.setState(s=>{ const b=s.rcBot||{step:0}; const n=(b.step||0)+1;
-        if(n>=10){ if(this._rcT){ clearInterval(this._rcT); this._rcT=null; } return { rcBot:{ step:10, playing:false, done:true } }; }
+        if(n>=10){ if(this._rcT){ clearInterval(this._rcT); this._rcT=null; } try{ const d=Object.assign({}, (this.state.deploy||{}), { cvReady:true }); localStorage.setItem('dl_cgx_deploy', JSON.stringify(d)); }catch(e){} return { rcBot:{ step:10, playing:false, done:true }, deploy: Object.assign({}, (this.state.deploy||{}), { cvReady:true }) }; }
         return { rcBot:{ step:n, playing:true, done:false } }; });
     }, 720);
   }
   closeRcBot(){ if(this._rcT){ clearInterval(this._rcT); this._rcT=null; } this.setState({ rcBot:null }); }
+  /* —— Configure / Remediate / Convert: live demo engines —— */
+  _deployDefaults(){ return { cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; }
+  _loadDeploy(){ try{ const raw=localStorage.getItem('dl_cgx_deploy'); if(!raw) return this._deployDefaults(); return Object.assign(this._deployDefaults(), JSON.parse(raw)); }catch(e){ return this._deployDefaults(); } }
+  _saveDeploy(patch){ const d=Object.assign({}, this.state.deploy||this._deployDefaults(), patch||{}); try{ localStorage.setItem('dl_cgx_deploy', JSON.stringify(d)); }catch(e){} return d; }
+  _setDeploy(patch, extra){ const d=this._saveDeploy(patch); this.setState(Object.assign({ deploy:d }, extra||{})); }
+  cfgRunConnect(){ const d=this.state.deploy||this._deployDefaults(); if(d.cfgChecking) return; this._setDeploy({ cfgChecking:true, cfgConnOk:false }); this.showToast('Running connection check — RISE S/4HANA Cloud Dev 100…'); clearTimeout(this._cfgConnT); this._cfgConnT=setTimeout(()=>{ this._setDeploy({ cfgChecking:false, cfgConnOk:true }); this.showToast('All five connections healthy — Comm Arrangement, OAuth, Cloud Connector, CBC, Cloud ALM','the connection check'); }, 1400); }
+  cfgStagePush(){ const d=this.state.deploy||this._deployDefaults(); if(d.cfgChecking) return; this.showToast('Staging straight-through items to sandbox via CBC + Config APIs…'); clearTimeout(this._cfgPushT); this._cfgPushT=setTimeout(()=>{ const n=(d.cfgStaged||0)+186; this._setDeploy({ cfgStaged:n, cfgStage:Math.max(d.cfgStage||0,3), cfgOrgDone:true }); this.showToast(n+' straight-through values staged to DEV·100 — judgement items held at the human gate','staging to sandbox'); }, 1500); }
+  cfgGenerateRun(){ this.setState({ cfgDoc:'finance', cfgPipe:'book' }); this._setDeploy({ cfgStage:Math.max((this.state.deploy||{}).cfgStage||0,2) }); this.showToast('Generated Configuration Workbook from signed specs — 1,284 values ready for sandbox validation','generating configuration'); }
+  cfgApplyWl(key, ready, name){ if(!ready){ this.showToast('No ready items — clear prerequisites or decide held items first'); return; } const d=this.state.deploy||this._deployDefaults(); const applied=Object.assign({}, d.cfgApplied||{}); applied[key]=(applied[key]||0)+ready; this._setDeploy({ cfgApplied:applied, cfgStage:Math.max(d.cfgStage||0,3), cfgStaged:(d.cfgStaged||0)+ready, cfgOrgDone:true }, { cfgWl:null }); this.showToast((name||key)+': applied '+ready+' ready item(s) to sandbox — hashed & logged','applying config worklist'); }
+  remRescan(){ const d=this.state.deploy||this._deployDefaults(); if(d.remChecking) return; this._setDeploy({ remChecking:true }); this.showToast('Re-scanning ECC — read-only RFC + remote ATC + UPL/SCMON…'); clearTimeout(this._remScanT); this._remScanT=setTimeout(()=>{ this._setDeploy({ remChecking:false, remScanned:true, remStage:Math.max(d.remStage||0,2) }); this.showToast('Rescan complete — 4,820 custom objects · ATC findings refreshed · 13-month usage window','re-scanning ECC'); }, 1500); }
+  remRunEngine(){ const d=this.state.deploy||this._deployDefaults(); if(d.remRunning) return; this._setDeploy({ remRunning:true, remProgress:0, remStage:3, remFilter:null }); this.showToast('Remediation engine running — classify → design-check → disposition → ATC re-run…'); if(this._remRunT) clearInterval(this._remRunT); this._remRunT=setInterval(()=>{ const cur=(this.state.deploy||{}).remProgress||0; const n=Math.min(100, cur+14); if(n>=100){ clearInterval(this._remRunT); this._remRunT=null; this._setDeploy({ remRunning:false, remProgress:100, remStage:4 }); this.showToast('Remediation complete — 1,180 auto-fixed · 420 → BTP · 232 developer · 2,988 retired','running remediation'); } else { this._setDeploy({ remProgress:n, remRunning:true, remStage:3 }); } }, 260); }
+  remPackage(){ const d=this.state.deploy||this._deployDefaults(); if((d.remProgress||0)<100 && (d.remStage||0)<4){ this.showToast('Run the remediation engine to green first — only ATC-green objects can be packaged'); return; } const n=(d.remPackaged||0)||1180; this._setDeploy({ remPackaged:n, remStage:5 }); this.showToast(n+' green objects packaged into transport CGXK9A001 — TMS/gCTS DEV → QA → PRD under sign-off','packaging transports'); }
+  remSetFilter(f){ const cur=(this.state.deploy||{}).remFilter; this._setDeploy({ remFilter: cur===f ? null : f }); }
+  cvRecheck(){ const d=this.state.deploy||this._deployDefaults(); if(d.cvChecking) return; this._setDeploy({ cvChecking:true }); this.showToast('Re-checking source ECC — Readiness Check payload & SI Check…'); clearTimeout(this._cvConnT); this._cvConnT=setTimeout(()=>{ this._setDeploy({ cvChecking:false, cvReady:true }); this.showToast('Source OK — SID PRD · EhP8 · Oracle. 214 SI items · 38 relevant · 6 need action. No writes to ECC.','re-checking source'); }, 1400); }
+  cvOpenCutover(){ const d=this.state.deploy||this._deployDefaults(); if((d.cvPhase||0)<3){ this.showToast('Cutover runbook unlocks after DEV conversion is complete'); return; } this._setDeploy({ cvCutover:true }); }
+  cvCloseCutover(){ this._setDeploy({ cvCutover:false }); }
+  cvSelectPhase(i){ const d=this.state.deploy||this._deployDefaults(); const msgs=['Prepare phase — SAP Readiness Check, Maintenance Planner target, Simplification Item Check. Findings triaged into the conversion backlog.','Sandbox conversion — SUM + DMO dry run on a PRD copy. Runtime & downtime measured; issues logged before DEV.','DEV converted — CVI, New Asset Accounting, Material Ledger, custom code green via ATC. Ready for QA.','QA conversion — regression pack + downtime-optimised DMO rehearsal. Business validating converted balances.','Production cutover — nZDM in the approved window. Locked behind QA sign-off and a rehearsed runbook.']; const cur=d.cvPhase||0; if(i===cur+1 && cur>=0 && cur<=3){ /* allow advancing one step */ if(i===4 && (d.cvQaPct||0)<100){ this.showToast('Complete QA sign-off first — finish the regression pack & downtime rehearsal, then open the cutover runbook'); return; } const patch={ cvPhase:i }; if(i===3) patch.cvQaPct=Math.max(d.cvQaPct||0,62); if(i===4){ patch.cvQaPct=100; } this._setDeploy(patch); this.showToast('Advanced to phase '+(i+1)+' — '+msgs[i],'advancing conversion phase'); return; } this.showToast(msgs[i]||('Phase '+(i+1))); }
+  cvCompleteQa(){ const d=this.state.deploy||this._deployDefaults(); this._setDeploy({ cvQaPct:100, cvPhase:Math.max(d.cvPhase||0,3) }); this.showToast('QA signed off — regression green, downtime rehearsal fits the outage window. Cutover runbook unlocked.','QA sign-off'); }
+  cvAdvanceMand(idx){ const d=this.state.deploy||this._deployDefaults(); const adv=Object.assign({}, d.cvMandAdv||{}); if(adv[idx]==='done'){ this.showToast('Already converted — evidenced in the conversion backlog'); return; } adv[idx]='done'; this._setDeploy({ cvMandAdv:adv }); this.showToast('Mandatory conversion marked Converted — tracked in the conversion backlog','mandatory conversion'); }
+
   copyCapItem(c){ const tag=(c.kLabel||'').toUpperCase(); const txt='['+tag+'] '+c.text+'\nDestination: '+c.destSys+' ('+c.ref+')  ·  Workstream: '+c.route+'\nOwner: '+c.owner+'  ·  Confidence: '+c.confTxt+'\nSource: Finance Design Workshop — Microsoft Teams (Cognixa AI)'; this._copy(txt); this.showToast('Copied — ready to paste into Jira'); }
   toggleCapExport(v){ this.setState(s=>({ capExportOpen: v===undefined ? !s.capExportOpen : v })); }
   toggleSrcMenu(i){ this.setState(s=>({ srcMenuIdx: s.srcMenuIdx===i ? null : i })); }
@@ -7646,21 +7707,43 @@ class Component extends DCLogic {
     const cfgBotUrl = _bcur===0 ? 'https://my300123.s4hana.clou' : _bfull;
     const cfgBotUrlTyping = _bcur===0;
 
+    const deploy = this.state.deploy || (this._deployDefaults ? this._deployDefaults() : {});
+    const _cfgApplied = deploy.cfgApplied || {};
     const cfgModules = [
-      { name:'Finance', mod:'FI · CO · Treasury', tag:'IN SCOPE', tagBg:'#E7F6EC', tagColor:'#15803D', items:'412', auto:'368', dec:'44', pct:'72%', barColor:'#16A34A', status:'Chart of accounts, ledgers, posting keys staged', act:()=>this.setState({cfgWl:'finance'}) },
-      { name:'Order to Cash', mod:'SD · BRIM', tag:'IN SCOPE', tagBg:'#E7F6EC', tagColor:'#15803D', items:'286', auto:'241', dec:'45', pct:'58%', barColor:'#16A34A', status:'Pricing procedures held for a decision', act:()=>this.setState({cfgWl:'o2c'}) },
-      { name:'Procurement', mod:'MM · Inventory', tag:'IN SCOPE', tagBg:'#E7F6EC', tagColor:'#15803D', items:'198', auto:'176', dec:'22', pct:'63%', barColor:'#16A34A', status:'Purchasing org & doc types staged to sandbox', act:()=>this.setState({cfgWl:'mm'}) },
+      { name:'Finance', mod:'FI · CO · Treasury', tag:'IN SCOPE', tagBg:'#E7F6EC', tagColor:'#15803D', items:'412', auto:'368', dec:'44', pct:(_cfgApplied.finance? '88%':'72%'), barColor:'#16A34A', status:(_cfgApplied.finance? (_cfgApplied.finance+' ready items applied to sandbox'):'Chart of accounts, ledgers, posting keys staged'), act:()=>this.setState({cfgWl:'finance'}) },
+      { name:'Order to Cash', mod:'SD · BRIM', tag:'IN SCOPE', tagBg:'#E7F6EC', tagColor:'#15803D', items:'286', auto:'241', dec:'45', pct:(_cfgApplied.o2c? '74%':'58%'), barColor:'#16A34A', status:(_cfgApplied.o2c? (_cfgApplied.o2c+' ready items applied to sandbox'):'Pricing procedures held for a decision'), act:()=>this.setState({cfgWl:'o2c'}) },
+      { name:'Procurement', mod:'MM · Inventory', tag:'IN SCOPE', tagBg:'#E7F6EC', tagColor:'#15803D', items:'198', auto:'176', dec:'22', pct:(_cfgApplied.mm? '81%':'63%'), barColor:'#16A34A', status:(_cfgApplied.mm? (_cfgApplied.mm+' ready items applied to sandbox'):'Purchasing org & doc types staged to sandbox'), act:()=>this.setState({cfgWl:'mm'}) },
       { name:'Enterprise Asset Mgmt', mod:'EAM · PM', tag:'WAVE 2', tagBg:'#EEF0FF', tagColor:'#4338CA', items:'164', auto:'118', dec:'46', pct:'12%', barColor:'#6366F1', status:'Awaiting signed EAM configuration spec', act:()=>this.setState({cfgWl:'eam'}) },
       { name:'Treasury & Risk', mod:'TRM', tag:'WAVE 2', tagBg:'#EEF0FF', tagColor:'#4338CA', items:'132', auto:'112', dec:'20', pct:'8%', barColor:'#6366F1', status:'House banks pending bank master sign-off', act:()=>this.setState({cfgWl:'trm'}) },
       { name:'Project System', mod:'PS', tag:'WAVE 2', tagBg:'#EEF0FF', tagColor:'#4338CA', items:'92', auto:'78', dec:'14', pct:'5%', barColor:'#6366F1', status:'Network & WBS profiles not yet drafted', act:()=>this.setState({cfgWl:'ps'}) }
     ];
+    const _cfgChk = !!deploy.cfgChecking;
+    const _cfgOk = deploy.cfgConnOk !== false && !_cfgChk;
+    const _cfgDot = _cfgChk ? '#F59E0B' : (_cfgOk ? '#16A34A' : '#EF4444');
     const cfgConn = [
-      { name:'RISE S/4HANA Cloud — Dev 100', detail:'Communication Arrangement SAP_COM_0X · active', dot:'#16A34A' },
-      { name:'OAuth 2.0 communication user', detail:'CGX_CFG_BOT · token healthy', dot:'#16A34A' },
-      { name:'SAP Cloud Connector', detail:'tunnel up · 14ms', dot:'#16A34A' },
-      { name:'Central Business Configuration', detail:'tenant reachable · scope synced', dot:'#16A34A' },
-      { name:'SAP Cloud ALM', detail:'config sync on · last 4m ago', dot:'#16A34A' }
+      { name:'RISE S/4HANA Cloud — Dev 100', detail:_cfgChk?'probing Communication Arrangement…':(_cfgOk?'Communication Arrangement SAP_COM_0X · active':'unreachable — retry check'), dot:_cfgDot },
+      { name:'OAuth 2.0 communication user', detail:_cfgChk?'validating token…':(_cfgOk?'CGX_CFG_BOT · token healthy':'token expired'), dot:_cfgDot },
+      { name:'SAP Cloud Connector', detail:_cfgChk?'pinging tunnel…':(_cfgOk?'tunnel up · 14ms':'tunnel down'), dot:_cfgDot },
+      { name:'Central Business Configuration', detail:_cfgChk?'syncing scope…':(_cfgOk?'tenant reachable · scope synced':'CBC unreachable'), dot:_cfgDot },
+      { name:'SAP Cloud ALM', detail:_cfgChk?'checking sync…':(_cfgOk?'config sync on · just now':'ALM sync off'), dot:_cfgDot }
     ];
+    const cfgHealthLabel = _cfgChk ? 'Checking…' : (_cfgOk ? 'Healthy' : 'Degraded');
+    const cfgHealthColor = _cfgChk ? '#B45309' : (_cfgOk ? '#15803D' : '#B91C1C');
+    const cfgHealthBg = _cfgChk ? '#FBF1DD' : (_cfgOk ? '#E7F6EC' : '#FEE2E2');
+    const cfgConnectLabel = _cfgChk ? 'Checking connections…' : 'Run connection check';
+    const cfgPushLabel = (deploy.cfgStaged|0) > 0 ? ('Staged '+deploy.cfgStaged+' · stage more') : 'Stage straight-through to sandbox';
+    const cfgStage = deploy.cfgStage|0;
+    const cfgPipeStep3Sub = cfgStage>=3?'validated':((deploy.cfgStaged|0)?'staging…':'in progress');
+    const cfgPipeStep3Bg = cfgStage>=3?'#16A34A':'var(--accent-bright,#6366F1)';
+    const cfgPipeStep3Title = '#fff';
+    const cfgPipeStep4Bg = cfgStage>=4?'#16A34A':'#1C2435';
+    const cfgPipeStep4Title = cfgStage>=4?'#fff':'#AEB7C7';
+    const cfgPipeStep4Sub = cfgStage>=4?'signed':'consultant signs';
+    const cfgPipeStep5Bg = cfgStage>=5?'#16A34A':'#1C2435';
+    const cfgPipeStep5Title = cfgStage>=5?'#fff':'#AEB7C7';
+    const cfgPipeStep5Sub = cfgStage>=5?'in flight':'on approval';
+    const cfgPipeLine34 = cfgStage>=3?'#16A34A':'linear-gradient(90deg,#6366F1,#3A4358)';
+    const cfgPipeLine45 = cfgStage>=4?'#16A34A':'#3A4358';
 
     // ---- per-module configuration worklist with prerequisite gating ----
     // Enterprise-structure foundations every module's config depends on. status: done | pending | held
@@ -7716,81 +7799,107 @@ class Component extends DCLogic {
         const blocked = items.filter(i=>i.blocked).length;
         const decide = items.filter(i=>i.st==='Needs decision').length;
         cfgWlOpen = { name:w.name, mod:w.mod, prereqRows, items, ready, blocked, decide,
-          apply: ()=>this.showToast(w.name+': applying the '+ready+' ready item(s) to the sandbox client. Blocked items stay locked until their enterprise-structure prerequisites are approved & transported — Cognixa enforces the sequence so config is never applied out of order.'),
+          apply: ()=>this.cfgApplyWl(cfgWlKey, ready, w.name),
           close: ()=>this.setState({cfgWl:null}) };
       }
     }
     const _stO = { bg:'#E7F6EC', color:'#15803D' };
     const _stD = { bg:'#FBF1DD', color:'#B45309' };
     const _stH = { bg:'#F0F1F4', color:'#5A6473' };
+    const _orgStaged = !!(deploy.cfgOrgDone || (deploy.cfgStaged|0)>0);
     const cfgOrg = [
-      { unit:'Company Code', val:'AU01', clause:'ORG-STR-001 §2.1', method:'CBC activity', st:'Ready', stBg:_stO.bg, stColor:_stO.color },
-      { unit:'Controlling Area', val:'A000', clause:'ORG-STR-001 §2.2', method:'CBC activity', st:'Ready', stBg:_stO.bg, stColor:_stO.color },
-      { unit:'Chart of Accounts', val:'YCOA', clause:'FIN-CFG-001 §3.1', method:'Config API', st:'Ready', stBg:_stO.bg, stColor:_stO.color },
-      { unit:'Fiscal Year Variant', val:'K4', clause:'FIN-CFG-001 §3.4', method:'CBC activity', st:'Ready', stBg:_stO.bg, stColor:_stO.color },
-      { unit:'Plant — Perth DC', val:'1010', clause:'ORG-STR-001 §3.1', method:'CBC activity', st:'Needs decision', stBg:_stD.bg, stColor:_stD.color },
-      { unit:'Sales Organisation', val:'1010', clause:'ORG-STR-001 §3.2', method:'Config API', st:'Ready', stBg:_stO.bg, stColor:_stO.color },
+      { unit:'Company Code', val:'AU01', clause:'ORG-STR-001 §2.1', method:'CBC activity', st:_orgStaged?'Staged': 'Ready', stBg:_stO.bg, stColor:_stO.color },
+      { unit:'Controlling Area', val:'A000', clause:'ORG-STR-001 §2.2', method:'CBC activity', st:_orgStaged?'Staged': 'Ready', stBg:_stO.bg, stColor:_stO.color },
+      { unit:'Chart of Accounts', val:'YCOA', clause:'FIN-CFG-001 §3.1', method:'Config API', st:_orgStaged?'Staged': 'Ready', stBg:_stO.bg, stColor:_stO.color },
+      { unit:'Fiscal Year Variant', val:'K4', clause:'FIN-CFG-001 §3.4', method:'CBC activity', st:_orgStaged?'Staged': 'Ready', stBg:_stO.bg, stColor:_stO.color },
+      { unit:'Plant — Perth DC', val:'1010', clause:'ORG-STR-001 §3.1', method:'CBC activity', st:_orgStaged?'Needs decision':'Needs decision', stBg:_stD.bg, stColor:_stD.color },
+      { unit:'Sales Organisation', val:'1010', clause:'ORG-STR-001 §3.2', method:'Config API', st:_orgStaged?'Staged': 'Ready', stBg:_stO.bg, stColor:_stO.color },
       { unit:'Purchasing Organisation', val:'1010', clause:'ORG-STR-001 §3.4', method:'CBC activity', st:'Held — MM sign-off', stBg:_stH.bg, stColor:_stH.color }
     ];
 
     // ===================== ECC → S/4HANA CODE REMEDIATION =====================
-    const remConnect = ()=>this.showToast('Connecting to client ECC — read-only RFC + remote ABAP Test Cockpit (ATC) against the S/4HANA simplification database. Pulling custom objects, ATC findings and UPL/SCMON usage. No write access to ECC; nothing is changed in the source.');
-    const remRun = ()=>this.showToast('Running the remediation engine — every finding is checked against the agreed design (signed specs), then dispositioned: retire unused, auto-remediate deterministic fixes, refactor to clean-core on BTP, or route complex logic to a developer. Pattern reuse pulled from the Accelerator Library.');
-    const remDeploy = ()=>this.showToast('Green ATC + unit tests → packaged into a transport (TMS / gCTS) and moved DEV → QA → PRD under sign-off. Each change carries its ATC result, the design clause it serves, and a content hash. No direct-to-Prod.');
-    const remDisp = (d)=>this.showToast(d+': opening the object worklist — sortable by ATC severity, usage and effort. Each object shows its findings, the agreed-design clause, the proposed S/4-compatible code (diff), and its deploy target.');
+    const remConnect = ()=>this.remRescan();
+    const remRun = ()=>this.remRunEngine();
+    const remDeploy = ()=>this.remPackage();
+    const remDisp = (d)=>this.remSetFilter(d);
+    const remFilter = deploy.remFilter || null;
     const remCards = [
-      { name:'Retire', sub:'Unused — no execution in 13 months', n:'2,988', pct:'62%', color:'#64748B', bg:'#F1F5F9', icon:'M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6', note:'UPL/SCMON confirms zero usage — dropped from scope, not migrated. Biggest single saving.', act:()=>remDisp('Retire') },
-      { name:'Auto-remediate', sub:'Deterministic — API & syntax swaps', n:'1,180', pct:'24%', color:'#16A34A', bg:'#E7F6EC', icon:'M13 2L3 14h7l-1 8 10-12h-7z', note:'Rule-based transforms applied automatically, then ATC re-run to green. Reviewed in bulk.', act:()=>remDisp('Auto-remediate') },
-      { name:'Refactor to clean-core', sub:'Side-by-side on SAP BTP', n:'420', pct:'9%', color:'#4338CA', bg:'#EEF0FF', icon:'M12 2l9 4.9V17L12 22 3 17V6.9z', note:'In-core Z-logic re-platformed as released-API extensions — keeps the core clean & upgrade-safe.', act:()=>remDisp('Refactor to clean-core') },
-      { name:'Developer fix', sub:'Complex — human judgement', n:'232', pct:'5%', color:'#B45309', bg:'#FBF1DD', icon:'M16 18l6-6-6-6M8 6l-6 6 6 6', note:'Routed to a developer with the design clause, ATC findings and a suggested pattern. Never auto-applied.', act:()=>remDisp('Developer fix') }
+      { name:'Retire', sub:'Unused — no execution in 13 months', n:'2,988', pct:'62%', color:'#64748B', bg: remFilter==='Retire' ? '#E2E8F0' : '#F1F5F9', icon:'M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6', note:'UPL/SCMON confirms zero usage — dropped from scope, not migrated. Biggest single saving.', act:()=>remDisp('Retire') },
+      { name:'Auto-remediate', sub:'Deterministic — API & syntax swaps', n:'1,180', pct:'24%', color:'#16A34A', bg: remFilter==='Auto-remediate' ? '#CFF5D8' : '#E7F6EC', icon:'M13 2L3 14h7l-1 8 10-12h-7z', note:'Rule-based transforms applied automatically, then ATC re-run to green. Reviewed in bulk.', act:()=>remDisp('Auto-remediate') },
+      { name:'Refactor to clean-core', sub:'Side-by-side on SAP BTP', n:'420', pct:'9%', color:'#4338CA', bg: remFilter==='Refactor to clean-core' ? '#DDE1FF' : '#EEF0FF', icon:'M12 2l9 4.9V17L12 22 3 17V6.9z', note:'In-core Z-logic re-platformed as released-API extensions — keeps the core clean & upgrade-safe.', act:()=>remDisp('Refactor to clean-core') },
+      { name:'Developer fix', sub:'Complex — human judgement', n:'232', pct:'5%', color:'#B45309', bg: remFilter==='Developer fix' ? '#F5E0B8' : '#FBF1DD', icon:'M16 18l6-6-6-6M8 6l-6 6 6 6', note:'Routed to a developer with the design clause, ATC findings and a suggested pattern. Never auto-applied.', act:()=>remDisp('Developer fix') }
     ];
     const _rsG = { bg:'#E7F6EC', color:'#15803D' };
     const _rsA = { bg:'#FBF1DD', color:'#B45309' };
     const _rsB = { bg:'#EEF0FF', color:'#4338CA' };
     const _rsN = { bg:'#F1F5F9', color:'#64748B' };
-    const remObjects = [
-      { obj:'ZFI_POST_INTERCO', type:'Report', atc:'3 High · 7 Med', use:'Daily · 4 users', disp:'Auto-remediate', dispBg:_rsG.bg, dispColor:_rsG.color, target:'S/4 in-core' },
-      { obj:'ZMM_PO_RELEASE_BADI', type:'BAdI Impl', atc:'1 High · 2 Med', use:'Hourly', disp:'Refactor → BTP', dispBg:_rsB.bg, dispColor:_rsB.color, target:'BTP extension' },
-      { obj:'ZSD_PRICING_ROUTINE', type:'Routine', atc:'4 High', use:'Daily', disp:'Developer fix', dispBg:_rsA.bg, dispColor:_rsA.color, target:'S/4 in-core' },
-      { obj:'ZHR_LEGACY_PAYRUN', type:'Program', atc:'12 findings', use:'None · 14 mo', disp:'Retire', dispBg:_rsN.bg, dispColor:_rsN.color, target:'— dropped' },
-      { obj:'ZFI_CURR_CONV_FM', type:'Function', atc:'2 Med', use:'Weekly', disp:'Auto-remediate', dispBg:_rsG.bg, dispColor:_rsG.color, target:'S/4 in-core' },
-      { obj:'ZCO_ALLOC_ENGINE', type:'Class', atc:'5 High · 3 Med', use:'Monthly', disp:'Refactor → BTP', dispBg:_rsB.bg, dispColor:_rsB.color, target:'BTP extension' }
+    const remObjectsAll = [
+      { obj:'ZFI_POST_INTERCO', type:'Report', atc:'3 High · 7 Med', use:'Daily · 4 users', disp:'Auto-remediate', filter:'Auto-remediate', dispBg:_rsG.bg, dispColor:_rsG.color, target:'S/4 in-core' },
+      { obj:'ZMM_PO_RELEASE_BADI', type:'BAdI Impl', atc:'1 High · 2 Med', use:'Hourly', disp:'Refactor → BTP', filter:'Refactor to clean-core', dispBg:_rsB.bg, dispColor:_rsB.color, target:'BTP extension' },
+      { obj:'ZSD_PRICING_ROUTINE', type:'Routine', atc:'4 High', use:'Daily', disp:'Developer fix', filter:'Developer fix', dispBg:_rsA.bg, dispColor:_rsA.color, target:'S/4 in-core' },
+      { obj:'ZHR_LEGACY_PAYRUN', type:'Program', atc:'12 findings', use:'None · 14 mo', disp:'Retire', filter:'Retire', dispBg:_rsN.bg, dispColor:_rsN.color, target:'— dropped' },
+      { obj:'ZFI_CURR_CONV_FM', type:'Function', atc:'2 Med', use:'Weekly', disp:'Auto-remediate', filter:'Auto-remediate', dispBg:_rsG.bg, dispColor:_rsG.color, target:'S/4 in-core' },
+      { obj:'ZCO_ALLOC_ENGINE', type:'Class', atc:'5 High · 3 Med', use:'Monthly', disp:'Refactor → BTP', filter:'Refactor to clean-core', dispBg:_rsB.bg, dispColor:_rsB.color, target:'BTP extension' }
     ];
+    const remObjects = remFilter ? remObjectsAll.filter(o=>o.filter===remFilter) : remObjectsAll;
+    const remFilterActive = !!remFilter;
+    const remFilterLabel = remFilter ? ('Showing: '+remFilter+' · click card again to clear') : 'sorted by ATC severity';
+    const remClearFilter = ()=>this.remSetFilter(null);
+    const _remChk = !!deploy.remChecking;
+    const _remDot = _remChk ? '#F59E0B' : '#16A34A';
     const remConn = [
-      { name:'Client ECC — read-only RFC', detail:'SID PRD · EhP8 · connected', dot:'#16A34A' },
-      { name:'Remote ATC — S/4 simplification DB', detail:'check variant S4HANA_READINESS', dot:'#16A34A' },
-      { name:'Usage logging — UPL / SCMON', detail:'13 months · aggregated', dot:'#16A34A' },
-      { name:'Transport route — TMS / gCTS', detail:'DEV → QA → PRD · git-enabled', dot:'#16A34A' }
+      { name:'Client ECC — read-only RFC', detail:_remChk?'scanning objects…':'SID PRD · EhP8 · connected', dot:_remDot },
+      { name:'Remote ATC — S/4 simplification DB', detail:_remChk?'pulling findings…':'check variant S4HANA_READINESS', dot:_remDot },
+      { name:'Usage logging — UPL / SCMON', detail:_remChk?'aggregating usage…':'13 months · aggregated', dot:_remDot },
+      { name:'Transport route — TMS / gCTS', detail:(deploy.remPackaged|0)?('CGXK9A001 · '+(deploy.remPackaged)+' objs'):'DEV → QA → PRD · git-enabled', dot:(deploy.remStage|0)>=5?'#16A34A':_remDot }
     ];
+    const remRunLabel = deploy.remRunning ? ('Remediating… '+(deploy.remProgress|0)+'%') : ((deploy.remProgress|0)>=100 ? 'Re-run remediation engine' : 'Run remediation engine');
+    const remDeployLabel = (deploy.remPackaged|0) ? ('Packaged '+deploy.remPackaged+' · view transport') : 'Package green objects for transport';
+    const remConnectLabel = _remChk ? 'Scanning source…' : 'Re-scan source system';
+    const remHealthLabel = _remChk ? 'Scanning…' : 'Read-only';
+    const remHealthColor = _remChk ? '#B45309' : '#15803D';
+    const remHealthBg = _remChk ? '#FBF1DD' : '#E7F6EC';
+    const remStage = deploy.remStage|0;
+    const remPipeStep3Sub = deploy.remRunning ? ((deploy.remProgress|0)+'%') : (remStage>=4 ? 'complete' : 'in progress');
+    const remPipeStep3Bg = remStage>=4 ? '#16A34A' : 'var(--accent-bright,#6366F1)';
+    const remPipeStep4Bg = remStage>=4 ? '#16A34A' : '#1C2435';
+    const remPipeStep4Title = remStage>=4 ? '#fff' : '#AEB7C7';
+    const remPipeStep4Sub = remStage>=4 ? 'ATC green' : '+ unit tests';
+    const remPipeStep5Bg = remStage>=5 ? '#16A34A' : '#1C2435';
+    const remPipeStep5Title = remStage>=5 ? '#fff' : '#AEB7C7';
+    const remPipeStep5Sub = remStage>=5 ? 'packaged' : 'on sign-off';
+    const remPipeLine34 = remStage>=4 ? '#16A34A' : 'linear-gradient(90deg,#6366F1,#3A4358)';
+    const remPipeLine45 = remStage>=5 ? '#16A34A' : '#3A4358';
 
     // ===================== SYSTEM CONVERSION — ECC → S/4HANA (Brownfield) =====================
     // Orica-style mining brownfield: pure technical conversion, no new features.
     const cvAct = (t)=>this.showToast(t);
-    // SAP-standard conversion phases
+    const _cvPhase = deploy.cvPhase|0;
+    const _cvQa = deploy.cvQaPct|0;
     const cvPhases = [
-      { ph:'1 · Prepare', pct:'100%', done:true, color:'#16A34A', items:'Readiness Check · Maintenance Planner · SI Check', act:()=>cvAct('Prepare phase complete — SAP Readiness Check, Maintenance Planner target computed, Simplification Item Check run against the ECC system. All findings triaged into the conversion backlog.') },
-      { ph:'2 · Sandbox convert', pct:'100%', done:true, color:'#16A34A', items:'SUM + DMO on a system copy · dry run', act:()=>cvAct('Sandbox conversion complete — Software Update Manager with Database Migration Option (DMO) ran end-to-end on a copy of PRD. Runtime and downtime measured for planning; issues logged before touching DEV.') },
-      { ph:'3 · Convert DEV', pct:'100%', done:true, color:'#16A34A', items:'Functional conversions · custom code green', act:()=>cvAct('DEV converted — mandatory functional conversions applied (Business Partner/CVI, New Asset Accounting, Material Ledger). Custom code remediated to green via ATC. Ready for QA.') },
-      { ph:'4 · Convert QA', pct:'62%', done:false, color:'#6366F1', items:'Regression · downtime rehearsal', act:()=>cvAct('QA conversion in progress — full regression pack running, downtime-optimised DMO rehearsal to confirm the go-live window fits the maintenance outage. Business validating converted balances.') },
-      { ph:'5 · Convert PRD', pct:'0%', done:false, color:'#94A0BC', items:'Cutover · nZDM · hypercare', act:()=>cvAct('Production cutover — scheduled in the approved maintenance window using near-Zero-Downtime methods. Locked behind QA sign-off and a rehearsed runbook. Not yet started.') }
+      { ph:'1 · Prepare', pct:'100%', done:_cvPhase>=0, color:'#16A34A', items:'Readiness Check · Maintenance Planner · SI Check', act:()=>this.cvSelectPhase(0) },
+      { ph:'2 · Sandbox convert', pct:_cvPhase>=1?'100%':'0%', done:_cvPhase>=1, color:_cvPhase>=1?'#16A34A':'#94A0BC', items:'SUM + DMO on a system copy · dry run', act:()=>this.cvSelectPhase(1) },
+      { ph:'3 · Convert DEV', pct:_cvPhase>=2?'100%':'0%', done:_cvPhase>=2, color:_cvPhase>=2?'#16A34A':'#94A0BC', items:'Functional conversions · custom code green', act:()=>this.cvSelectPhase(2) },
+      { ph:'4 · Convert QA', pct:(_cvPhase>=3?(_cvQa>=100?'100%':(_cvQa+'%')):'0%'), done:_cvPhase>=3 && _cvQa>=100, color:(_cvPhase>=3 && _cvQa>=100)?'#16A34A':(_cvPhase>=3?'#6366F1':'#94A0BC'), items:'Regression · downtime rehearsal', act:()=>this.cvSelectPhase(3) },
+      { ph:'5 · Convert PRD', pct:_cvPhase>=4?'100%':'0%', done:_cvPhase>=4, color:_cvPhase>=4?'#16A34A':'#94A0BC', items:'Cutover · nZDM · hypercare', act:()=>this.cvSelectPhase(4) }
     ];
-    // Readiness check summary tiles
     const cvReadiness = [
-      { k:'Simplification items', v:'214', sub:'38 relevant · 6 need action', tone:'#B45309' },
-      { k:'Custom objects (ATC)', v:'4,820', sub:'62% unused · retire first', tone:'#0A6ED1' },
-      { k:'Add-ons & partner code', v:'11', sub:'2 not S/4-released', tone:'#B45309' },
-      { k:'Est. business downtime', v:'~22 hrs', sub:'downtime-optimised DMO', tone:'#15803D' }
+      { k:'Simplification items', v: deploy.cvReady ? '214' : '—', sub: deploy.cvReady ? '38 relevant · 6 need action' : 'Run Readiness Check', tone:'#B45309' },
+      { k:'Custom objects (ATC)', v: deploy.cvReady ? '4,820' : '—', sub: deploy.cvReady ? '62% unused · retire first' : 'Awaiting scan', tone:'#0A6ED1' },
+      { k:'Add-ons & partner code', v: deploy.cvReady ? '11' : '—', sub: deploy.cvReady ? '2 not S/4-released' : 'Awaiting scan', tone:'#B45309' },
+      { k:'Est. business downtime', v: deploy.cvReady ? '~22 hrs' : '—', sub: deploy.cvReady ? 'downtime-optimised DMO' : 'After readiness', tone:'#15803D' }
     ];
-    // Mandatory functional conversions (brownfield-specific)
     const _cvD = {done:{l:'Converted',bg:'#E7F6EC',c:'#15803D'}, prog:{l:'In progress',bg:'#EEF0FF',c:'#4338CA'}, todo:{l:'Planned',bg:'#F0F1F4',c:'#5A6473'}, act:{l:'Action needed',bg:'#FBF1DD',c:'#B45309'}};
-    const cvMand = [
-      { n:'Customer/Vendor → Business Partner (CVI)', why:'Mandatory data model change — must complete before conversion', s:_cvD.done },
-      { n:'New Asset Accounting', why:'Replaces classic FI-AA; ledger-based depreciation', s:_cvD.done },
-      { n:'Material Ledger (mandatory in S/4)', why:'Actual costing optional; ML itself is compulsory', s:_cvD.prog },
-      { n:'New General Ledger / Universal Journal (ACDOCA)', why:'FI + CO merged into one line-item table', s:_cvD.done },
-      { n:'Credit Management → SAP Credit Management (FSCM)', why:'FI-AR-CR is not available in S/4', s:_cvD.act },
-      { n:'Output Management (BRF+ / Adobe forms)', why:'Classic output determination deprecated', s:_cvD.todo }
+    const _cvMandBase = [
+      { n:'Customer/Vendor → Business Partner (CVI)', why:'Mandatory data model change — must complete before conversion', sk:'done' },
+      { n:'New Asset Accounting', why:'Replaces classic FI-AA; ledger-based depreciation', sk:'done' },
+      { n:'Material Ledger (mandatory in S/4)', why:'Actual costing optional; ML itself is compulsory', sk:'prog' },
+      { n:'New General Ledger / Universal Journal (ACDOCA)', why:'FI + CO merged into one line-item table', sk:'done' },
+      { n:'Credit Management → SAP Credit Management (FSCM)', why:'FI-AR-CR is not available in S/4', sk:'act' },
+      { n:'Output Management (BRF+ / Adobe forms)', why:'Classic output determination deprecated', sk:'todo' }
     ];
+    const _cvMandAdv = deploy.cvMandAdv || {};
+    const cvMand = _cvMandBase.map((m,i)=>{ const sk=_cvMandAdv[i]||m.sk; return { n:m.n, why:m.why, s:_cvD[sk]||_cvD.todo, act:()=>this.cvAdvanceMand(i) }; });
     // What is preserved (the reassurance for a pure technical upgrade)
     const cvKeep = ['All configuration & customising','Historical transactional data','Existing process design','Org structure (company codes, plants…)','Number ranges & document history','Interfaces (re-pointed, not rebuilt)'];
 
@@ -7809,12 +7918,30 @@ class Component extends DCLogic {
     const cvTabOv = _cvtab==='overview', cvTabLand = _cvtab==='landscape', cvTabConv = _cvtab==='conversions', cvTabIntg = _cvtab==='integration', cvTabTest = _cvtab==='testing', cvTabAuto = _cvtab==='automation';
 
     // Landscape sequence — where to start → through to Production (SAP best practice)
+    const _landSt = (done, prog)=>({ st: done?'Done':(prog?'In progress':'Planned'), stC: done?'#15803D':(prog?'#4338CA':'#5A6473'), stBg: done?'#E7F6EC':(prog?'#EEF0FF':'#F0F1F4') });
     const cvLand = [
-      { sys:'SANDBOX', sub:'throwaway copy of PRD', role:'Trial conversion', what:'Convert first to learn: measure SUM/DMO runtime & downtime, surface issues before touching real systems. Discarded after.', st:'Done', stC:'#15803D', stBg:'#E7F6EC', start:true },
-      { sys:'DEV', sub:'new converted dev track', role:'First real conversion', what:'Becomes the new development system. Custom code remediated to green (ATC); functional conversions applied here first.', st:'Done', stC:'#15803D', stBg:'#E7F6EC', start:false },
-      { sys:'QA / TEST', sub:'converted', role:'Validate + rehearse', what:'Full regression pack, business validation of converted balances, and downtime-optimised DMO rehearsal to fit the outage window.', st:'In progress', stC:'#4338CA', stBg:'#EEF0FF', start:false },
-      { sys:'PRD', sub:'the go-live', role:'Cutover', what:'Final conversion in the approved maintenance window using near-Zero-Downtime methods, off a rehearsed runbook. Gated by QA sign-off.', st:'Planned', stC:'#5A6473', stBg:'#F0F1F4', start:false }
+      Object.assign({ sys:'SANDBOX', sub:'throwaway copy of PRD', role:'Trial conversion', what:'Convert first to learn: measure SUM/DMO runtime & downtime, surface issues before touching real systems. Discarded after.', start:true }, _landSt(_cvPhase>=1, false)),
+      Object.assign({ sys:'DEV', sub:'new converted dev track', role:'First real conversion', what:'Becomes the new development system. Custom code remediated to green (ATC); functional conversions applied here first.', start:false }, _landSt(_cvPhase>=2, _cvPhase===1)),
+      Object.assign({ sys:'QA / TEST', sub:'converted', role:'Validate + rehearse', what:'Full regression pack, business validation of converted balances, and downtime-optimised DMO rehearsal to fit the outage window.', start:false }, _landSt(_cvPhase>=3 && _cvQa>=100, _cvPhase>=3 && _cvQa<100)),
+      Object.assign({ sys:'PRD', sub:'the go-live', role:'Cutover', what:'Final conversion in the approved maintenance window using near-Zero-Downtime methods, off a rehearsed runbook. Gated by QA sign-off.', start:false }, _landSt(_cvPhase>=4, false))
     ];
+    const cvConnectLabel = deploy.cvChecking ? 'Checking source…' : 'Re-check source';
+    const cvCutoverLabel = (_cvPhase>=3 && _cvQa>=100) ? 'Open cutover runbook →' : (_cvPhase>=3 ? 'Complete QA to unlock cutover →' : 'Cutover locked until DEV done');
+    const cvCutoverOpen = deploy.cvCutover ? {
+      close: ()=>this.cvCloseCutover(),
+      completeQa: ()=>this.cvCompleteQa(),
+      goLive: ()=>{ if(_cvQa<100){ this.showToast('QA sign-off required before go-live'); return; } this._setDeploy({ cvPhase:4, cvCutover:false, cvQaPct:100 }); this.showToast('PRD cutover started — nZDM window armed, hypercare bridge open','starting cutover'); },
+      qaDone: _cvQa>=100, qaPending: _cvQa<100,
+      steps:[
+        {t:'T-72h', d:'Freeze transports · confirm blackout window with ops'},
+        {t:'T-24h', d:'Final backup · SI Check delta · stakeholder go/no-go'},
+        {t:'T-0', d:'SUM + downtime-optimised DMO · nZDM bridge'},
+        {t:'T+2h', d:'Technical validation · FI/CO balance reconcile'},
+        {t:'T+6h', d:'Interface smoke · business smoke · hypercare start'},
+        {t:'Rollback', d:'Restore ECC snapshot if go/no-go fails before commit point'}
+      ]
+    } : null;
+    const cvRunReadinessLabel = (this.state.rcBot && this.state.rcBot.playing) ? 'Analysing…' : (deploy.cvReady ? 'Re-run SAP Readiness Check' : 'Run SAP Readiness Check');
 
     // Integration impact — interface inventory by technology (mining has heavy non-SAP integration)
     const _idDisp = { rp:{l:'Re-point',bg:'#E7F6EC',c:'#15803D'}, rw:{l:'Rework',bg:'#FBF1DD',c:'#B45309'}, rt:{l:'Retire',bg:'#F0F1F4',c:'#5A6473'} };
@@ -8391,16 +8518,19 @@ class Component extends DCLogic {
       houseTag: screen==='roster' ? 'AI rostering & award compliance' : (screen==='hcm' ? 'AI-powered SuccessFactors delivery' : 'AI-powered SAP delivery'),
       aiOn: !!this.state.aiRun, aiLabel: this.state.aiRun ? this.state.aiRun.steps[this.state.aiRun.i] : '', aiStepNum: this.state.aiRun ? (this.state.aiRun.i+1) : 0, aiStepTotal: this.state.aiRun ? this.state.aiRun.steps.length : 0,
       goDashboard:()=>this.go('dashboard'), goBuild:()=>this.go('build'), goConfig:()=>this.go('config'), goRemediate:()=>this.go('remediate'), goConvert:()=>this.go('convert'),
-      cfgGenerate:()=>this.setState({cfgDoc:'finance'}),
-      cfgConnect:()=>this.showToast('Connection check — RISE S/4HANA Cloud (Dev client 100): Communication Arrangement SAP_COM_0X active, OAuth 2.0 comm user healthy, Cloud Connector tunnel up, Central Business Configuration tenant reachable, Cloud ALM sync on.'),
-      cfgPush:()=>this.showToast('Straight-through items (deterministic) staged to sandbox via Business Configuration APIs & CBC import. Items needing judgement are held at the human gate — a consultant approves each before transport Dev \u2192 QA \u2192 Prod. No direct-to-Prod, ever.'),
-      cfgModuleAct:(m)=>this.showToast(m+': opening the configuration worklist — each value traces back to its signed spec clause, with method (API / CBC activity / manual) and target client shown. Apply to sandbox, validate, then request sign-off to transport.'),
+      cfgGenerate:()=>this.cfgGenerateRun(),
+      cfgConnect:()=>this.cfgRunConnect(),
+      cfgPush:()=>this.cfgStagePush(),
+      cfgModuleAct:(m)=>this.setState({cfgWl: m==='Finance'?'finance': m==='Order to Cash'?'o2c': m==='Procurement'?'mm': null}),
       cfgModules, cfgConn, cfgOrg, cfgWlOpen, cfgDocOpen, cfgDocFinColor, cfgDocFinBar, cfgDocO2cColor, cfgDocO2cBar, cfgPipeOpen, cfgBotOpen, cfgBotLgUserVal, cfgBotLgPassVal, cfgBotLgUserBd, cfgBotLgUserBg, cfgBotLgPassBd, cfgBotLgPassBg, cfgBotUrl, cfgBotUrlTyping, cfgBotNotDone: !!(cfgBotOpen && !cfgBotOpen.done), cfgBotRunLabel: (cfgBotOpen && cfgBotOpen.playing) ? 'Running…' : 'Run bot', openCfgBot:()=>this.openCfgBot(), cfgPipeToggleLabel: cfgPipeIsSpec ? 'View generated workbook →' : '← View signed spec', cfgShowSpec:()=>this.setState({cfgPipe:'spec'}), cfgShowBook:()=>this.setState({cfgPipe:'book'}), stopProp:(e)=>{ try{ e.stopPropagation(); }catch(_){} },
-      remConnect, remRun, remDeploy, remCards, remObjects, remConn,
+      cfgHealthLabel, cfgHealthColor, cfgHealthBg, cfgConnectLabel, cfgPushLabel, cfgPipeStep3Sub, cfgPipeStep3Bg, cfgPipeStep3Title, cfgPipeStep4Bg, cfgPipeStep4Title, cfgPipeStep4Sub, cfgPipeStep5Bg, cfgPipeStep5Title, cfgPipeStep5Sub, cfgPipeLine34, cfgPipeLine45,
+      remConnect, remRun, remDeploy, remCards, remObjects, remConn, remRunLabel, remDeployLabel, remConnectLabel, remHealthLabel, remHealthColor, remHealthBg, remFilterActive, remFilterLabel, remClearFilter, remPipeStep3Sub, remPipeStep3Bg, remPipeStep4Bg, remPipeStep4Title, remPipeStep4Sub, remPipeStep5Bg, remPipeStep5Title, remPipeStep5Sub, remPipeLine34, remPipeLine45,
       cvPhases, cvReadiness, cvMand, cvKeep, cvConn, cvLand, cvIntf, cvIntfDetailOpen, cvTest, cvTestDetailOpen, cvTabs, cvTabOv, cvTabLand, cvTabConv, cvTabIntg, cvTabTest, cvTabAuto, cvGoLandscape:()=>this.setState({cvTab:'landscape'}), rcBotOpen, rcBotNotDone: !!(rcBotOpen && !rcBotOpen.done), rcBotRunLabel: (rcBotOpen && rcBotOpen.playing) ? 'Analysing…' : 'Run analysis',
-      cvConnect:()=>this.showToast('Source ECC — read-only connection: SID PRD, EhP8 on Oracle. SAP Readiness Check data and Simplification Item Check pulled. No changes made to the source system.'),
-      cvRunReadiness:()=>this.startRcBot(),
-      cvPlanCutover:()=>this.showToast('Opening the cutover runbook — downtime-optimised DMO steps, business blackout window, validation checkpoints and rollback plan. Locked until QA sign-off is recorded.'), goAnalyse:()=>this.go('analyse'), goCapture:()=>this.go('capture'), goIntel:()=>this.go('intel'), goTrace:()=>this.go('trace'), goMapping:()=>this.go('mapping'), goSpec:()=>this.go('spec'), openSpecToComplete:()=>{ this.setState({ delivStream:'o2c', specDoc:'fs' }); this.go('spec'); this.showToast('Opening the Functional Spec to complete it — this step\u2019s requirement flows here. The worked Order-to-Cash FS is shown as the live template.'); }, goReview:()=>this.go('review'), goIntegrations:()=>this.go('integrations'), goValue:()=>this.go('value'), goHcm:()=>this.go('hcm'),
+      cvConnect:()=>this.cvRecheck(),
+      cvRunReadiness:()=>{ this.startRcBot(); this._setDeploy({ cvReady:true }); },
+      cvPlanCutover:()=>this.cvOpenCutover(),
+      cvConnectLabel, cvCutoverLabel, cvCutoverOpen, cvRunReadinessLabel, cvCompleteQa:()=>this.cvCompleteQa(),
+      goAnalyse:()=>this.go('analyse'), goCapture:()=>this.go('capture'), goIntel:()=>this.go('intel'), goTrace:()=>this.go('trace'), goMapping:()=>this.go('mapping'), goSpec:()=>this.go('spec'), openSpecToComplete:()=>{ this.setState({ delivStream:'o2c', specDoc:'fs' }); this.go('spec'); this.showToast('Opening the Functional Spec to complete it — this step\u2019s requirement flows here. The worked Order-to-Cash FS is shown as the live template.'); }, goReview:()=>this.go('review'), goIntegrations:()=>this.go('integrations'), goValue:()=>this.go('value'), goHcm:()=>this.go('hcm'),
       navBack:()=>this.navBack(), navFwd:()=>this.navFwd(),
       canBack: (()=>{ const st=this.state; const stack=st.navStack||[]; const pos=(st.navPos==null?stack.length-1:st.navPos); return pos>0; })(),
       canFwd: (()=>{ const st=this.state; const stack=st.navStack||[]; const pos=(st.navPos==null?stack.length-1:st.navPos); return pos<stack.length-1; })(),
