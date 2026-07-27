@@ -11,6 +11,23 @@ echo  Real SAP GUI write on THIS Windows PC
 echo ============================================================
 echo.
 
+REM Admin cmd CANNOT see a normal-user SAP GUI session via COM.
+net session >nul 2>&1
+if %errorlevel%==0 (
+  echo ERROR: This window is running as Administrator.
+  echo.
+  echo Your SAP Easy Access is running as a normal user.
+  echo An Admin agent cannot see that SAP session ^(shows 0 sessions^).
+  echo.
+  echo FIX:
+  echo   1. Close this Admin window
+  echo   2. Keep SAP Easy Access open
+  echo   3. In File Explorer, double-click run.cmd NORMALY
+  echo      ^(do NOT choose Run as administrator^)
+  echo.
+  goto HOLD
+)
+
 cd /d "%~dp0" 2>nul
 if errorlevel 1 (
   echo ERROR: Cannot change to script folder.

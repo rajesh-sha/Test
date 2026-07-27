@@ -25,33 +25,57 @@ function Write-Status {
   Add-Content -LiteralPath $logPath -Value $line -Encoding ASCII
 }
 
-function Get-SapSessionCount {
-  $count = 0
+function Test-IsAdmin {
+  try {
+    $id = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $p = New-Object Security.Principal.WindowsPrincipal($id)
+    return $p.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+  } catch { return $false }
+}
+
+function Get-SapSessionInfo {
+  # Do NOT CreateObject(ScriptingCtrl) for detection - that is a new empty engine.
+  # Only GetActiveObject can see the user's already-open SAP GUI.
+  $info = [ordered]@{ Sessions = 0; Connections = 0; Ok = $false; Detail = '' }
   try {
     $gui = [Runtime.InteropServices.Marshal]::GetActiveObject('SAPGUI')
-    $engine = $gui.GetScriptingEngine()
-    if ($engine -and $engine.Children -and $engine.Children.Count -gt 0) {
-      $conn = $engine.Children.Item(0)
-      if ($conn -and $conn.Children) { $count = [int]$conn.Children.Count }
+    $engine = $gui.GetScriptingEngine
+    if (-not $engine) { $engine = $gui.GetScriptingEngine() }
+    $connCount = 0
+    try { $connCount = [int]$engine.Children.Count } catch { $connCount = 0 }
+    $info.Connections = $connCount
+    $sess = 0
+    for ($i = 0; $i -lt $connCount; $i++) {
+      try {
+        $c = $null
+        try { $c = $engine.Children.Item($i) } catch { $c = $engine.Children($i) }
+        if ($c) {
+          try { $sess += [int]$c.Children.Count } catch {}
+        }
+      } catch {}
     }
+    $info.Sessions = $sess
+    $info.Ok = $true
+    $info.Detail = ('GetActiveObject OK; connections={0}; sessions={1}' -f $connCount, $sess)
   } catch {
-    try {
-      $gui = New-Object -ComObject 'Sapgui.ScriptingCtrl.1'
-      $engine = $gui.GetScriptingEngine()
-      if ($engine -and $engine.Children -and $engine.Children.Count -gt 0) {
-        $conn = $engine.Children.Item(0)
-        if ($conn -and $conn.Children) { $count = [int]$conn.Children.Count }
-      }
-    } catch {
-      $count = 0
-    }
+    $info.Detail = ('GetActiveObject failed: {0}' -f $_.Exception.Message)
   }
-  return $count
+  return $info
 }
 
 try {
   Write-Status -Message 'Cognixa Desktop Agent starting...' -Color Cyan
   Write-Status -Message ('Folder: {0}' -f $here)
+
+  if (Test-IsAdmin) {
+    Write-Host ''
+    Write-Host 'ERROR: Running as Administrator.' -ForegroundColor Red
+    Write-Host 'SAP Easy Access is a normal-user window. Admin COM cannot see it (0 sessions).' -ForegroundColor Red
+    Write-Host 'Close this window. Double-click run.cmd WITHOUT "Run as administrator".' -ForegroundColor Yellow
+    Write-Host 'Keep SAP Easy Access open.' -ForegroundColor Yellow
+    Write-Host ''
+    throw 'Agent must NOT run as Administrator when SAP GUI is a normal user process.'
+  }
 
   if ($here -match '(?i)\\AppData\\Local\\Temp\\|\\.zip($|\\)') {
     throw 'Running from a temp/zip path. Extract All the zip to a normal folder, then run run.cmd.'
@@ -84,19 +108,24 @@ try {
   Write-Host (' 3. Log on: client {0} / user {1} / lang {2}' -f $client, $user, $lang) -ForegroundColor Yellow
   Write-Host ' 4. Leave that SAP session open (Easy Access is fine)' -ForegroundColor Yellow
   Write-Host ' 5. Accept any "A script is trying to access SAP GUI" prompt' -ForegroundColor Yellow
+  Write-Host ' 6. Do NOT run this agent as Administrator' -ForegroundColor Yellow
   Write-Host '============================================================' -ForegroundColor Yellow
   Write-Host ''
 
-  $sessions = Get-SapSessionCount
-  Write-Status -Message ('Current SAP GUI sessions detected: {0}' -f $sessions)
-  if ($sessions -lt 1) {
-    Write-Host 'No logged-on SAP session detected yet.' -ForegroundColor Yellow
-    Write-Host 'Log on in SAP GUI now, then come back here and press ENTER.' -ForegroundColor Yellow
-    [void](Read-Host 'Press ENTER after you are logged on in SAP GUI')
-    $sessions = Get-SapSessionCount
-    Write-Status -Message ('SAP GUI sessions after wait: {0}' -f $sessions)
-    if ($sessions -lt 1) {
-      throw 'Still no SAP GUI session. Open SAP Logon, log on fully, leave the window open, then re-run run.cmd.'
+  $sapInfo = Get-SapSessionInfo
+  Write-Status -Message ('SAP detect: {0}' -f $sapInfo.Detail)
+  Write-Status -Message ('Current SAP GUI sessions detected: {0}' -f $sapInfo.Sessions)
+  if ([int]$sapInfo.Sessions -lt 1) {
+    Write-Host 'No scriptable SAP session detected yet (even if Easy Access looks open).' -ForegroundColor Yellow
+    Write-Host 'Common cause: this CMD was started with Run as administrator.' -ForegroundColor Yellow
+    Write-Host 'Also enable: SAP GUI Options -> Accessibility and Scripting -> Enable scripting.' -ForegroundColor Yellow
+    Write-Host 'Then click THIS window and press ENTER.' -ForegroundColor Yellow
+    [void](Read-Host 'Press ENTER after SAP is logged on AND scripting is enabled (non-Admin CMD)')
+    $sapInfo = Get-SapSessionInfo
+    Write-Status -Message ('SAP detect after wait: {0}' -f $sapInfo.Detail)
+    Write-Status -Message ('SAP GUI sessions after wait: {0}' -f $sapInfo.Sessions)
+    if ([int]$sapInfo.Sessions -lt 1) {
+      throw 'Still 0 SAP sessions. Close Admin CMD, enable SAP GUI scripting, keep Easy Access open, double-click run.cmd normally (not as Admin).'
     }
   } else {
     Write-Status -Message 'Existing SAP session found - will ATTACH (no OpenConnection).' -Color Green
