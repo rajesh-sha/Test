@@ -2771,6 +2771,11 @@
               </sc-for>
             </div>
             <div style="font-size:11px;color:#3F6212;margin-top:10px;font-family:'IBM Plex Mono',monospace">Example playbook CFG-BOT/BCSET/FI/CGX1 · BC Set ZCGX_FI_CGX1 · FM SCPR_ACTIVATE_BCSETS_REMOTE · CTS/STMS</div>
+            <div style="margin-top:12px;padding-top:12px;border-top:1px solid #CDEBD7;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+              <button onClick="{{ openCfgBot }}" style="display:inline-flex;align-items:center;gap:7px;background:#0E1525;border:none;color:#fff;font-weight:600;font-size:12px;padding:8px 12px;border-radius:9px;cursor:pointer">1 · Run Cognixa BC Set bot (demo)</button>
+              <button onClick="{{ confirmLiveA4hCgx1 }}" style="display:inline-flex;align-items:center;gap:7px;background:#15803D;border:none;color:#fff;font-weight:600;font-size:12px;padding:8px 12px;border-radius:9px;cursor:pointer">2 · Confirm live A4H: CGX1 in OX02/T001</button>
+              <span style="font-size:10.5px;color:#3F6212;line-height:1.4">Browser cannot RFC to A4H. After SE38/SCPR20 succeeds, confirm here to record Cognixa IP evidence.</span>
+            </div>
           </div>
           </sc-if>
 
@@ -5744,6 +5749,28 @@ class Component extends DCLogic {
       this.showToast('Could not start download — open desktop-agent/bcset-cgx1/ and run run.cmd.','BC Set automation');
     }
   }
+  confirmLiveA4hCgx1(){
+    this._setDeploy({
+      s4Edition:'onprem',
+      cfgConnOk:true,
+      cfgOrgDone:true,
+      cfgStage:Math.max((this.state.deploy||{}).cfgStage||0, 2),
+      cfgStaged:Math.max((this.state.deploy||{}).cfgStaged||0, 1),
+      cfgTrBc:(this.state.deploy||{}).cfgTrBc || 'SCPR20·ZCGX_FI_CGX1',
+      cfgTrCbc:(this.state.deploy||{}).cfgTrCbc || 'A4HK900589',
+      cfgLiveA4hCgx1:true
+    });
+    const rules=this._compoundIpRuleset([{
+      playbook:'CFG-BOT/BCSET/FI/CGX1',
+      activity:'Live A4H verify — ZCGX_FI_CGX1 activated · T001 CGX1',
+      decision:'bcset-activate-live',
+      clause:'ORG-STR-001 §2.1',
+      source:'a4h-live-confirm',
+      transport:'A4HK900589 / SCPR20·ZCGX_FI_CGX1',
+      edition:'onprem'
+    }]);
+    this.showToast('Cognixa recorded live A4H test — playbook CFG-BOT/BCSET/FI/CGX1 · TR A4HK900589 · '+rules.length+' IP rules. Export evidence pack next.','live A4H confirm');
+  }
   saveSapGuiPw(){
     try{
       const el=document.getElementById('cgx-sap-gui-pw');
@@ -5851,7 +5878,7 @@ class Component extends DCLogic {
   }
   closeRcBot(){ if(this._rcT){ clearInterval(this._rcT); this._rcT=null; } this.setState({ rcBot:null }); }
   /* —— Configure / Remediate / Convert: live demo engines —— */
-  _deployDefaults(){ return { cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, cfgTrCbc:null, cfgTrBc:null, cfgExported:false, cfgImportedTest:false, cfgAlmApproved:false, cfgCurrentPending:3, s4Edition:'public', cfgPath:'fit', cfgEccHarvested:false, cfgEccDeltaMapped:false, cfgMigReady:false, cfgEccBusy:false, cfgGuiResidual:false, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; }
+  _deployDefaults(){ return { cfgStage:2, cfgChecking:false, cfgConnOk:true, cfgStaged:0, cfgApplied:{}, cfgOrgDone:false, cfgTrCbc:null, cfgTrBc:null, cfgExported:false, cfgImportedTest:false, cfgAlmApproved:false, cfgCurrentPending:3, s4Edition:'public', cfgPath:'fit', cfgEccHarvested:false, cfgEccDeltaMapped:false, cfgMigReady:false, cfgEccBusy:false, cfgGuiResidual:false, cfgLiveA4hCgx1:false, remStage:2, remChecking:false, remProgress:0, remRunning:false, remPackaged:0, remFilter:null, remScanned:true, cvPhase:3, cvChecking:false, cvReady:false, cvCutover:false, cvQaPct:62, cvMandAdv:{} }; }
   _loadDeploy(){ try{ const raw=localStorage.getItem('dl_cgx_deploy'); if(!raw) return this._deployDefaults(); return Object.assign(this._deployDefaults(), JSON.parse(raw)); }catch(e){ return this._deployDefaults(); } }
   _saveDeploy(patch){ const d=Object.assign({}, this.state.deploy||this._deployDefaults(), patch||{}); try{ localStorage.setItem('dl_cgx_deploy', JSON.stringify(d)); }catch(e){} return d; }
   _setDeploy(patch, extra){ const d=this._saveDeploy(patch); this.setState(Object.assign({ deploy:d }, extra||{})); }
