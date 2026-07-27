@@ -3167,6 +3167,14 @@
             <div style="display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:0;min-height:0;flex:1;overflow:hidden">
               <!-- mock SAP screen -->
               <div style="padding:14px 16px;border-right:1px solid #1F2A40;min-width:0;overflow-y:auto;overscroll-behavior:contain">
+                <sc-if value="{{ cfgBotOpen.showBcSetHowTo }}" hint-placeholder-val="{{ false }}">
+                <div style="background:#F4FBF6;border:1px solid #CDEBD7;border-radius:10px;padding:10px 12px;margin-bottom:10px">
+                  <div style="font-size:11.5px;font-weight:700;color:#14532D">How to make BC Set automation work (real A4H write)</div>
+                  <div style="font-size:10.5px;color:#3F6212;line-height:1.45;margin-top:4px">This browser only demos the path. Real write = package below on your PC/SAP:</div>
+                  <div style="font-size:10.5px;color:#14532D;line-height:1.45;margin-top:6px;font-family:'IBM Plex Mono',monospace">1) Create BC Set ZCGX_FI_CGX1 once (SCPR20)<br/>2) Activate: SCPR20 or ZCGX_ACTIVATE_BCSET (FM SCPR_ACTIVATE_BCSETS_REMOTE)<br/>3) SE09 release → STMS import<br/>4) Verify OX02 / T001 = CGX1</div>
+                  <button onClick="{{ downloadBcSetAgent }}" style="margin-top:8px;width:100%;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;color:#fff;background:#15803D;cursor:pointer">Download BC Set + CTS package (make it work)</button>
+                </div>
+                </sc-if>
                 <sc-if value="{{ cfgBotOpen.showLogin }}" hint-placeholder-val="{{ true }}">
                 <div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 10px 30px -12px rgba(0,0,0,.5)">
                   <!-- browser chrome -->
@@ -3214,7 +3222,7 @@
                         <button onClick="{{ cfgBotOpen.savePw }}" style="margin-top:8px;width:100%;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;color:#fff;background:#B45309;cursor:pointer">Use password for this run</button>
                       </div>
                       </sc-if>
-                      <button style="margin-top:2px;border:none;border-radius:8px;padding:10px;font-size:12.5px;font-weight:700;color:#fff;background:{{ cfgBotOpen.lgBtnBg }};cursor:default">{{ cfgBotOpen.lgBtnLabel }}</button>
+                      <button onClick="{{ cfgBotOpen.run }}" style="margin-top:2px;border:none;border-radius:8px;padding:10px;font-size:12.5px;font-weight:700;color:#fff;background:{{ cfgBotOpen.lgBtnBg }};cursor:pointer">{{ cfgBotOpen.lgBtnLabel }}</button>
                       <div style="font-size:10.5px;color:#6B7488;line-height:1.4;margin-top:2px">{{ cfgBotOpen.loginHint }}</div>
                     </div>
                   </div>
@@ -3225,9 +3233,9 @@
                 <sc-if value="{{ cfgBotOpen.showNotWritten }}" hint-placeholder-val="{{ false }}">
                 <div style="background:#FFF8EB;border:1px solid #F0E2CC;border-radius:10px;padding:10px 12px;margin-bottom:10px">
                   <div style="font-size:11.5px;font-weight:700;color:#7A4B12">CGX1 was not created in S/4 by this browser</div>
-                  <div style="font-size:10.5px;color:#7A4B12;line-height:1.4;margin-top:3px">Who can create it: <b>you in OX02</b>, <b>BC Sets (SCPR20)</b> for bulk, or the <b>Cognixa Desktop Agent</b> (SAP GUI Scripting on your PC). Public Cloud uses CBC only — no OX02.</div>
-                  <button onClick="{{ downloadDesktopAgent }}" style="margin-top:8px;width:100%;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;color:#fff;background:#15803D;cursor:pointer">Download Desktop Agent (real A4H write)</button>
-                  <div style="font-size:10px;color:#7A4B12;margin-top:6px;line-height:1.35">Extract All first — do not run run.cmd from inside the zip. Window stays open and writes agent-run.log.</div>
+                  <div style="font-size:10.5px;color:#7A4B12;line-height:1.4;margin-top:3px">Prefer <b>BC Sets + CTS</b>. GUI agent is last resort.</div>
+                  <button onClick="{{ downloadBcSetAgent }}" style="margin-top:8px;width:100%;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;color:#fff;background:#15803D;cursor:pointer">Download BC Set + CTS package (preferred)</button>
+                  <button onClick="{{ downloadDesktopAgent }}" style="margin-top:6px;width:100%;border:1px solid #E8D4B0;border-radius:8px;padding:9px;font-size:12px;font-weight:700;color:#7A4B12;background:#FFF8EB;cursor:pointer">Residual GUI agent</button>
                 </div>
                 </sc-if>
                 <div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 10px 30px -12px rgba(0,0,0,.5)">
@@ -5691,7 +5699,15 @@ class Component extends DCLogic {
       exampleName:'Cognixa Demo AU'
     };
   }
-  openCfgBot(mode){ if(this._botT){ clearInterval(this._botT); this._botT=null; } const m=this._cfgBotMode(mode); this.setState({ cfgBot:{ step:0, playing:false, done:false, mode:m } }); }
+  openCfgBot(mode){
+    if(this._botT){ clearInterval(this._botT); this._botT=null; }
+    const m=this._cfgBotMode(mode);
+    if(m==='bcset') this._setDeploy({ s4Edition:'onprem' });
+    this.setState({ cfgBot:{ step:0, playing:false, done:false, mode:m } });
+    if(m==='bcset'){
+      this.showToast('BC Set bot (demo). To write CGX1 on A4H: download the BC Set + CTS package → create ZCGX_FI_CGX1 → activate → SE09/STMS.','BC Set automation');
+    }
+  }
   openCfgBotGui(){
     const p=this._sapGuiLiveProfile();
     this._setDeploy({ s4Edition:'onprem', cfgPath:'fit' });
@@ -5751,7 +5767,7 @@ class Component extends DCLogic {
       patch.cfgStage=Math.max(patch.cfgStage||d.cfgStage||0,2);
       if(onprem){
         patch.cfgTrCbc=d.cfgTrCbc||('DEVK'+String(900000+((staged*7)%90000)));
-        patch.cfgTrBc=d.cfgTrBc||('SCPR20·AU_ORG');
+        patch.cfgTrBc=d.cfgTrBc||('SCPR20·ZCGX_FI_CGX1');
       } else {
         patch.cfgTrCbc=d.cfgTrCbc||('CBC'+String(900000+((staged*7)%90000)));
         patch.cfgTrBc=d.cfgTrBc||('BC'+String(910000+((staged*11)%80000)));
@@ -5839,8 +5855,8 @@ class Component extends DCLogic {
   _loadDeploy(){ try{ const raw=localStorage.getItem('dl_cgx_deploy'); if(!raw) return this._deployDefaults(); return Object.assign(this._deployDefaults(), JSON.parse(raw)); }catch(e){ return this._deployDefaults(); } }
   _saveDeploy(patch){ const d=Object.assign({}, this.state.deploy||this._deployDefaults(), patch||{}); try{ localStorage.setItem('dl_cgx_deploy', JSON.stringify(d)); }catch(e){} return d; }
   _setDeploy(patch, extra){ const d=this._saveDeploy(patch); this.setState(Object.assign({ deploy:d }, extra||{})); }
-  cfgRunConnect(){ const d=this.state.deploy||this._deployDefaults(); if(d.cfgChecking) return; this._setDeploy({ cfgChecking:true, cfgConnOk:false }); const onprem=(d.s4Edition||'public')==='onprem'; const ecc=!onprem && (d.cfgPath||'fit')==='ecc'; this.showToast(onprem ? 'Checking On-Prem / Private links — RFC to DEV · IMG/SPRO · CTS/STMS · QAS/PRD routes · Cloud ALM Features…' : (ecc ? 'Checking ECC RFC + Public Cloud links — ECC source · CBC workspace · DEV customizing · Migration Cockpit · Cloud ALM…' : 'Checking S/4HANA Cloud Public Edition links — CBC workspace · DEV customizing · Cloud ALM · transport apps…')); clearTimeout(this._cfgConnT); this._cfgConnT=setTimeout(()=>{ this._setDeploy({ cfgChecking:false, cfgConnOk:true }); this.showToast(onprem ? 'Healthy — DEV RFC · SPRO · CTS/STMS · QAS/PRD · Cloud ALM Feature Deployment' : (ecc ? 'Healthy — ECC PRD (read-only) · CBC · DEV 100 · Migration Cockpit · Cloud ALM · Import Collection' : 'Healthy — CBC workspace, DEV customizing 100, Cloud ALM, Export Customizing Transports, Import Collection'),'the connection check'); }, 1400); }
-  cfgStagePush(){ const d=this.state.deploy||this._deployDefaults(); if(d.cfgChecking) return; const onprem=(d.s4Edition||'public')==='onprem'; if(!d.cfgConnOk && d.cfgConnOk!==undefined){ this.showToast(onprem ? 'Run connection check first — RFC must reach DEV for IMG / BC Sets' : 'Run connection check first — CBC must reach the DEV customizing tenant'); return; } this.showToast(onprem ? 'Activating BC Sets / applying transportable IMG in DEV. Client-dependent current settings are held — not on this transport.' : 'Deploying transportable config via CBC → DEV customizing tenant (100). Current settings are held — not on this transport.'); clearTimeout(this._cfgPushT); this._cfgPushT=setTimeout(()=>{ const n=(d.cfgStaged||0)+186; const cbc=d.cfgTrCbc||(onprem?('DEVK'+String(900000+((n*7)%90000))):('CBC'+String(900000+((n*7)%90000)))); const bc=d.cfgTrBc||(onprem?'SCPR20·AU_ORG':('BC'+String(910000+((n*11)%80000)))); this._setDeploy({ cfgStaged:n, cfgStage:Math.max(d.cfgStage||0,2), cfgOrgDone:true, cfgTrCbc:cbc, cfgTrBc:bc, cfgExported:false }); this.showToast(onprem ? (n+' values on '+cbc+' / '+bc+' in DEV — next: release CTS & import QAS') : (n+' values on '+cbc+' / '+bc+' in DEV customizing — next: Export Customizing Transports'), onprem?'deploying to DEV':'deploying to DEV customizing'); }, 1500); }
+  cfgRunConnect(){ const d=this.state.deploy||this._deployDefaults(); if(d.cfgChecking) return; this._setDeploy({ cfgChecking:true, cfgConnOk:false }); const onprem=(d.s4Edition||'public')==='onprem'; const ecc=!onprem && (d.cfgPath||'fit')==='ecc'; this.showToast(onprem ? 'Checking On-Prem / Private links — RFC to DEV · IMG/SPRO · CTS/STMS · QAS/PRD routes · Cloud ALM Features…' : (ecc ? 'Checking ECC RFC + Public Cloud links — ECC source · CBC workspace · DEV customizing · Migration Cockpit · Cloud ALM…' : 'Checking S/4HANA Cloud Public Edition links — CBC workspace · DEV customizing · Cloud ALM · transport apps…')); clearTimeout(this._cfgConnT);     this._cfgConnT=setTimeout(()=>{ this._setDeploy({ cfgChecking:false, cfgConnOk:true }); this.showToast(onprem ? 'Healthy — DEV RFC · SPRO · CTS/STMS · QAS/PRD · Cloud ALM Feature Deployment' : (ecc ? 'Healthy — ECC PRD (read-only) · CBC · DEV 100 · Migration Cockpit · Cloud ALM · Import Collection' : 'Healthy — CBC workspace, DEV customizing 100, Cloud ALM, Export Customizing Transports, Import Collection'),'the connection check'); }, 1400); }
+  cfgStagePush(){ const d=this.state.deploy||this._deployDefaults(); if(d.cfgChecking) return; const onprem=(d.s4Edition||'public')==='onprem'; if(!d.cfgConnOk && d.cfgConnOk!==undefined){ this.showToast(onprem ? 'Run connection check first — RFC must reach DEV for IMG / BC Sets' : 'Run connection check first — CBC must reach the DEV customizing tenant'); return; } this.showToast(onprem ? 'Activating BC Sets / applying transportable IMG in DEV. Client-dependent current settings are held — not on this transport.' : 'Deploying transportable config via CBC → DEV customizing tenant (100). Current settings are held — not on this transport.'); clearTimeout(this._cfgPushT); this._cfgPushT=setTimeout(()=>{ const n=(d.cfgStaged||0)+186; const cbc=d.cfgTrCbc||(onprem?('DEVK'+String(900000+((n*7)%90000))):('CBC'+String(900000+((n*7)%90000)))); const bc=d.cfgTrBc||(onprem?'SCPR20·ZCGX_FI_CGX1':('BC'+String(910000+((n*11)%80000)))); this._setDeploy({ cfgStaged:n, cfgStage:Math.max(d.cfgStage||0,2), cfgOrgDone:true, cfgTrCbc:cbc, cfgTrBc:bc, cfgExported:false }); this.showToast(onprem ? (n+' values on '+cbc+' / '+bc+' in DEV — next: release CTS & import QAS') : (n+' values on '+cbc+' / '+bc+' in DEV customizing — next: Export Customizing Transports'), onprem?'deploying to DEV':'deploying to DEV customizing'); }, 1500); }
   cfgGenerateRun(){
     const d=this.state.deploy||this._deployDefaults();
     const onprem=(d.s4Edition||'public')==='onprem';
@@ -8630,43 +8646,46 @@ class Component extends DCLogic {
             : 'Accelerator + signed BDCQ → CBC confirm → DEV → Export → Import Collection under Cloud ALM.'),
         showLogin: !done && cur < 5, showForm: done || cur >= 5,
         showNotWritten: mode==='gui' && (done || cur >= 5),
+        showBcSetHowTo: mode==='bcset',
+        downloadPkg: ()=>this.downloadBcSetAgent(),
         lgUser: done || cur >= 1, lgPass: done || cur >= 2, lgAuthing: !done && cur === 3, lgAuthed: done || cur >= 4,
-        lgBtnLabel: (done || cur >= 4) ? (mode==='gui' ? 'Simulated logon ✓' : 'Authenticated ✓') : (cur === 3 ? 'Authenticating…' : (mode==='gui' ? 'Ready — click Run bot →' : 'Log On')),
-        lgBtnBg: (done || cur >= 4) ? (mode==='gui' ? '#B45309' : '#16A34A') : (cur === 3 ? '#0A6ED1' : (mode==='gui' ? '#0A6ED1' : (cur >= 1 ? '#0A6ED1' : '#9AA4B2'))),
+        lgBtnLabel: (done || cur >= 4) ? (mode==='gui' ? 'Simulated logon ✓' : (mode==='bcset' ? 'RFC demo ready ✓' : 'Authenticated ✓')) : (cur === 3 ? 'Authenticating…' : (mode==='gui' || mode==='bcset' ? 'Ready — click Run bot →' : 'Log On')),
+        lgBtnBg: (done || cur >= 4) ? (mode==='gui' ? '#B45309' : '#16A34A') : (cur === 3 ? '#0A6ED1' : (mode==='gui' || mode==='bcset' ? '#0A6ED1' : (cur >= 1 ? '#0A6ED1' : '#9AA4B2'))),
         statusLabel: done
-          ? (mode==='gui' ? 'Simulation complete · CGX1 not in S/4' : 'Pipeline advanced · ALM gate recorded')
+          ? (mode==='gui' ? 'Simulation complete · CGX1 not in S/4' : (mode==='bcset' ? 'Demo done · download package to write A4H' : 'Pipeline advanced · ALM gate recorded'))
           : (_bot.playing ? statusRun : statusReady),
         statusColor: done ? (mode==='gui' ? '#B45309' : '#15803D') : (_bot.playing ? '#4F46E5' : '#8A93A3'),
         statusBg: done ? (mode==='gui' ? '#FFF8EB' : '#E7F6EC') : (_bot.playing ? '#EEF0FF' : '#F0F1F4'),
         run: ()=>this.startCfgBot(), replay: ()=>this.startCfgBot(), close: ()=>this.closeCfgBot(),
         timeNote: done
-          ? (mode==='gui' ? 'No SAP write occurred — create CGX1 in OX02 to see it' : (mode==='cbc' ? 'CBC → DEV → TEST in ~10s (demo)' : 'DEV → QAS in ~10s (demo)'))
+          ? (mode==='gui' ? 'No SAP write occurred — create CGX1 in OX02 to see it' : (mode==='cbc' ? 'CBC → DEV → TEST in ~10s (demo)' : 'Demo only — run BC Set package on A4H to write T001'))
           : (_bot.playing ? 'Running… ~'+Math.round(cur*0.72)+'s elapsed' : 'Typical demo run: under a minute'),
         manualNote: mode==='gui'
           ? 'Create CGX1 in S/4: t-code OX02 → New Entries → Save to a transport.'
           : (mode==='bcset'
-            ? 'Manual SCPR20 + STMS ≈ hours — demo walks the same gates.'
+            ? 'Make it work: download BC Set package → create ZCGX_FI_CGX1 → activate → CTS.'
             : 'Manual CBC + Export/Import ≈ hours — demo walks the same gates.'),
-        signoffLabel: mode==='gui' ? 'Close · create CGX1 in OX02' : (mode==='cbc' ? 'Forward Import Collection → PROD' : 'Import CTS → PRD'),
-        signoff: ()=>this.cfgBotSignoff() };
+        signoffLabel: mode==='gui' ? 'Close · create CGX1 in OX02' : (mode==='cbc' ? 'Forward Import Collection → PROD' : 'Download BC Set package'),
+        signoff: ()=> (mode==='bcset' ? this.downloadBcSetAgent() : this.cfgBotSignoff()) };
     }
     const _bcur = _bot ? (_bot.step||0) : 0; const _bdone = _bot && _bot.done;
     const _liveP = (this._sapGuiLiveProfile ? this._sapGuiLiveProfile() : {user:'Rajesh1',client:'800',language:'EN',sid:'A4H',host:'115.245.150.98',instance:'18',name:'S4HANA2023 SHARED GUI'});
     const _guiReady = _botMode==='gui';
-    const cfgBotLgUserVal = (_guiReady || _bdone || _bcur>=1) ? (_botMode==='gui' ? _liveP.user : ((_bdone || _bcur>=1) ? 'CGX_CFG_BOT' : '')) : '';
-    const cfgBotLgPassVal = (_bdone || _bcur>=2 || (_guiReady && this.state.sapGuiPwSet)) ? '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022' : '';
-    const cfgBotLgUserBd = (_guiReady || _bdone || _bcur>=1) ? '#CDEBD7' : '#D8DEE8';
-    const cfgBotLgUserBg = (_guiReady || _bdone || _bcur>=1) ? '#F4FBF6' : '#fff';
-    const cfgBotLgPassBd = (_bdone || _bcur>=2 || (_guiReady && this.state.sapGuiPwSet)) ? '#CDEBD7' : '#D8DEE8';
-    const cfgBotLgPassBg = (_bdone || _bcur>=2 || (_guiReady && this.state.sapGuiPwSet)) ? '#F4FBF6' : '#fff';
-    const cfgBotLgClientVal = _guiReady ? _liveP.client : ((_bdone || _bcur>=1) ? _liveP.client : '');
-    const cfgBotLgLangVal = _guiReady ? _liveP.language : ((_bdone || _bcur>=1) ? _liveP.language : '');
-    const cfgBotLgClientBd = _guiReady ? '#CDEBD7' : '#D8DEE8';
-    const cfgBotLgClientBg = _guiReady ? '#F4FBF6' : '#fff';
-    const cfgBotLgLangBd = _guiReady ? '#CDEBD7' : '#D8DEE8';
-    const cfgBotLgLangBg = _guiReady ? '#F4FBF6' : '#fff';
-    const _bfull = _botMode==='cbc' ? 'https://cbc.eu10.sapcloud.services/ui#Project-home' : (_botMode==='gui' ? ('sapgui://'+_liveP.sid+'/'+_liveP.client+'/SPRO') : 'rfc://CGX_DEV/100/SCPR20');
-    const cfgBotUrl = _bcur===0 ? (_botMode==='cbc' ? 'https://cbc.eu10.sapcloud.servic' : (_botMode==='gui' ? ('SAP Logon · '+_liveP.name) : 'rfc://CGX_DEV/100/SCPR')) : _bfull;
+    const _bcReady = _botMode==='bcset';
+    const cfgBotLgUserVal = (_guiReady || _bcReady || _bdone || _bcur>=1) ? (_botMode==='gui' ? _liveP.user : ((_bcReady || _bdone || _bcur>=1) ? 'CGX_CFG_BOT' : '')) : '';
+    const cfgBotLgPassVal = (_bdone || _bcur>=2 || (_guiReady && this.state.sapGuiPwSet) || _bcReady) ? '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022' : '';
+    const cfgBotLgUserBd = (_guiReady || _bcReady || _bdone || _bcur>=1) ? '#CDEBD7' : '#D8DEE8';
+    const cfgBotLgUserBg = (_guiReady || _bcReady || _bdone || _bcur>=1) ? '#F4FBF6' : '#fff';
+    const cfgBotLgPassBd = (_bdone || _bcur>=2 || (_guiReady && this.state.sapGuiPwSet) || _bcReady) ? '#CDEBD7' : '#D8DEE8';
+    const cfgBotLgPassBg = (_bdone || _bcur>=2 || (_guiReady && this.state.sapGuiPwSet) || _bcReady) ? '#F4FBF6' : '#fff';
+    const cfgBotLgClientVal = (_guiReady || _bcReady) ? _liveP.client : ((_bdone || _bcur>=1) ? _liveP.client : '');
+    const cfgBotLgLangVal = (_guiReady || _bcReady) ? _liveP.language : ((_bdone || _bcur>=1) ? _liveP.language : '');
+    const cfgBotLgClientBd = (_guiReady || _bcReady) ? '#CDEBD7' : '#D8DEE8';
+    const cfgBotLgClientBg = (_guiReady || _bcReady) ? '#F4FBF6' : '#fff';
+    const cfgBotLgLangBd = (_guiReady || _bcReady) ? '#CDEBD7' : '#D8DEE8';
+    const cfgBotLgLangBg = (_guiReady || _bcReady) ? '#F4FBF6' : '#fff';
+    const _bfull = _botMode==='cbc' ? 'https://cbc.eu10.sapcloud.services/ui#Project-home' : (_botMode==='gui' ? ('sapgui://'+_liveP.sid+'/'+_liveP.client+'/SPRO') : ('rfc://'+_liveP.sid+'/'+_liveP.client+'/SCPR20'));
+    const cfgBotUrl = _bcur===0 ? (_botMode==='cbc' ? 'https://cbc.eu10.sapcloud.servic' : (_botMode==='gui' ? ('SAP Logon · '+_liveP.name) : ('rfc://'+_liveP.sid+'/'+_liveP.client+'/SCPR'))) : _bfull;
     const cfgBotUrlTyping = _bcur===0;
 
     const showConvertNav = cfgIsOnPremEdition;
@@ -8831,7 +8850,7 @@ class Component extends DCLogic {
     const cfgConn = cfgIsOnPremEdition ? [
       { name:'RFC · DEV (SID DEV)', detail:_cfgChk?'pinging RFC…':(_cfgOk?'client 100 · customizing ready':'RFC down'), dot:_cfgDot },
       { name:'IMG / SPRO', detail:_cfgChk?'checking SPRO tree…':(_cfgOk?'Implementation Guide reachable':'SPRO offline'), dot:_cfgDot },
-      { name:'BC Sets (SCPR20)', detail:_cfgChk?'loading catalogue…':(_cfgOk?(deploy.cfgStaged?'AU_ORG_FI activated':'Best Practices available'):'catalogue unavailable'), dot: (deploy.cfgStaged|0) ? '#16A34A' : _cfgDot },
+      { name:'BC Sets (SCPR20)', detail:_cfgChk?'loading catalogue…':(_cfgOk?(deploy.cfgStaged?'ZCGX_FI_CGX1 / CGX1 path':'Best Practices + ZCGX_FI_CGX1'):'catalogue unavailable'), dot: (deploy.cfgStaged|0) ? '#16A34A' : _cfgDot },
       { name:'CTS / STMS', detail:_cfgChk?'checking routes…':(_cfgOk?(deploy.cfgExported?'released · awaiting QAS':'DEV→QAS→PRD routes OK'):'STMS offline'), dot: deploy.cfgExported ? '#16A34A' : _cfgDot },
       { name:'QAS / PRD import', detail:_cfgChk?'checking buffers…':(_cfgOk?(deploy.cfgImportedTest?'QAS imported':'waiting for release'):'import offline'), dot: deploy.cfgImportedTest ? '#16A34A' : _cfgDot },
       { name:'SAP Cloud ALM · Features', detail:_cfgChk?'syncing features…':(_cfgOk?(deploy.cfgAlmApproved?'deployment approved':'feature open · awaiting QA'):'ALM offline'), dot: deploy.cfgAlmApproved ? '#16A34A' : _cfgDot }

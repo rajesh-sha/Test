@@ -41,6 +41,7 @@ Constraints:
 | Table | `T001` (via view `V_T001` / OX02 data) |
 
 Files:
+- `MAKE-IT-WORK.md` — short path to write CGX1 on A4H (start here)
 - `payload.json` — Cognixa playbook binding
 - `bcset-definition.json` — machine-readable values
 - `ZCGX_ACTIVATE_BCSET.abap` — sample ABAP calling `SCPR_ACTIVATE_BCSETS_REMOTE`
