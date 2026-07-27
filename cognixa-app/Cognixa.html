@@ -2745,14 +2745,34 @@
               {{ cfgBotCta }}
             </button>
             <sc-if value="{{ cfgIsOnPremEdition }}" hint-placeholder-val="{{ false }}">
-            <button onClick="{{ downloadDesktopAgent }}" style="display:inline-flex;align-items:center;gap:8px;background:#15803D;border:none;color:#fff;font-weight:600;font-size:12.5px;padding:9px 15px;border-radius:10px;cursor:pointer" style-hover="background:#166534">
-              Download Desktop Agent · creates CGX1 for real
+            <button onClick="{{ downloadBcSetAgent }}" style="display:inline-flex;align-items:center;gap:8px;background:#15803D;border:none;color:#fff;font-weight:600;font-size:12.5px;padding:9px 15px;border-radius:10px;cursor:pointer" style-hover="background:#166534">
+              Download BC Set + CTS automation (preferred · CGX1)
+            </button>
+            <button onClick="{{ downloadDesktopAgent }}" style="display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #CDEBD7;color:#15803D;font-weight:600;font-size:12.5px;padding:9px 15px;border-radius:10px;cursor:pointer" style-hover="background:#F4FBF6">
+              Residual GUI agent (last resort)
             </button>
             <button onClick="{{ openCfgBotGui }}" style="display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #E8D4B0;color:#7A4B12;font-weight:600;font-size:12.5px;padding:9px 15px;border-radius:10px;cursor:pointer" style-hover="background:#FFF8EB">
-              Simulate path only (no S/4 write)
+              Simulate GUI path only
             </button>
             </sc-if>
           </div>
+
+          <sc-if value="{{ cfgIsOnPremEdition }}" hint-placeholder-val="{{ false }}">
+          <div style="margin:0 0 16px;padding:14px 16px;background:#F4FBF6;border:1px solid #CDEBD7;border-radius:12px">
+            <div style="font-size:12.5px;font-weight:700;color:#14532D">Automate On-Prem config (research)</div>
+            <div style="font-size:11.5px;color:#3F6212;margin-top:4px;line-height:1.5">{{ cfgBcSetAutomateLead }}</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px">
+              <sc-for list="{{ cfgBcSetAutomateCards }}" as="a" hint-placeholder-count="3">
+              <div style="background:#fff;border:1px solid {{ a.bd }};border-radius:10px;padding:10px 11px">
+                <div style="font-size:10px;letter-spacing:.06em;font-weight:700;color:{{ a.accent }}">{{ a.tier }}</div>
+                <div style="font-size:12px;font-weight:700;color:#131826;margin-top:4px">{{ a.title }}</div>
+                <div style="font-size:11px;color:#5A6473;margin-top:4px;line-height:1.4">{{ a.body }}</div>
+              </div>
+              </sc-for>
+            </div>
+            <div style="font-size:11px;color:#3F6212;margin-top:10px;font-family:'IBM Plex Mono',monospace">Example playbook CFG-BOT/BCSET/FI/CGX1 · BC Set ZCGX_FI_CGX1 · FM SCPR_ACTIVATE_BCSETS_REMOTE · CTS/STMS</div>
+          </div>
+          </sc-if>
 
         <!-- source → target strip -->
         <div style="display:flex;align-items:stretch;gap:0;background:#fff;border:1px solid #E5E9F0;border-radius:14px;overflow:hidden;margin-bottom:18px">
@@ -5688,9 +5708,24 @@ class Component extends DCLogic {
       document.body.appendChild(a);
       a.click();
       setTimeout(()=>{ try{ a.remove(); }catch(e){} }, 0);
-      this.showToast('Desktop Agent downloaded. Extract All → enable SAP GUI scripting (Alt+F12) → fully restart SAP Logon → log on → run diagnose.cmd (sessions≥1) → run.cmd (NOT as Admin). Press ENTER only at prompts — do not type password on the ENTER line.','Desktop Agent');
+      this.showToast('Residual GUI agent downloaded. Prefer BC Set + CTS automation for bulk. For GUI: Extract All → enable scripting → restart SAP → diagnose.cmd → run.cmd (NOT as Admin).','Desktop Agent');
     }catch(e){
       this.showToast('Could not start download — open desktop-agent/cgx1-company-code/ and run run.cmd locally.','Desktop Agent');
+    }
+  }
+  downloadBcSetAgent(){
+    try{
+      const a=document.createElement('a');
+      a.href='desktop-agent/bcset-cgx1.zip';
+      a.download='cognixa-bcset-cts-cgx1.zip';
+      a.rel='noopener';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(()=>{ try{ a.remove(); }catch(e){} }, 0);
+      this.setState({ cfgBot:{ step:0, playing:false, done:false, mode:'bcset' } });
+      this.showToast('BC Set + CTS package downloaded (preferred). Extract → run.cmd for the plan → create ZCGX_FI_CGX1 once → activate via SCPR_ACTIVATE_BCSETS_REMOTE / SCPR20 → SE09/STMS → verify T001=CGX1.','BC Set automation');
+    }catch(e){
+      this.showToast('Could not start download — open desktop-agent/bcset-cgx1/ and run run.cmd.','BC Set automation');
     }
   }
   saveSapGuiPw(){
@@ -8486,20 +8521,20 @@ class Component extends DCLogic {
         'Import Collection → TEST · Cloud ALM quality gate recorded'
       ];
       const LOG_BCSET = [
-        'Bot runner starting — prefer standard APIs over GUI…',
-        'RFC destination CGX_DEV · SID DEV · client 100',
-        'Authenticating technical user CGX_CFG_BOT (SNC / RFC)',
-        'Session OK · write scope: DEV customizing only',
-        'Loading SAP Best Practices / Solution Builder catalogue',
-        'Selecting BC Set AU_ORG_FI · Company Code foundation',
-        'Activating BC Set via SCPR20 (not manual SPRO typing)',
-        'Company Code = AU01 applied from BC Set',
-        'Company Name = Meridian Foods Pty Ltd',
+        'PREFERRED automation — BC Sets + CTS (not SAP GUI residual)',
+        'Target A4H · client 800 · playbook CFG-BOT/BCSET/FI/CGX1',
+        'RFC / local call ready for technical user with SCPR + CTS auth',
+        'Ensure BC Set ZCGX_FI_CGX1 exists (one-time create in SCPR20)',
+        'Call SCPR_ACTIVATE_BCSETS_REMOTE (or SCPR20 Activate)',
+        'BC Set ZCGX_FI_CGX1 selected · Company Code foundation',
+        'Activating into customizing tables (T001) — not OX02 field typing',
+        'Company Code = CGX1 applied from BC Set',
+        'Company Name = Cognixa Demo AU',
         'City = Perth · Country = AU',
         'Currency = AUD · Language = EN',
-        'BC Set activation logged · customizing request DEVK* created',
-        'CTS release (SE09/STMS) — transport released from DEV',
-        'STMS import → QAS · Cloud ALM Feature Deployment gate recorded'
+        'Activation log OK · customizing transport captured (TASK_CUST_EXP)',
+        'CTS release (SE09) — transport released from A4H/DEV',
+        'STMS import → QAS · Cloud ALM Feature Deployment gate · then PRD'
       ];
       const LIVE = this._sapGuiLiveProfile ? this._sapGuiLiveProfile() : {name:'S4HANA2023 SHARED GUI',sid:'A4H',host:'115.245.150.98',instance:'18',client:'800',user:'Rajesh1',language:'EN',exampleCc:'CGX1',exampleName:'Cognixa Demo AU',product:'S/4HANA ON PREMISE 2023'};
       const LOG_GUI = [
@@ -8522,7 +8557,7 @@ class Component extends DCLogic {
       const steps = LOG.map((t,i)=>({ t, done: done || i<cur, active: !done && i===cur, pending: !done && i>cur,
         dot: (done||i<cur) ? '#16A34A' : (i===cur ? '#6366F1' : '#3A4358'),
         color: (done||i<=cur) ? '#E7ECF5' : '#6B7488' }));
-      const FLD = mode==='gui' ? [
+      const FLD = (mode==='gui' || mode==='bcset') ? [
         {k:'Company Code', v:LIVE.exampleCc, at:7},
         {k:'Company Name', v:LIVE.exampleName, at:8},
         {k:'City', v:'Perth', at:9},
@@ -8548,10 +8583,10 @@ class Component extends DCLogic {
         {k:'Pipeline', v:'After DEV: Export Customizing Transports → Import Collection (TEST) → Cloud ALM quality approval → forward PROD.'}
       ];
       const ctxBc = [
-        {k:'Runner', v:'Cognixa agent over RFC / Cloud ALM Feature Deployment — standard ABAP tooling, not a desktop bot.'},
-        {k:'Identity', v:'Technical user CGX_CFG_BOT — RFC/SNC into DEV. Prefer BC Sets (SCPR20) + CTS over GUI scripting.'},
-        {k:'Reaches it', v:'On-Prem / Private DEV · IMG catalogue + BC Set library. No CBC/SSCUI on this edition.'},
-        {k:'Pipeline', v:'After DEV: CTS release → STMS import QAS → Cloud ALM/CAB gate → import PRD.'}
+        {k:'Automate', v:'SCPR_ACTIVATE_BCSETS_REMOTE (FM) or SCPR20 Activate — package ZCGX_FI_CGX1 for CGX1.'},
+        {k:'Identity', v:'Technical user with SCPR + CTS auth on A4H/DEV (demo may use Rajesh1).'},
+        {k:'Example', v:'BC Set ZCGX_FI_CGX1 → T001 CGX1 Cognixa Demo AU · Perth · AU · AUD · EN.'},
+        {k:'Pipeline', v:'Activation TR → SE09 release → STMS QAS → Cloud ALM/CAB → PRD. GUI bot = last resort.'}
       ];
       const ctxGui = [
         {k:'Truth', v:'Browser simulation only — CGX1 is NOT created in S/4 until you (or a Desktop Agent) save it in A4H.'},
@@ -8562,10 +8597,10 @@ class Component extends DCLogic {
       const statusReady = mode==='gui' ? 'Ready · simulation (no S/4 write)' : (mode==='bcset' ? 'Ready · BC Sets + CTS (preferred)' : 'Ready to run Public Cloud bot');
       const statusRun = mode==='gui' ? 'Simulating SAP GUI path…' : (mode==='bcset' ? 'Bot running BC Set / CTS pipeline…' : 'Bot running CBC pipeline…');
       cfgBotOpen = { steps, fields, playing: !!_bot.playing, done, mode,
-        subtitle: mode==='gui' ? ('Simulation · path to create '+LIVE.exampleCc+' on '+LIVE.sid+' — not written yet') : (mode==='bcset' ? 'On-Prem · BC Set SCPR20 AU_ORG_FI → DEV · CTS' : 'Public Cloud · CBC activity Define Company Code AU01 → DEV customizing'),
-        productName: mode==='gui' ? ('SAP GUI for HTML · '+LIVE.sid+' / '+LIVE.client) : (mode==='bcset' ? 'S/4HANA · BC Sets / IMG' : 'Central Business Configuration'),
+        subtitle: mode==='gui' ? ('Simulation · path to create '+LIVE.exampleCc+' on '+LIVE.sid+' — not written yet') : (mode==='bcset' ? ('On-Prem preferred · BC Set ZCGX_FI_CGX1 → '+LIVE.exampleCc+' → CTS on '+LIVE.sid) : 'Public Cloud · CBC activity Define Company Code AU01 → DEV customizing'),
+        productName: mode==='gui' ? ('SAP GUI for HTML · '+LIVE.sid+' / '+LIVE.client) : (mode==='bcset' ? ('S/4HANA · SCPR20 / '+LIVE.sid+' · '+LIVE.client) : 'Central Business Configuration'),
         targetLabel: mode==='gui' ? 'SAP LOGON ENTRY' : (mode==='cbc' ? 'PROJECT / TARGET' : 'SYSTEM / CLIENT'),
-        targetValue: mode==='gui' ? (LIVE.name+' · '+LIVE.sid+' · '+LIVE.host+' · '+LIVE.instance) : (mode==='cbc' ? 'AU_SCOPE · DEV customizing 100' : 'DEV · client 100 · customizing'),
+        targetValue: mode==='gui' ? (LIVE.name+' · '+LIVE.sid+' · '+LIVE.host+' · '+LIVE.instance) : (mode==='cbc' ? 'AU_SCOPE · DEV customizing 100' : (LIVE.sid+' · client '+LIVE.client+' · BC Set ZCGX_FI_CGX1')),
         userLabel: mode==='gui' ? 'USER *' : 'USER (technical)',
         credLabel: mode==='cbc' ? 'CREDENTIAL (OAuth client secret)' : (mode==='gui' ? 'PASSWORD *' : 'CREDENTIAL (RFC / SNC)'),
         showGuiClient: mode==='gui',
@@ -8574,24 +8609,24 @@ class Component extends DCLogic {
         loginHint: mode==='cbc'
           ? 'Illustration only — real agent uses OAuth to CBC, never a password screen. DEV customizing only.'
           : (mode==='bcset'
-            ? 'Preferred On-Prem path: RFC + BC Sets (SCPR20) + CTS — not SAP GUI for bulk config.'
+            ? 'Preferred automation: SCPR_ACTIVATE_BCSETS_REMOTE / SCPR20 + CTS. Download the BC Set package for the CGX1 example.'
             : 'Simulation of A4H Logon. Optional password above, then Run bot → — still will NOT write to S/4.'),
-        formTitle: mode==='gui' ? ('IMG — Define company code · '+LIVE.exampleCc+' (simulated)') : (mode==='bcset' ? 'SCPR20 — Activate BC Set AU_ORG_FI' : 'CBC — Define Company Code (SSCUI)'),
-        formMeta: mode==='gui' ? (LIVE.sid+'·'+LIVE.client+' · '+LIVE.user) : 'DEV·100 · CGX_CFG_BOT',
-        formLead: mode==='gui' ? ('Values Cognixa would send — '+LIVE.exampleCc+' is NOT in T001 until you save it in S/4') : (mode==='bcset' ? 'BC Set activation · values from Best Practices / signed workbook' : 'Configuration activity · values from signed BDCQ workbook'),
+        formTitle: mode==='gui' ? ('IMG — Define company code · '+LIVE.exampleCc+' (simulated)') : (mode==='bcset' ? ('SCPR20 — Activate BC Set ZCGX_FI_CGX1 · '+LIVE.exampleCc) : 'CBC — Define Company Code (SSCUI)'),
+        formMeta: mode==='gui' ? (LIVE.sid+'·'+LIVE.client+' · '+LIVE.user) : (mode==='bcset' ? (LIVE.sid+'·'+LIVE.client+' · SCPR') : 'DEV·100 · CGX_CFG_BOT'),
+        formLead: mode==='gui' ? ('Values Cognixa would send — '+LIVE.exampleCc+' is NOT in T001 until you save it in S/4') : (mode==='bcset' ? ('BC Set values for '+LIVE.exampleCc+' — activate via FM/SCPR20, then CTS') : 'Configuration activity · values from signed BDCQ workbook'),
         simNote: mode==='gui'
           ? ('To see '+LIVE.exampleCc+' in S/4: OX02 (or SPRO → Define company code) on '+LIVE.sid+' client '+LIVE.client+', create and Save. Cognixa browser cannot do that write.')
           : (mode==='bcset'
-            ? 'Simulation of the preferred On-Prem path. BC Sets activate into DEV; CTS/STMS moves customizing DEV → QAS → PRD. Cloud ALM can orchestrate Feature Deployment.'
+            ? 'Browser demos the preferred path. Real write: create ZCGX_FI_CGX1 once, activate (SCPR_ACTIVATE_BCSETS_REMOTE / SCPR20), SE09/STMS. Download the BC Set automation package.'
             : 'Simulation of the Public Cloud path. The bot confirms CBC activities into the DEV customizing tenant, then advances Export → Import Collection (TEST) under the Cloud ALM gate — never direct to PROD.'),
-        contextTitle: mode==='gui' ? 'RUN CONTEXT — SIMULATION (NO S/4 WRITE)' : (mode==='bcset' ? 'RUN CONTEXT — ON-PREM BC SETS + CTS' : 'RUN CONTEXT — PUBLIC CLOUD CBC'),
+        contextTitle: mode==='gui' ? 'RUN CONTEXT — SIMULATION (NO S/4 WRITE)' : (mode==='bcset' ? 'RUN CONTEXT — BC SET + CTS AUTOMATION' : 'RUN CONTEXT — PUBLIC CLOUD CBC'),
         contextRows: mode==='gui' ? ctxGui : (mode==='bcset' ? ctxBc : ctxCbc),
         drivenTitle: mode==='gui' ? 'DRIVEN BY — SIGNED SCOPE → RESIDUAL SPRO' : (mode==='bcset' ? 'DRIVEN BY — SIGNED SCOPE → BC SETS' : 'DRIVEN BY — SIGNED SCOPE → CBC'),
-        drivenPlaybook: mode==='gui' ? ('Playbook CFG-BOT/GUI/FI/CGX1 · '+LIVE.sid+' · Define company code') : (mode==='bcset' ? 'Playbook CFG-BOT/BCSET/FI/0001 · SCPR20 · Company Code' : 'Playbook CFG-BOT/CBC/FI/0001 · SSCUI · Company Code'),
+        drivenPlaybook: mode==='gui' ? ('Playbook CFG-BOT/GUI/FI/CGX1 · '+LIVE.sid+' · Define company code') : (mode==='bcset' ? ('Playbook CFG-BOT/BCSET/FI/CGX1 · ZCGX_FI_CGX1 · '+LIVE.exampleCc) : 'Playbook CFG-BOT/CBC/FI/0001 · SSCUI · Company Code'),
         drivenBody: mode==='gui'
           ? ('Demo path for '+LIVE.exampleCc+' · '+LIVE.user+' / '+LIVE.client+'. No SAP write from this browser. Prefer BC Sets before scaling.')
           : (mode==='bcset'
-            ? 'Best Practices → BC Sets → CTS → QAS under Cloud ALM/CAB.'
+            ? ('Activate ZCGX_FI_CGX1 → '+LIVE.exampleCc+' on '+LIVE.sid+'/'+LIVE.client+', release CTS, import QAS. GUI bot only if no BC Set.')
             : 'Accelerator + signed BDCQ → CBC confirm → DEV → Export → Import Collection under Cloud ALM.'),
         showLogin: !done && cur < 5, showForm: done || cur >= 5,
         showNotWritten: mode==='gui' && (done || cur >= 5),
@@ -8728,10 +8763,16 @@ class Component extends DCLogic {
     const cfgWhoCreatesLead = cfgIsOnPremEdition
       ? 'On-Prem / Private: company codes land in T001 via OX02/SPRO (manual), BC Sets (preferred bulk), or a Desktop Agent / BPA driving SAP GUI. Cognixa HTML cannot write A4H.'
       : 'Public Cloud: company codes are created only in CBC Organizational Structure. There is no OX02 and no public write API — automate only with a CBC UI bot (BPA) if needed.';
+    const cfgBcSetAutomateLead = 'Research: automate On-Prem company codes with BC Sets + CTS. Remote FM SCPR_ACTIVATE_BCSETS_REMOTE activates packaged values; SE09/STMS moves the customizing transport. Cognixa example: ZCGX_FI_CGX1 → CGX1.';
+    const cfgBcSetAutomateCards = [
+      {tier:'1 · API', title:'SCPR_ACTIVATE_BCSETS_REMOTE', body:'Call from ABAP/RFC (see ZCGX_ACTIVATE_BCSET.abap). Returns customizing TR.', accent:'#15803D', bd:'#CDEBD7'},
+      {tier:'2 · CTS', title:'SE09 → STMS', body:'Release activation transport, import QAS/PRD. Cloud ALM can orchestrate.', accent:'#4F46E5', bd:'#C7CBF8'},
+      {tier:'3 · AVOID', title:'GUI OX02 bot', body:'Last resort only when no BC Set exists. Fragile scripting.', accent:'#B45309', bd:'#F0E2CC'}
+    ];
     const cfgWhoCreatesCards = cfgIsOnPremEdition ? [
       {tier:'HUMAN', title:'Consultant in OX02', body:'SPRO / OX02 → New Entries → CGX1 → Save to CTS. Always works; slow at scale.', accent:'#3A4252', bd:'#E5E9F0'},
-      {tier:'PREFERRED BOT', title:'BC Sets (SCPR20)', body:'Package values in a BC Set, activate, transport. Best for many company codes.', accent:'#15803D', bd:'#CDEBD7'},
-      {tier:'RESIDUAL BOT', title:'Desktop Agent', body:'Cognixa package: run.cmd on Windows + SAP GUI Scripting → creates CGX1 on A4H.', accent:'#B45309', bd:'#F0E2CC'},
+      {tier:'PREFERRED AUTO', title:'BC Sets + CTS', body:'ZCGX_FI_CGX1 → SCPR_ACTIVATE_BCSETS_REMOTE / SCPR20 → SE09/STMS. Download package.', accent:'#15803D', bd:'#CDEBD7'},
+      {tier:'RESIDUAL BOT', title:'Desktop GUI Agent', body:'SAP GUI Scripting on OX02 — only if no BC Set/API.', accent:'#B45309', bd:'#F0E2CC'},
       {tier:'NOT THIS', title:'Browser Cognixa', body:'Simulates the path and compounds IP evidence — does not insert T001.', accent:'#8A93A3', bd:'#EEF1F6'}
     ] : [
       {tier:'HUMAN', title:'CBC org structure', body:'CBC → Setup Organizational Structure → create Company Code. Only official path.', accent:'#3A4252', bd:'#E5E9F0'},
@@ -9739,7 +9780,7 @@ class Component extends DCLogic {
       cfgAlmApprove:()=>this.cfgAlmApprove(),
       cfgForwardProd:()=>this.cfgForwardProd(),
       cfgModuleAct:(m)=>this.setState({cfgWl: m==='Finance'?'finance': m==='Order to Cash'?'o2c': m==='Procurement'?'mm': null}),
-      cfgModules, cfgConn, cfgOrg, cfgWlOpen, cfgDocOpen, cfgDocFinColor, cfgDocFinBar, cfgDocO2cColor, cfgDocO2cBar, cfgPipeOpen, cfgBotOpen, cfgBotLgUserVal, cfgBotLgPassVal, cfgBotLgUserBd, cfgBotLgUserBg, cfgBotLgPassBd, cfgBotLgPassBg, cfgBotLgClientVal, cfgBotLgLangVal, cfgBotLgClientBd, cfgBotLgClientBg, cfgBotLgLangBd, cfgBotLgLangBg, cfgBotUrl, cfgBotUrlTyping, cfgBotNotDone: !!(cfgBotOpen && !cfgBotOpen.done), cfgBotRunLabel: (cfgBotOpen && cfgBotOpen.playing) ? 'Running…' : 'Run bot', openCfgBot:()=>this.openCfgBot(), openCfgBotGui:()=>this.openCfgBotGui(), downloadDesktopAgent:()=>this.downloadDesktopAgent(), cfgBotCta, cfgConnectResearchLead, cfgConnectBotWhen, cfgConnectResearchCards, cfgWhoCreatesLead, cfgWhoCreatesCards, cfgIpRuleCount, cfgIpRulesLead, cfgIpRulesPreview, exportCfgEvidence:()=>this.exportCfgEvidencePack(), cfgPipeToggleLabel: cfgPipeIsSpec ? 'View generated workbook →' : '← View signed spec', cfgShowSpec:()=>this.setState({cfgPipe:'spec'}), cfgShowBook:()=>this.setState({cfgPipe:'book'}), stopProp:(e)=>{ try{ e.stopPropagation(); }catch(_){} },
+      cfgModules, cfgConn, cfgOrg, cfgWlOpen, cfgDocOpen, cfgDocFinColor, cfgDocFinBar, cfgDocO2cColor, cfgDocO2cBar, cfgPipeOpen, cfgBotOpen, cfgBotLgUserVal, cfgBotLgPassVal, cfgBotLgUserBd, cfgBotLgUserBg, cfgBotLgPassBd, cfgBotLgPassBg, cfgBotLgClientVal, cfgBotLgLangVal, cfgBotLgClientBd, cfgBotLgClientBg, cfgBotLgLangBd, cfgBotLgLangBg, cfgBotUrl, cfgBotUrlTyping, cfgBotNotDone: !!(cfgBotOpen && !cfgBotOpen.done), cfgBotRunLabel: (cfgBotOpen && cfgBotOpen.playing) ? 'Running…' : 'Run bot', openCfgBot:()=>this.openCfgBot(), openCfgBotGui:()=>this.openCfgBotGui(), downloadDesktopAgent:()=>this.downloadDesktopAgent(), downloadBcSetAgent:()=>this.downloadBcSetAgent(), cfgBotCta, cfgConnectResearchLead, cfgConnectBotWhen, cfgConnectResearchCards, cfgWhoCreatesLead, cfgWhoCreatesCards, cfgBcSetAutomateLead, cfgBcSetAutomateCards, cfgIpRuleCount, cfgIpRulesLead, cfgIpRulesPreview, exportCfgEvidence:()=>this.exportCfgEvidencePack(), cfgPipeToggleLabel: cfgPipeIsSpec ? 'View generated workbook →' : '← View signed spec', cfgShowSpec:()=>this.setState({cfgPipe:'spec'}), cfgShowBook:()=>this.setState({cfgPipe:'book'}), stopProp:(e)=>{ try{ e.stopPropagation(); }catch(_){} },
       cfgHealthLabel, cfgHealthColor, cfgHealthBg, cfgConnectLabel, cfgPushLabel, cfgExportLabel, cfgImportLabel, cfgAlmLabel, cfgCanForwardProd, cfgForwardProdLabel, cfgTrPrimaryLabel, cfgTrSecondaryLabel, cfgTrCbcLabel, cfgTrBcLabel, cfgPipelineStatus, cfgCurrentNote,
       remConnectResearch, remDeployChip1, remDeployChip2, remDeployChip3,
       cfgPipeStep3Label, cfgPipeStep3Sub, cfgPipeStep3Bg, cfgPipeStep3Title, cfgPipeStep3Border, cfgPipeStep3Shadow, cfgPipeStep3Icon, cfgPipeStep3Act,

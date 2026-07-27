@@ -1,0 +1,27 @@
+{
+  "bcSetId": "ZCGX_FI_CGX1",
+  "description": "Cognixa Demo - Define company code CGX1 (tiny On-Prem example)",
+  "objects": [
+    {
+      "table": "T001",
+      "view": "V_T001",
+      "imgActivity": "Define company code",
+      "tcode": "OX02",
+      "rows": [
+        {
+          "BUKRS": "CGX1",
+          "BUTXT": "Cognixa Demo AU",
+          "ORT01": "Perth",
+          "LAND1": "AU",
+          "WAERS": "AUD",
+          "SPRAS": "E"
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "SPRAS in T001 is often single-char language key (E for EN).",
+    "Address details may prompt a separate popup on first OX02 save; include if your BC Set capture recorded them.",
+    "Prefer copying from a template company code into a BC Set when available."
+  ]
+}

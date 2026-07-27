@@ -25,8 +25,10 @@ python3 -m http.server 8765
 | `Cognixa.dc_25th July.html` / `Cognixa.html` | Main app |
 | `support.js` | Claude Design / DC runtime |
 | `vendor/react*.js` | React 18 UMD (required by support.js) |
-| `desktop-agent/cgx1-company-code/` | **Real** SAP GUI Scripting agent — creates CGX1 on A4H from your Windows PC |
-| `desktop-agent/cgx1-company-code.zip` | Downloadable package (also via Cognixa UI button) |
+| `desktop-agent/bcset-cgx1/` | **Preferred** BC Set + CTS automation example for CGX1 (`ZCGX_FI_CGX1`, `SCPR_ACTIVATE_BCSETS_REMOTE`) |
+| `desktop-agent/bcset-cgx1.zip` | Downloadable preferred package |
+| `desktop-agent/cgx1-company-code/` | **Last resort** SAP GUI Scripting agent for OX02 |
+| `desktop-agent/cgx1-company-code.zip` | Downloadable residual GUI package |
 | `ValueROI.dc.html`, `IP Library.dc.html`, `HCM.dc.html`, `RosterIQ.dc.html` | Nav modules |
 | `FeedbackToast.dc.html` | Toast host stub |
 | `LicentIQ.dc.html`, `TaxIQ.dc.html`, `TreasuryIQ.dc.html`, `Roadmap.dc.html`, `Platform Thesis.dc.html` | Suite redirects |
