@@ -1,0 +1,33 @@
+{
+  "playbook": "CFG-BOT/BCSET/ENT/ALL/0001",
+  "title": "Full enterprise structure package (example)",
+  "edition": "onprem",
+  "signedDesignRef": "FIN-ES-001",
+  "deploySequence": [
+    { "order": 1, "bcSet": "ZCGX_ENT_FI_DEF", "playbook": "CFG-BOT/BCSET/ENT/FI/0001", "img": "Definition FI" },
+    { "order": 2, "bcSet": "ZCGX_ENT_CO_DEF", "playbook": "CFG-BOT/BCSET/ENT/CO/0001", "img": "Definition CO" },
+    { "order": 3, "bcSet": "ZCGX_ENT_LO_DEF", "playbook": "CFG-BOT/BCSET/ENT/LO/0001", "img": "Definition LO" },
+    { "order": 4, "bcSet": "ZCGX_ENT_SD_DEF", "playbook": "CFG-BOT/BCSET/ENT/SD/0001", "img": "Definition SD" },
+    { "order": 5, "bcSet": "ZCGX_ENT_MM_DEF", "playbook": "CFG-BOT/BCSET/ENT/MM/0001", "img": "Definition MM" },
+    { "order": 6, "bcSet": "ZCGX_ENT_ASSIGN", "playbook": "CFG-BOT/BCSET/ENT/ASN/0001", "img": "Assignment" }
+  ],
+  "rfc": {
+    "function": "ZCGX_DEPLOY_ENTERPRISE_CFG",
+    "iv_playbook": "CFG-BOT/BCSET/ENT/ALL/0001",
+    "it_bcsets": [
+      "ZCGX_ENT_FI_DEF",
+      "ZCGX_ENT_CO_DEF",
+      "ZCGX_ENT_LO_DEF",
+      "ZCGX_ENT_SD_DEF",
+      "ZCGX_ENT_MM_DEF",
+      "ZCGX_ENT_ASSIGN"
+    ]
+  },
+  "verify": [
+    "OX02 company codes",
+    "OX10 plants",
+    "OVX5 sales orgs",
+    "IMG Consistency Check under Enterprise Structure",
+    "Cognixa evidence pack export"
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "assetId": "IP-CFG-ENT-001",
+  "title": "Enterprise Structure automation catalog",
+  "edition": "onprem",
+  "principle": "No safe public create API for most ENT IMG nodes → BC Sets + thin RFC deploy + CTS",
+  "fallbackLadder": [
+    { "rank": 1, "method": "BC Set from IMG hierarchy", "when": "default" },
+    { "rank": 2, "method": "Hierarchical BC Set bundle", "when": "multi-object / customer template" },
+    { "rank": 3, "method": "Copy company code / copy tools + BC Set delta", "when": "bootstrap from golden" },
+    { "rank": 4, "method": "BC Set file export/import", "when": "no CTS between landscapes" },
+    { "rank": 5, "method": "ZCGX_DEPLOY_ENTERPRISE_CFG RFC", "when": "unattended activate" },
+    { "rank": 6, "method": "Cloud ALM Feature Deployment", "when": "landscape gates" },
+    { "rank": 7, "method": "GUI Scripting / BPA", "when": "BC Set cannot capture activity" },
+    { "rank": 8, "method": "Manual SPRO", "when": "exception only" }
+  ],
+  "deployOrder": ["FI", "CO", "LO", "SD", "MM", "LE", "ASN"],
+  "definition": [
+    {
+      "area": "FI",
+      "img": "Enterprise Structure > Definition > Financial Accounting",
+      "activities": [
+        { "name": "Define company", "tcode": "OX15", "view": "T880", "api": "none", "method": "bcset" },
+        { "name": "Define Credit Control Area", "tcode": "OB45", "view": "T014", "api": "none", "method": "bcset" },
+        { "name": "Edit Copy Delete Check Company Code", "tcode": "OX02", "view": "V_T001", "api": "none-safe", "method": "copy_cc+bcset", "playbook": "CFG-BOT/BCSET/ENT/FI/0001" },
+        { "name": "Define Business Area", "tcode": "OX03", "view": "TGSB", "api": "none", "method": "bcset" },
+        { "name": "Define Functional Area", "tcode": "OKBD", "view": "TFKB", "api": "none", "method": "bcset" },
+        { "name": "Define Segment", "tcode": "", "view": "FAGL_SEGM", "api": "none", "method": "bcset" }
+      ]
+    },
+    {
+      "area": "CO",
+      "img": "Enterprise Structure > Definition > Controlling",
+      "activities": [
+        { "name": "Maintain Controlling Area", "tcode": "OKKP", "view": "TKA01", "api": "none", "method": "bcset", "playbook": "CFG-BOT/BCSET/ENT/CO/0001" },
+        { "name": "Create Operating Concern", "tcode": "KEA0", "view": "TKEB", "api": "none", "method": "bcset" }
+      ]
+    },
+    {
+      "area": "LO",
+      "img": "Enterprise Structure > Definition > Logistics - General",
+      "activities": [
+        { "name": "Define Plant", "tcode": "OX10", "view": "V_T001W", "api": "none", "method": "bcset", "playbook": "CFG-BOT/BCSET/ENT/LO/0001" },
+        { "name": "Define Division", "tcode": "OVXB", "view": "TSPA", "api": "none", "method": "bcset" }
+      ]
+    },
+    {
+      "area": "SD",
+      "img": "Enterprise Structure > Definition > Sales and Distribution",
+      "activities": [
+        { "name": "Define Sales Organization", "tcode": "OVX5", "view": "TVKO", "api": "none", "method": "bcset", "playbook": "CFG-BOT/BCSET/ENT/SD/0001" },
+        { "name": "Define Distribution Channel", "tcode": "OVXI", "view": "TVTW", "api": "none", "method": "bcset" }
+      ]
+    },
+    {
+      "area": "MM",
+      "img": "Enterprise Structure > Definition > Materials Management",
+      "activities": [
+        { "name": "Maintain storage location", "tcode": "OX09", "view": "T001L", "api": "none", "method": "bcset", "playbook": "CFG-BOT/BCSET/ENT/MM/0001" },
+        { "name": "Maintain purchasing organization", "tcode": "OX08", "view": "T024E", "api": "none", "method": "bcset" }
+      ]
+    },
+    {
+      "area": "LE",
+      "img": "Enterprise Structure > Definition > Logistics Execution",
+      "activities": [
+        { "name": "Define Warehouse Number", "tcode": "", "view": "T300", "api": "none", "method": "copy_wh+bcset" }
+      ]
+    }
+  ],
+  "assignment": [
+    { "name": "Assign company code to controlling area", "tcode": "OX19", "dependsOn": ["FI", "CO"], "method": "bcset", "playbook": "CFG-BOT/BCSET/ENT/ASN/0001" },
+    { "name": "Assign plant to company code", "tcode": "OX18", "dependsOn": ["FI", "LO"], "method": "bcset" },
+    { "name": "Assign sales organization to company code", "tcode": "OVX3", "dependsOn": ["FI", "SD"], "method": "bcset" },
+    { "name": "Assign purchasing organization to company code", "tcode": "OX01", "dependsOn": ["FI", "MM"], "method": "bcset" },
+    { "name": "Set up sales area", "tcode": "OVXG", "dependsOn": ["SD"], "method": "bcset" }
+  ],
+  "reject": [
+    "Direct UPDATE/INSERT on T001 T001W TVKO from custom RFC",
+    "GUI bot as primary for bulk ENT structure",
+    "Using On-Prem BC Set path for Public Cloud CBC landscapes"
+  ],
+  "executor": {
+    "functionModule": "ZCGX_DEPLOY_ENTERPRISE_CFG",
+    "sapStandard": "SCPR_ACTIVATE_BCSETS_REMOTE"
+  }
+}

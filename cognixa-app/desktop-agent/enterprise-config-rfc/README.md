@@ -31,6 +31,16 @@ Cognixa / script
 
 See **`IMPORT.md`** (SE80 / SE37 / SE38 steps).
 
+## Cognixa IP (research — full Enterprise Structure)
+
+When standard APIs do **not** support creating IMG enterprise structure correctly, Cognixa uses:
+
+**`IP-CFG-ENT-001-Enterprise-Structure-Automation.md`**  
++ machine catalog **`enterprise-structure-catalog.json`**  
++ example **`playbook-ent-all.example.json`**
+
+Summary: package SPRO Enterprise Structure (Definition → Assignment) as BC Sets → deploy via this RFC FM → CTS/ALM → evidence. Do not custom-write customizing tables.
+
 ## Auth
 
 Create technical user (e.g. `CGX_CFG_BOT`) with:
