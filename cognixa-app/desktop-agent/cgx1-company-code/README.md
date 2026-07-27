@@ -35,17 +35,18 @@ The Cognixa browser demo **cannot** create `CGX1` by itself — run this agent o
 **Important:** Do **not** double-click `run.cmd` from inside the zip preview.  
 In File Explorer click the zip → **Extract All** → open the extracted `cgx1-company-code` folder → double-click `run.cmd`.
 
-### Avoid the “0 sessions” / stuck hang
+### Avoid the “0 sessions” error
 
-1. Open **SAP Logon** → `S4HANA2023 SHARED GUI` → log on **800 / Rajesh1** → leave Easy Access open  
-2. Enable scripting: SAP GUI **Options → Accessibility & Scripting → Enable scripting**  
-3. Run `run.cmd` with a **normal** double-click — **NOT “Run as administrator”**  
-   - Admin CMD cannot see a normal-user SAP GUI session (reports **0 sessions** even when Easy Access is open)  
-4. Click the agent window → press **ENTER** when asked  
-5. Accept any **Allow scripting** popup in SAP  
-6. Watch `STEP|...` lines  
+Easy Access can be open and the agent still shows **0 sessions** if scripting is off or CMD is Admin.
 
-The window **stays open** and writes `agent-run.log`.
+1. In SAP GUI: **Alt+F12 → Options → Accessibility & Scripting → Enable scripting = ON**  
+2. **Fully close** SAP Logon + all GUI windows, then log on again to Easy Access  
+3. Run `diagnose.cmd` (normal double-click, **not** Admin) — expect `scriptable sessions >= 1`  
+4. Run `run.cmd` the same way  
+5. At prompts: press **ENTER only** (do not type the password on the “Press ENTER” line)  
+6. Accept any **Allow scripting** popup  
+
+If `diagnose.cmd` still shows 0 sessions, `run.cmd` cannot attach yet.
 
 ```bat
 cd desktop-agent\cgx1-company-code

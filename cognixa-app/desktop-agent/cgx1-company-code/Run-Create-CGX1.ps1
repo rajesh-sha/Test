@@ -116,16 +116,22 @@ try {
   Write-Status -Message ('SAP detect: {0}' -f $sapInfo.Detail)
   Write-Status -Message ('Current SAP GUI sessions detected: {0}' -f $sapInfo.Sessions)
   if ([int]$sapInfo.Sessions -lt 1) {
-    Write-Host 'No scriptable SAP session detected yet (even if Easy Access looks open).' -ForegroundColor Yellow
-    Write-Host 'Common cause: this CMD was started with Run as administrator.' -ForegroundColor Yellow
-    Write-Host 'Also enable: SAP GUI Options -> Accessibility and Scripting -> Enable scripting.' -ForegroundColor Yellow
-    Write-Host 'Then click THIS window and press ENTER.' -ForegroundColor Yellow
-    [void](Read-Host 'Press ENTER after SAP is logged on AND scripting is enabled (non-Admin CMD)')
+    Write-Host ''
+    Write-Host 'No SCRIPTABLE SAP session detected (Easy Access can be open and still show 0).' -ForegroundColor Yellow
+    Write-Host 'Do these in order:' -ForegroundColor Yellow
+    Write-Host '  A) This window must NOT be Administrator' -ForegroundColor Yellow
+    Write-Host '  B) In SAP GUI: Alt+F12 -> Options -> Accessibility & Scripting' -ForegroundColor Yellow
+    Write-Host '     -> Enable scripting = ON  (untick "Notify when script attaches" if it blocks)' -ForegroundColor Yellow
+    Write-Host '  C) FULLY close SAP Logon + Easy Access, then log on again' -ForegroundColor Yellow
+    Write-Host '  D) Optional: run diagnose.cmd in this folder for details' -ForegroundColor Yellow
+    Write-Host ''
+    Write-Host 'IMPORTANT: at the next prompt press ENTER only. Do NOT type your password here.' -ForegroundColor Cyan
+    [void](Read-Host 'Press ENTER only after scripting is ON and you re-logged on to SAP')
     $sapInfo = Get-SapSessionInfo
     Write-Status -Message ('SAP detect after wait: {0}' -f $sapInfo.Detail)
     Write-Status -Message ('SAP GUI sessions after wait: {0}' -f $sapInfo.Sessions)
     if ([int]$sapInfo.Sessions -lt 1) {
-      throw 'Still 0 SAP sessions. Close Admin CMD, enable SAP GUI scripting, keep Easy Access open, double-click run.cmd normally (not as Admin).'
+      throw 'Still 0 scriptable SAP sessions. Run diagnose.cmd. Typical fix: enable SAP GUI scripting, fully restart SAP Logon, re-logon, then run.cmd (not as Admin).'
     }
   } else {
     Write-Status -Message 'Existing SAP session found - will ATTACH (no OpenConnection).' -Color Green

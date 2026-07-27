@@ -68,17 +68,17 @@ if errorlevel 1 (
 )
 
 echo.
-echo IMPORTANT - do this FIRST to avoid getting stuck:
-echo   1. Open SAP Logon
-echo   2. Connect: S4HANA2023 SHARED GUI
-echo   3. Log on client 800 / user Rajesh1
-echo   4. Leave that SAP window open
-echo   5. Come back here and continue
+echo IMPORTANT - do this FIRST or you will get "0 sessions":
+echo   1. SAP GUI Alt+F12 -^> Options -^> Accessibility ^& Scripting
+echo      Enable scripting = ON
+echo   2. FULLY close SAP Logon/GUI, then log on again
+echo   3. Easy Access open for Rajesh1 / client 800
+echo   4. Optional: run diagnose.cmd first ^(must show sessions ^>= 1^)
+echo   5. Double-click run.cmd normally ^(NOT as Administrator^)
 echo.
-echo Then in this window:
-echo   - Press ENTER when asked (after SAP is logged on)
-echo   - Enter password only if SAP is still on the logon screen
-echo   - Watch for STEP^| lines; click Allow if SAP asks about scripting
+echo In this window:
+echo   - Press ENTER only when asked ^(do NOT type password on that line^)
+echo   - Watch for STEP^| lines; Allow scripting popups in SAP
 echo.
 echo A copy of the run is also saved to agent-run.log
 echo.
