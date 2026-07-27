@@ -32,6 +32,11 @@ The Cognixa browser demo **cannot** create `CGX1` by itself — run this agent o
 
 ## Create CGX1 (real write)
 
+**Important:** Do **not** double-click `run.cmd` from inside the zip preview.  
+In File Explorer click the zip → **Extract All** → open the extracted `cgx1-company-code` folder → double-click `run.cmd`.
+
+The window now **stays open** and writes `agent-run.log` in the same folder.
+
 ```bat
 cd desktop-agent\cgx1-company-code
 run.cmd

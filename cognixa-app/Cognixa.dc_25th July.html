@@ -5687,7 +5687,7 @@ class Component extends DCLogic {
       document.body.appendChild(a);
       a.click();
       setTimeout(()=>{ try{ a.remove(); }catch(e){} }, 0);
-      this.showToast('Desktop Agent downloaded. On a Windows PC with SAP GUI: unzip → run.cmd → enter Rajesh1 password → confirm transport. Then OX02 / SE16N T001 = CGX1. Prefer BC Sets for bulk.','Desktop Agent');
+      this.showToast('Desktop Agent downloaded. Extract All (do not run from inside the zip) → open cgx1-company-code → double-click run.cmd. Window stays open + writes agent-run.log. Enter Rajesh1 password → confirm transport → verify OX02/T001.','Desktop Agent');
     }catch(e){
       this.showToast('Could not start download — open desktop-agent/cgx1-company-code/ and run run.cmd locally.','Desktop Agent');
     }
