@@ -2,6 +2,7 @@
 setlocal EnableExtensions
 title Cognixa Desktop Agent - CGX1
 color 0A
+set ERR=1
 
 echo.
 echo ============================================================
@@ -10,19 +11,17 @@ echo  Real SAP GUI write on THIS Windows PC
 echo ============================================================
 echo.
 
-REM Always work from the folder that contains this .cmd
 cd /d "%~dp0" 2>nul
 if errorlevel 1 (
   echo ERROR: Cannot change to script folder.
   echo You must Extract All from the zip first.
-  goto :HOLD
+  goto HOLD
 )
 
 echo Working folder:
 echo   %CD%
 echo.
 
-REM Detect common "running from inside a zip" / temp extract paths
 echo %CD% | findstr /I /C:"\AppData\Local\Temp\" /C:"\Temp\Temp1_" /C:".zip\" >nul
 if not errorlevel 1 (
   echo WARNING: This looks like a temporary / zip path.
@@ -34,28 +33,28 @@ if not errorlevel 1 (
   echo   3. Open the extracted cgx1-company-code folder
   echo   4. Double-click run.cmd there
   echo.
-  goto :HOLD
+  goto HOLD
 )
 
 if not exist "%~dp0Run-Create-CGX1.ps1" (
   echo ERROR: Run-Create-CGX1.ps1 not found next to run.cmd
   echo Extract the FULL zip folder, do not run from inside the archive.
-  goto :HOLD
+  goto HOLD
 )
 if not exist "%~dp0Create-CGX1.vbs" (
   echo ERROR: Create-CGX1.vbs not found next to run.cmd
-  goto :HOLD
+  goto HOLD
 )
 if not exist "%~dp0payload.json" (
   echo ERROR: payload.json not found next to run.cmd
-  goto :HOLD
+  goto HOLD
 )
 
 where powershell >nul 2>nul
 if errorlevel 1 (
   echo ERROR: powershell.exe not found on PATH.
   echo Install Windows PowerShell, then retry.
-  goto :HOLD
+  goto HOLD
 )
 
 echo Starting PowerShell agent...
@@ -72,10 +71,20 @@ type "%~dp0agent-run.log"
 echo -----------------------------------
 echo.
 
+findstr /I /C:"ParserError" /C:"MissingCatchOrFinally" /C:"Unexpected token" "%~dp0agent-run.log" >nul
+if not errorlevel 1 (
+  echo FAILED: PowerShell could not parse Run-Create-CGX1.ps1
+  echo Re-download the latest Desktop Agent zip from Cognixa and Extract All again.
+  set ERR=10
+  goto HOLD
+)
+
 if %ERR%==0 (
   echo SUCCESS. Verify in S/4: OX02 or SE16N table T001 = CGX1
 ) else if %ERR%==1 (
   echo VERIFY: CGX1 not found yet ^(normal before first create^).
+) else if %ERR%==10 (
+  echo FAILED with exit code 10. See agent-run.log ERROR lines above.
 ) else (
   echo FAILED with exit code %ERR%.
   echo Common causes:
