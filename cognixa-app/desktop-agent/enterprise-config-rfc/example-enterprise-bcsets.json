@@ -1,0 +1,43 @@
+{
+  "playbook": "CFG-BOT/BCSET/ENT/0001",
+  "description": "Example enterprise structure packaged as BC Sets for Cognixa RFC deploy",
+  "edition": "onprem",
+  "executor": "ZCGX_DEPLOY_ENTERPRISE_CFG",
+  "note": "Create these BC Sets once in SCPR3, then deploy via RFC without GUI logon",
+  "bcSets": [
+    {
+      "id": "ZCGX_FI_ORG",
+      "area": "Finance — Company codes",
+      "objects": ["V_T001"],
+      "exampleRows": [
+        { "BUKRS": "CGX1", "BUTXT": "Cognixa Demo AU", "ORT01": "Perth", "LAND1": "AU", "WAERS": "AUD" },
+        { "BUKRS": "CGX2", "BUTXT": "Cognixa Demo NZ", "ORT01": "Auckland", "LAND1": "NZ", "WAERS": "NZD" }
+      ]
+    },
+    {
+      "id": "ZCGX_LO_PLANT",
+      "area": "Logistics — Plants",
+      "objects": ["V_T001W"],
+      "exampleRows": [
+        { "WERKS": "CGX1", "NAME1": "Cognixa Plant AU" }
+      ],
+      "dependsOn": ["ZCGX_FI_ORG"]
+    },
+    {
+      "id": "ZCGX_SD_SALES",
+      "area": "Sales — Sales organizations",
+      "objects": ["V_TVKO"],
+      "exampleRows": [
+        { "VKORG": "CGX1", "VTEXT": "Cognixa Sales AU" }
+      ],
+      "dependsOn": ["ZCGX_FI_ORG"]
+    }
+  ],
+  "rfcCallExample": {
+    "function": "ZCGX_DEPLOY_ENTERPRISE_CFG",
+    "destination": "A4H_CGX",
+    "iv_playbook": "CFG-BOT/BCSET/ENT/0001",
+    "iv_simulation": "",
+    "it_bcsets": ["ZCGX_FI_ORG", "ZCGX_LO_PLANT", "ZCGX_SD_SALES"]
+  }
+}
