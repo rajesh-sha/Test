@@ -5709,11 +5709,11 @@ class Component extends DCLogic {
         this._cfgBotSyncDeploy(14,true);
         this.setState({ cfgBot:{ step:14, playing:false, done:true, mode:m } });
         const pb = m==='gui' ? 'CFG-BOT/GUI/FI/CGX1' : (m==='bcset' ? 'CFG-BOT/BCSET/FI/0001' : 'CFG-BOT/CBC/FI/0001');
-        const act = m==='gui' ? 'Define Company Code CGX1 (A4H live tiny example)' : 'Define Company Code AU01';
+        const act = m==='gui' ? 'Define Company Code CGX1 (simulation — not written to A4H)' : 'Define Company Code AU01';
         const rules=this._compoundIpRuleset([{
           playbook: pb,
           activity: act,
-          decision: m==='gui' ? 'residual-gui-apply' : (m==='bcset' ? 'bcset-activate' : 'cbc-confirm'),
+          decision: m==='gui' ? 'residual-gui-simulate' : (m==='bcset' ? 'bcset-activate' : 'cbc-confirm'),
           clause: 'ORG-STR-001 §2.1',
           source: 'configuration-bot'
         }]);
@@ -5740,20 +5740,22 @@ class Component extends DCLogic {
     const pb = mode==='gui' ? 'CFG-BOT/GUI/FI/CGX1' : (mode==='bcset' ? 'CFG-BOT/BCSET/FI/0001' : 'CFG-BOT/CBC/FI/0001');
     const rules=this._compoundIpRuleset([{
       playbook: pb,
-      activity: mode==='gui' ? 'Define Company Code CGX1 (A4H live tiny example)' : 'Define Company Code AU01',
-      decision: mode==='gui' ? 'residual-gui-apply' : (mode==='bcset' ? 'bcset-activate' : 'cbc-confirm'),
+      activity: mode==='gui' ? 'Define Company Code CGX1 (simulation — not written to A4H)' : 'Define Company Code AU01',
+      decision: mode==='gui' ? 'residual-gui-simulate' : (mode==='bcset' ? 'bcset-activate' : 'cbc-confirm'),
       clause: 'ORG-STR-001 §2.1',
       source: 'configuration-bot',
       transport: (d.cfgTrCbc||'')+(d.cfgTrBc?(' / '+d.cfgTrBc):'')
     }]);
-    if(d.cfgAlmApproved && (d.cfgStage|0)<6){
+    if(mode==='gui'){
+      this.showToast('Closed simulation — CGX1 still not in S/4. Create it in OX02 on A4H client 800 to see it in Company Codes.','SAP GUI bot');
+    } else if(d.cfgAlmApproved && (d.cfgStage|0)<6){
       this._setDeploy({ cfgStage:6 });
       this.showToast(onprem
         ? 'Imported to PRD · IP ruleset updated ('+rules.length+' playbooks) — evidence chain sealed.'
         : 'Forwarded to PROD · IP ruleset updated ('+rules.length+' playbooks) — evidence chain sealed.',
         onprem ? 'importing to PRD' : 'forwarding to PROD');
     } else {
-      this.showToast((onprem?(mode==='gui'?'Residual GUI path':'On-Prem BC Set path'):'Public Cloud CBC path')+' complete · '+rules.length+' playbooks in IP ruleset','Configuration Bot');
+      this.showToast((onprem?'On-Prem BC Set path':'Public Cloud CBC path')+' complete · '+rules.length+' playbooks in IP ruleset','Configuration Bot');
     }
   }
   startRcBot(){ if(this._rcT){ clearInterval(this._rcT); }
