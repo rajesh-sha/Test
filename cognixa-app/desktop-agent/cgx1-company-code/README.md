@@ -37,14 +37,22 @@ In File Explorer click the zip → **Extract All** → open the extracted `cgx1-
 
 ### Avoid the “0 sessions” error
 
-Easy Access can be open and the agent still shows **0 sessions** if scripting is off or CMD is Admin.
+Easy Access can be open and the agent still shows **0 sessions**. Common causes:
 
-1. In SAP GUI: **Alt+F12 → Options → Accessibility & Scripting → Enable scripting = ON**  
-2. **Fully close** SAP Logon + all GUI windows, then log on again to Easy Access  
-3. Run `diagnose.cmd` (normal double-click, **not** Admin) — expect `scriptable sessions >= 1`  
-4. Run `run.cmd` the same way  
-5. At prompts: press **ENTER only** (do not type the password on the “Press ENTER” line)  
-6. Accept any **Allow scripting** popup  
+| Cause | Fix |
+|-------|-----|
+| **64-bit PowerShell** can’t see **32-bit SAP GUI** | Always use `run.cmd` / `diagnose.cmd` (they force SysWOW64 PowerShell) |
+| Scripting disabled | Alt+F12 → Options → Accessibility & Scripting → **Enable scripting = ON**, then **fully restart** SAP Logon |
+| Agent run as **Administrator** | Close Admin window; double-click `run.cmd` normally |
+| Scripting popup blocked | Accept **“A script is trying to access SAP GUI”** |
+| Old zip without VBS detector | Re-download latest `cgx1-company-code.zip` and **Extract All** |
+
+Steps:
+
+1. Enable scripting, fully close SAP, log on again to Easy Access  
+2. Run `diagnose.cmd` (**not** Admin) — expect `scriptable sessions >= 1` and an `OK|…` / `SESSION|…` line  
+3. Run `run.cmd` the same way  
+4. At prompts: press **ENTER only** (do not type the password on the “Press ENTER” line)  
 
 If `diagnose.cmd` still shows 0 sessions, `run.cmd` cannot attach yet.
 

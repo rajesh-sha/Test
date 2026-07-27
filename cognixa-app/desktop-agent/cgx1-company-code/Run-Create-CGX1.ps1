@@ -34,9 +34,38 @@ function Test-IsAdmin {
 }
 
 function Get-SapSessionInfo {
-  # Do NOT CreateObject(ScriptingCtrl) for detection - that is a new empty engine.
-  # Only GetActiveObject can see the user's already-open SAP GUI.
-  $info = [ordered]@{ Sessions = 0; Connections = 0; Ok = $false; Detail = '' }
+  # Prefer VBS GetObject("SAPGUI") - same path Create-CGX1.vbs uses.
+  # 64-bit PowerShell GetActiveObject often cannot see 32-bit SAP GUI (shows 0
+  # sessions even when Easy Access is open). run.cmd forces 32-bit PS.
+  $info = [ordered]@{ Sessions = 0; Connections = 0; Ok = $false; Detail = ''; Method = '' }
+
+  $detectVbs = Join-Path $here 'Detect-SapSessions.vbs'
+  if (Test-Path -LiteralPath $detectVbs) {
+    try {
+      $raw = (& cscript.exe //nologo $detectVbs 2>&1 | Out-String).Trim()
+      if ($raw -match '(?m)^OK\|(\d+)\|(\d+)') {
+        $info.Connections = [int]$Matches[1]
+        $info.Sessions = [int]$Matches[2]
+        $info.Ok = $true
+        $info.Method = 'VBS-GetObject'
+        $info.Detail = ('VBS GetObject OK; connections={0}; sessions={1}; ps={2}-bit' -f $info.Connections, $info.Sessions, ([IntPtr]::Size * 8))
+        return $info
+      }
+      if ($raw -match '(?m)^SESSION\|') {
+        $info.Sessions = ([regex]::Matches($raw, '(?m)^SESSION\|')).Count
+        $info.Connections = 1
+        $info.Ok = $true
+        $info.Method = 'VBS-GetObject'
+        $info.Detail = ('VBS GetObject OK (SESSION lines); sessions={0}; ps={1}-bit' -f $info.Sessions, ([IntPtr]::Size * 8))
+        return $info
+      }
+      $info.Detail = ('VBS detect: {0}' -f (($raw -split "`n") | Select-Object -First 3) -join ' | ')
+    } catch {
+      $info.Detail = ('VBS detect failed: {0}' -f $_.Exception.Message)
+    }
+  }
+
+  # Fallback: PowerShell GetActiveObject (works reliably in 32-bit PS)
   try {
     $gui = [Runtime.InteropServices.Marshal]::GetActiveObject('SAPGUI')
     $engine = $gui.GetScriptingEngine
@@ -56,9 +85,11 @@ function Get-SapSessionInfo {
     }
     $info.Sessions = $sess
     $info.Ok = $true
-    $info.Detail = ('GetActiveObject OK; connections={0}; sessions={1}' -f $connCount, $sess)
+    $info.Method = 'PS-GetActiveObject'
+    $info.Detail = ('GetActiveObject OK; connections={0}; sessions={1}; ps={2}-bit' -f $connCount, $sess, ([IntPtr]::Size * 8))
   } catch {
-    $info.Detail = ('GetActiveObject failed: {0}' -f $_.Exception.Message)
+    $prev = $info.Detail
+    $info.Detail = ('{0} | GetActiveObject failed: {1} | ps={2}-bit' -f $prev, $_.Exception.Message, ([IntPtr]::Size * 8)).Trim(' ','|')
   }
   return $info
 }

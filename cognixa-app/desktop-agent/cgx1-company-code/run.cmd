@@ -61,11 +61,22 @@ if not exist "%~dp0payload.json" (
   goto HOLD
 )
 
-where powershell >nul 2>nul
-if errorlevel 1 (
-  echo ERROR: powershell.exe not found on PATH.
-  goto HOLD
+REM Prefer 32-bit PowerShell: SAP GUI is almost always 32-bit.
+REM 64-bit PowerShell GetActiveObject often reports 0 sessions while Easy Access is open.
+set "PSEXE=%SystemRoot%\SysWOW64\WindowsPowerShell\v1.0\powershell.exe"
+if not exist "%PSEXE%" set "PSEXE=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
+if not exist "%PSEXE%" (
+  where powershell >nul 2>nul
+  if errorlevel 1 (
+    echo ERROR: powershell.exe not found.
+    goto HOLD
+  )
+  set "PSEXE=powershell"
 )
+
+echo Using PowerShell:
+echo   %PSEXE%
+echo.
 
 echo.
 echo IMPORTANT - do this FIRST or you will get "0 sessions":
@@ -75,6 +86,7 @@ echo   2. FULLY close SAP Logon/GUI, then log on again
 echo   3. Easy Access open for Rajesh1 / client 800
 echo   4. Optional: run diagnose.cmd first ^(must show sessions ^>= 1^)
 echo   5. Double-click run.cmd normally ^(NOT as Administrator^)
+echo   6. Agent now uses 32-bit PowerShell + VBS GetObject detect
 echo.
 echo In this window:
 echo   - Press ENTER only when asked ^(do NOT type password on that line^)
@@ -84,14 +96,13 @@ echo A copy of the run is also saved to agent-run.log
 echo.
 
 REM Do NOT redirect the whole PowerShell session - that hides progress after password.
-REM The PS1 writes agent-run.log itself via Tee-Object style logging.
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0Run-Create-CGX1.ps1" %*
+"%PSEXE%" -NoProfile -ExecutionPolicy Bypass -File "%~dp0Run-Create-CGX1.ps1" %*
 set ERR=%ERRORLEVEL%
 
 echo.
 if exist "%~dp0agent-run.log" (
   echo ---------- agent-run.log ^(tail^) ----------
-  powershell -NoProfile -Command "Get-Content -LiteralPath '%~dp0agent-run.log' -Tail 30"
+  "%PSEXE%" -NoProfile -Command "Get-Content -LiteralPath '%~dp0agent-run.log' -Tail 30"
   echo -----------------------------------
   echo.
 )
