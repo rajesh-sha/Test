@@ -2733,7 +2733,7 @@
             </button>
             <sc-if value="{{ cfgIsOnPremEdition }}" hint-placeholder-val="{{ false }}">
             <button onClick="{{ openCfgBotGui }}" style="display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #E8D4B0;color:#7A4B12;font-weight:600;font-size:12.5px;padding:9px 15px;border-radius:10px;cursor:pointer" style-hover="background:#FFF8EB">
-              Live tiny example · SAP GUI bot (A4H · Rajesh1)
+              Simulate SPRO path · SAP GUI bot (A4H · does not write)
             </button>
             </sc-if>
           </div>
@@ -3186,6 +3186,12 @@
                 </sc-if>
 
                 <sc-if value="{{ cfgBotOpen.showForm }}" hint-placeholder-val="{{ false }}">
+                <sc-if value="{{ cfgBotOpen.showNotWritten }}" hint-placeholder-val="{{ false }}">
+                <div style="background:#FFF8EB;border:1px solid #F0E2CC;border-radius:10px;padding:10px 12px;margin-bottom:10px">
+                  <div style="font-size:11.5px;font-weight:700;color:#7A4B12">CGX1 was not created in S/4</div>
+                  <div style="font-size:10.5px;color:#7A4B12;line-height:1.4;margin-top:3px">This browser run is a simulation. Open <b>OX02</b> (or SPRO → Define company code) on A4H client 800 and create CGX1 yourself — or use a Desktop Agent with SAP GUI scripting.</div>
+                </div>
+                </sc-if>
                 <div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 10px 30px -12px rgba(0,0,0,.5)">
                   <div style="background:#354A5F;padding:9px 14px;display:flex;align-items:center;gap:8px">
                     <span style="width:9px;height:9px;border-radius:50%;background:#fff;opacity:.6"></span>
@@ -5653,7 +5659,7 @@ class Component extends DCLogic {
     this._setDeploy({ s4Edition:'onprem', cfgPath:'fit' });
     if(this._botT){ clearInterval(this._botT); this._botT=null; }
     this.setState({ cfgBot:{ step:0, playing:false, done:false, mode:'gui', live:true } });
-    this.showToast('Live tiny example ready — '+p.name+' · '+p.sid+' / '+p.host+' · inst '+p.instance+' · client '+p.client+' · user '+p.user+'. Enter password in the bot (session only), then Run.','SAP GUI bot');
+    this.showToast('Simulation ready — '+p.name+' · '+p.sid+' / '+p.host+' · inst '+p.instance+' · client '+p.client+' · user '+p.user+'. Run bot walks the path in Cognixa only; CGX1 is NOT written to S/4.','SAP GUI bot');
   }
   saveSapGuiPw(){
     try{
@@ -5712,7 +5718,7 @@ class Component extends DCLogic {
           source: 'configuration-bot'
         }]);
         const toast = m==='gui'
-          ? 'Tiny A4H GUI example complete — CGX1 staged in demo · playbook '+pb+' → IP ('+rules.length+'). Prefer BC Sets next.'
+          ? 'Simulation only — CGX1 was NOT created in A4H. Cognixa does not drive SAP GUI from the browser. Create CGX1 manually in OX02/SPRO, or use a Desktop Agent. IP ruleset updated ('+rules.length+').'
           : (m==='bcset'
             ? 'Bot complete — BC Sets → CTS · '+pb+' compounded ('+rules.length+' IP rules). Forward to PRD when ready.'
             : 'Bot complete — CBC pipeline · '+pb+' compounded ('+rules.length+' IP rules). Forward to PROD when ready.');
@@ -8463,20 +8469,20 @@ class Component extends DCLogic {
       ];
       const LIVE = this._sapGuiLiveProfile ? this._sapGuiLiveProfile() : {name:'S4HANA2023 SHARED GUI',sid:'A4H',host:'115.245.150.98',instance:'18',client:'800',user:'Rajesh1',language:'EN',exampleCc:'CGX1',exampleName:'Cognixa Demo AU',product:'S/4HANA ON PREMISE 2023'};
       const LOG_GUI = [
-        'Tiny live example — residual GUI path on your S/4HANA 2023 On-Prem (A4H)…',
-        'SAP Logon 800 → select “'+LIVE.name+'” · SID '+LIVE.sid+' · '+LIVE.host+' · inst '+LIVE.instance,
-        'Log On → Client '+LIVE.client+' · User '+LIVE.user+' · Language '+LIVE.language+' (password from this Cognixa session)',
-        'Session open on '+LIVE.sid+' · product S/4HANA ON PREMISE 2023 · scripting host ready',
-        'Transaction SPRO → Customizing: Execute Project → SAP Reference IMG',
-        'Display IMG → Enterprise Structure → Definition → Financial Accounting',
-        'Execute IMG activity: Define, copy, delete, check company code (tiny example)',
-        'Entering Company Code = '+LIVE.exampleCc,
-        'Entering Company Name = '+LIVE.exampleName,
-        'Entering City = Perth · Country = AU',
-        'Entering Currency = AUD · Language = EN',
-        'Save → assign customizing request on '+LIVE.sid+' client '+LIVE.client,
-        'Release CTS from A4H (demo gate) — prefer BC Sets for the next bulk wave',
-        'Evidence + IP ruleset write-back · playbook CFG-BOT/GUI/FI/CGX1'
+        'SIMULATION — Cognixa is not connected to SAP GUI; nothing is written to A4H',
+        'Would open SAP Logon → “'+LIVE.name+'” · SID '+LIVE.sid+' · '+LIVE.host+' · inst '+LIVE.instance,
+        'Would log on → Client '+LIVE.client+' · User '+LIVE.user+' · Language '+LIVE.language,
+        'Would open session on '+LIVE.sid+' · '+LIVE.product+' (scripting would need Desktop Agent)',
+        'Would run SPRO → Customizing: Execute Project → SAP Reference IMG',
+        'Would navigate Enterprise Structure → Definition → Financial Accounting',
+        'Would open IMG: Define, copy, delete, check company code',
+        'Would enter Company Code = '+LIVE.exampleCc,
+        'Would enter Company Name = '+LIVE.exampleName,
+        'Would enter City = Perth · Country = AU',
+        'Would enter Currency = AUD · Language = EN',
+        'Would Save → customizing request on '+LIVE.sid+' / '+LIVE.client+' (NOT done here)',
+        'STOPPED — no CTS, no table T001 write. Create '+LIVE.exampleCc+' in OX02/SPRO yourself to see it in S/4',
+        'IP ruleset / evidence updated in Cognixa only · playbook CFG-BOT/GUI/FI/CGX1'
       ];
       const LOG = mode==='gui' ? LOG_GUI : (mode==='bcset' ? LOG_BCSET : LOG_CBC);
       const steps = LOG.map((t,i)=>({ t, done: done || i<cur, active: !done && i===cur, pending: !done && i>cur,
@@ -8514,15 +8520,15 @@ class Component extends DCLogic {
         {k:'Pipeline', v:'After DEV: CTS release → STMS import QAS → Cloud ALM/CAB gate → import PRD.'}
       ];
       const ctxGui = [
-        {k:'Runner', v:'Browser demo of SAP GUI / Desktop Agent. Real agent would drive SAP GUI on your PC.'},
+        {k:'Truth', v:'Browser simulation only — CGX1 is NOT created in S/4 until you (or a Desktop Agent) save it in A4H.'},
         {k:'Identity', v:LIVE.user+' · client '+LIVE.client+' · EN · session password only'},
-        {k:'Reach', v:LIVE.name+' · '+LIVE.sid+' @ '+LIVE.host+' / '+LIVE.instance+' → SPRO → Define company code'},
-        {k:'Example', v:'Create '+LIVE.exampleCc+' (“'+LIVE.exampleName+'”) — tiny residual IMG write'}
+        {k:'Where', v:'OX02 or SPRO → Enterprise Structure → Define company code on '+LIVE.sid+' / '+LIVE.client},
+        {k:'Example', v:LIVE.exampleCc+' (“'+LIVE.exampleName+'”) · Perth · AU · AUD · EN'}
       ];
-      const statusReady = mode==='gui' ? 'Ready · residual SAP GUI bot' : (mode==='bcset' ? 'Ready · BC Sets + CTS (preferred)' : 'Ready to run Public Cloud bot');
-      const statusRun = mode==='gui' ? 'Bot running SAP GUI residual…' : (mode==='bcset' ? 'Bot running BC Set / CTS pipeline…' : 'Bot running CBC pipeline…');
+      const statusReady = mode==='gui' ? 'Ready · simulation (no S/4 write)' : (mode==='bcset' ? 'Ready · BC Sets + CTS (preferred)' : 'Ready to run Public Cloud bot');
+      const statusRun = mode==='gui' ? 'Simulating SAP GUI path…' : (mode==='bcset' ? 'Bot running BC Set / CTS pipeline…' : 'Bot running CBC pipeline…');
       cfgBotOpen = { steps, fields, playing: !!_bot.playing, done, mode,
-        subtitle: mode==='gui' ? ('Live · '+LIVE.name+' · SPRO Define Company Code '+LIVE.exampleCc+' on '+LIVE.sid) : (mode==='bcset' ? 'On-Prem · BC Set SCPR20 AU_ORG_FI → DEV · CTS' : 'Public Cloud · CBC activity Define Company Code AU01 → DEV customizing'),
+        subtitle: mode==='gui' ? ('Simulation · path to create '+LIVE.exampleCc+' on '+LIVE.sid+' — not written yet') : (mode==='bcset' ? 'On-Prem · BC Set SCPR20 AU_ORG_FI → DEV · CTS' : 'Public Cloud · CBC activity Define Company Code AU01 → DEV customizing'),
         productName: mode==='gui' ? ('SAP GUI for HTML · '+LIVE.sid+' / '+LIVE.client) : (mode==='bcset' ? 'S/4HANA · BC Sets / IMG' : 'Central Business Configuration'),
         targetLabel: mode==='gui' ? 'SAP LOGON ENTRY' : (mode==='cbc' ? 'PROJECT / TARGET' : 'SYSTEM / CLIENT'),
         targetValue: mode==='gui' ? (LIVE.name+' · '+LIVE.sid+' · '+LIVE.host+' · '+LIVE.instance) : (mode==='cbc' ? 'AU_SCOPE · DEV customizing 100' : 'DEV · client 100 · customizing'),
@@ -8535,39 +8541,44 @@ class Component extends DCLogic {
           ? 'Illustration only — real agent uses OAuth to CBC, never a password screen. DEV customizing only.'
           : (mode==='bcset'
             ? 'Preferred On-Prem path: RFC + BC Sets (SCPR20) + CTS — not SAP GUI for bulk config.'
-            : 'A4H Logon pad demo. Optional password above, then click Run bot →'),
-        formTitle: mode==='gui' ? ('IMG — Define company code · '+LIVE.exampleCc) : (mode==='bcset' ? 'SCPR20 — Activate BC Set AU_ORG_FI' : 'CBC — Define Company Code (SSCUI)'),
+            : 'Simulation of A4H Logon. Optional password above, then Run bot → — still will NOT write to S/4.'),
+        formTitle: mode==='gui' ? ('IMG — Define company code · '+LIVE.exampleCc+' (simulated)') : (mode==='bcset' ? 'SCPR20 — Activate BC Set AU_ORG_FI' : 'CBC — Define Company Code (SSCUI)'),
         formMeta: mode==='gui' ? (LIVE.sid+'·'+LIVE.client+' · '+LIVE.user) : 'DEV·100 · CGX_CFG_BOT',
-        formLead: mode==='gui' ? ('Tiny residual example on '+LIVE.product+' — Create '+LIVE.exampleCc+' then save to a customizing request') : (mode==='bcset' ? 'BC Set activation · values from Best Practices / signed workbook' : 'Configuration activity · values from signed BDCQ workbook'),
+        formLead: mode==='gui' ? ('Values Cognixa would send — '+LIVE.exampleCc+' is NOT in T001 until you save it in S/4') : (mode==='bcset' ? 'BC Set activation · values from Best Practices / signed workbook' : 'Configuration activity · values from signed BDCQ workbook'),
         simNote: mode==='gui'
-          ? ('Demo of your real path: SAP Logon → '+LIVE.sid+' → SPRO → SAP Reference IMG → Define company code '+LIVE.exampleCc+'. Prefer BC Sets for bulk; GUI bot is last resort.')
+          ? ('To see '+LIVE.exampleCc+' in S/4: OX02 (or SPRO → Define company code) on '+LIVE.sid+' client '+LIVE.client+', create and Save. Cognixa browser cannot do that write.')
           : (mode==='bcset'
             ? 'Simulation of the preferred On-Prem path. BC Sets activate into DEV; CTS/STMS moves customizing DEV → QAS → PRD. Cloud ALM can orchestrate Feature Deployment.'
             : 'Simulation of the Public Cloud path. The bot confirms CBC activities into the DEV customizing tenant, then advances Export → Import Collection (TEST) under the Cloud ALM gate — never direct to PROD.'),
-        contextTitle: mode==='gui' ? 'RUN CONTEXT — SAP GUI RESIDUAL (LAST RESORT)' : (mode==='bcset' ? 'RUN CONTEXT — ON-PREM BC SETS + CTS' : 'RUN CONTEXT — PUBLIC CLOUD CBC'),
+        contextTitle: mode==='gui' ? 'RUN CONTEXT — SIMULATION (NO S/4 WRITE)' : (mode==='bcset' ? 'RUN CONTEXT — ON-PREM BC SETS + CTS' : 'RUN CONTEXT — PUBLIC CLOUD CBC'),
         contextRows: mode==='gui' ? ctxGui : (mode==='bcset' ? ctxBc : ctxCbc),
         drivenTitle: mode==='gui' ? 'DRIVEN BY — SIGNED SCOPE → RESIDUAL SPRO' : (mode==='bcset' ? 'DRIVEN BY — SIGNED SCOPE → BC SETS' : 'DRIVEN BY — SIGNED SCOPE → CBC'),
         drivenPlaybook: mode==='gui' ? ('Playbook CFG-BOT/GUI/FI/CGX1 · '+LIVE.sid+' · Define company code') : (mode==='bcset' ? 'Playbook CFG-BOT/BCSET/FI/0001 · SCPR20 · Company Code' : 'Playbook CFG-BOT/CBC/FI/0001 · SSCUI · Company Code'),
         drivenBody: mode==='gui'
-          ? ('Create '+LIVE.exampleCc+' for '+LIVE.user+' / '+LIVE.client+', save CTS, write IP ruleset. Prefer BC Sets before scaling.')
+          ? ('Demo path for '+LIVE.exampleCc+' · '+LIVE.user+' / '+LIVE.client+'. No SAP write from this browser. Prefer BC Sets before scaling.')
           : (mode==='bcset'
             ? 'Best Practices → BC Sets → CTS → QAS under Cloud ALM/CAB.'
             : 'Accelerator + signed BDCQ → CBC confirm → DEV → Export → Import Collection under Cloud ALM.'),
         showLogin: !done && cur < 5, showForm: done || cur >= 5,
+        showNotWritten: mode==='gui' && (done || cur >= 5),
         lgUser: done || cur >= 1, lgPass: done || cur >= 2, lgAuthing: !done && cur === 3, lgAuthed: done || cur >= 4,
-        lgBtnLabel: (done || cur >= 4) ? 'Authenticated ✓' : (cur === 3 ? 'Authenticating…' : (mode==='gui' && this.state.sapGuiPwSet ? 'Ready — click Run bot →' : (mode==='gui' ? 'Ready — click Run bot →' : 'Log On'))),
-        lgBtnBg: (done || cur >= 4) ? '#16A34A' : (cur === 3 ? '#0A6ED1' : (mode==='gui' ? '#0A6ED1' : (cur >= 1 ? '#0A6ED1' : '#9AA4B2'))),
-        statusLabel: done ? 'Pipeline advanced · ALM gate recorded' : (_bot.playing ? statusRun : statusReady),
-        statusColor: done ? '#15803D' : (_bot.playing ? '#4F46E5' : '#8A93A3'),
-        statusBg: done ? '#E7F6EC' : (_bot.playing ? '#EEF0FF' : '#F0F1F4'),
+        lgBtnLabel: (done || cur >= 4) ? (mode==='gui' ? 'Simulated logon ✓' : 'Authenticated ✓') : (cur === 3 ? 'Authenticating…' : (mode==='gui' ? 'Ready — click Run bot →' : 'Log On')),
+        lgBtnBg: (done || cur >= 4) ? (mode==='gui' ? '#B45309' : '#16A34A') : (cur === 3 ? '#0A6ED1' : (mode==='gui' ? '#0A6ED1' : (cur >= 1 ? '#0A6ED1' : '#9AA4B2'))),
+        statusLabel: done
+          ? (mode==='gui' ? 'Simulation complete · CGX1 not in S/4' : 'Pipeline advanced · ALM gate recorded')
+          : (_bot.playing ? statusRun : statusReady),
+        statusColor: done ? (mode==='gui' ? '#B45309' : '#15803D') : (_bot.playing ? '#4F46E5' : '#8A93A3'),
+        statusBg: done ? (mode==='gui' ? '#FFF8EB' : '#E7F6EC') : (_bot.playing ? '#EEF0FF' : '#F0F1F4'),
         run: ()=>this.startCfgBot(), replay: ()=>this.startCfgBot(), close: ()=>this.closeCfgBot(),
-        timeNote: done ? (mode==='cbc' ? 'CBC → DEV → TEST in ~10s (demo)' : 'DEV → QAS in ~10s (demo)') : (_bot.playing ? 'Running… ~'+Math.round(cur*0.72)+'s elapsed' : 'Typical demo run: under a minute'),
+        timeNote: done
+          ? (mode==='gui' ? 'No SAP write occurred — create CGX1 in OX02 to see it' : (mode==='cbc' ? 'CBC → DEV → TEST in ~10s (demo)' : 'DEV → QAS in ~10s (demo)'))
+          : (_bot.playing ? 'Running… ~'+Math.round(cur*0.72)+'s elapsed' : 'Typical demo run: under a minute'),
         manualNote: mode==='gui'
-          ? 'Manual SPRO + CTS ≈ hours; keep GUI bots residual.'
+          ? 'Create CGX1 in S/4: t-code OX02 → New Entries → Save to a transport.'
           : (mode==='bcset'
             ? 'Manual SCPR20 + STMS ≈ hours — demo walks the same gates.'
             : 'Manual CBC + Export/Import ≈ hours — demo walks the same gates.'),
-        signoffLabel: mode==='cbc' ? 'Forward Import Collection → PROD' : 'Import CTS → PRD',
+        signoffLabel: mode==='gui' ? 'Close · create CGX1 in OX02' : (mode==='cbc' ? 'Forward Import Collection → PROD' : 'Import CTS → PRD'),
         signoff: ()=>this.cfgBotSignoff() };
     }
     const _bcur = _bot ? (_bot.step||0) : 0; const _bdone = _bot && _bot.done;
