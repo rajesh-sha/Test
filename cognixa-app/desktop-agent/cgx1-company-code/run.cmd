@@ -25,20 +25,14 @@ echo.
 echo %CD% | findstr /I /C:"\AppData\Local\Temp\" /C:"\Temp\Temp1_" /C:".zip\" >nul
 if not errorlevel 1 (
   echo WARNING: This looks like a temporary / zip path.
-  echo Windows cannot reliably run the agent from inside the zip.
   echo.
-  echo FIX:
-  echo   1. Close this window
-  echo   2. In File Explorer select the zip -^> Extract All
-  echo   3. Open the extracted cgx1-company-code folder
-  echo   4. Double-click run.cmd there
+  echo FIX: Extract All the zip, then run run.cmd from the extracted folder.
   echo.
   goto HOLD
 )
 
 if not exist "%~dp0Run-Create-CGX1.ps1" (
   echo ERROR: Run-Create-CGX1.ps1 not found next to run.cmd
-  echo Extract the FULL zip folder, do not run from inside the archive.
   goto HOLD
 )
 if not exist "%~dp0Create-CGX1.vbs" (
@@ -53,28 +47,35 @@ if not exist "%~dp0payload.json" (
 where powershell >nul 2>nul
 if errorlevel 1 (
   echo ERROR: powershell.exe not found on PATH.
-  echo Install Windows PowerShell, then retry.
   goto HOLD
 )
 
-echo Starting PowerShell agent...
-echo A password prompt should appear next.
-echo Status is also written to agent-run.log in this folder.
+echo.
+echo NEXT STEP:
+echo   1. Type the SAP password for Rajesh1
+echo   2. Press ENTER
+echo   3. Keep watching this window - progress prints here
+echo   4. If SAP Logon / transport popups appear, handle them
+echo.
+echo A copy of the run is also saved to agent-run.log
 echo.
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0Run-Create-CGX1.ps1" %* > "%~dp0agent-run.log" 2>&1
+REM Do NOT redirect the whole PowerShell session - that hides progress after password.
+REM The PS1 writes agent-run.log itself via Tee-Object style logging.
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0Run-Create-CGX1.ps1" %*
 set ERR=%ERRORLEVEL%
 
 echo.
-echo ---------- agent-run.log ----------
-type "%~dp0agent-run.log"
-echo -----------------------------------
-echo.
+if exist "%~dp0agent-run.log" (
+  echo ---------- agent-run.log ^(tail^) ----------
+  powershell -NoProfile -Command "Get-Content -LiteralPath '%~dp0agent-run.log' -Tail 30"
+  echo -----------------------------------
+  echo.
+)
 
-findstr /I /C:"ParserError" /C:"MissingCatchOrFinally" /C:"Unexpected token" "%~dp0agent-run.log" >nul
+findstr /I /C:"ParserError" /C:"MissingCatchOrFinally" /C:"Unexpected token" "%~dp0agent-run.log" >nul 2>nul
 if not errorlevel 1 (
-  echo FAILED: PowerShell could not parse Run-Create-CGX1.ps1
-  echo Re-download the latest Desktop Agent zip from Cognixa and Extract All again.
+  echo FAILED: PowerShell parse error. Re-download the latest zip from Cognixa.
   set ERR=10
   goto HOLD
 )
@@ -84,15 +85,9 @@ if %ERR%==0 (
 ) else if %ERR%==1 (
   echo VERIFY: CGX1 not found yet ^(normal before first create^).
 ) else if %ERR%==10 (
-  echo FAILED with exit code 10. See agent-run.log ERROR lines above.
+  echo FAILED with exit code 10. Read the ERROR lines above.
 ) else (
-  echo FAILED with exit code %ERR%.
-  echo Common causes:
-  echo   - Ran from inside the zip ^(Extract All first^)
-  echo   - SAP GUI not open / scripting disabled
-  echo   - Wrong Logon entry name: S4HANA2023 SHARED GUI
-  echo   - Password cancelled / empty
-  echo See README.md and agent-run.log
+  echo Finished with exit code %ERR%. Read the messages above and agent-run.log.
 )
 
 :HOLD
