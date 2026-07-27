@@ -1,5 +1,5 @@
 ﻿# Cognixa Desktop Agent - create or verify company code CGX1 on A4H via SAP GUI Scripting.
-# ASCII-only file (Windows PowerShell 5.x safe). Run via run.cmd after Extract All.
+# ASCII-only (Windows PowerShell 5.x safe). Run via run.cmd after Extract All.
 [CmdletBinding()]
 param(
   [switch]$VerifyOnly,
@@ -12,7 +12,6 @@ $payloadPath = Join-Path $here 'payload.json'
 $vbsPath = Join-Path $here 'Create-CGX1.vbs'
 $logPath = Join-Path $here 'agent-run.log'
 
-# Fresh log each run
 'Cognixa Desktop Agent log' | Set-Content -LiteralPath $logPath -Encoding ASCII
 
 function Write-Status {
@@ -26,24 +25,41 @@ function Write-Status {
   Add-Content -LiteralPath $logPath -Value $line -Encoding ASCII
 }
 
+function Get-SapSessionCount {
+  $count = 0
+  try {
+    $gui = [Runtime.InteropServices.Marshal]::GetActiveObject('SAPGUI')
+    $engine = $gui.GetScriptingEngine()
+    if ($engine -and $engine.Children -and $engine.Children.Count -gt 0) {
+      $conn = $engine.Children.Item(0)
+      if ($conn -and $conn.Children) { $count = [int]$conn.Children.Count }
+    }
+  } catch {
+    try {
+      $gui = New-Object -ComObject 'Sapgui.ScriptingCtrl.1'
+      $engine = $gui.GetScriptingEngine()
+      if ($engine -and $engine.Children -and $engine.Children.Count -gt 0) {
+        $conn = $engine.Children.Item(0)
+        if ($conn -and $conn.Children) { $count = [int]$conn.Children.Count }
+      }
+    } catch {
+      $count = 0
+    }
+  }
+  return $count
+}
+
 try {
   Write-Status -Message 'Cognixa Desktop Agent starting...' -Color Cyan
   Write-Status -Message ('Folder: {0}' -f $here)
 
   if ($here -match '(?i)\\AppData\\Local\\Temp\\|\\.zip($|\\)') {
-    throw 'Running from a temp/zip path. Extract All the zip to a normal folder (e.g. Desktop), then run run.cmd from the extracted folder.'
+    throw 'Running from a temp/zip path. Extract All the zip to a normal folder, then run run.cmd.'
   }
-
-  if (-not (Test-Path -LiteralPath $payloadPath)) {
-    throw 'Missing payload.json next to this script. Extract the full zip.'
-  }
-  if (-not (Test-Path -LiteralPath $vbsPath)) {
-    throw 'Missing Create-CGX1.vbs next to this script. Extract the full zip.'
-  }
-
-  $cscript = Get-Command cscript.exe -ErrorAction SilentlyContinue
-  if (-not $cscript) {
-    throw 'cscript.exe not found. Windows Script Host is required for SAP GUI Scripting VBS.'
+  if (-not (Test-Path -LiteralPath $payloadPath)) { throw 'Missing payload.json. Extract the full zip.' }
+  if (-not (Test-Path -LiteralPath $vbsPath)) { throw 'Missing Create-CGX1.vbs. Extract the full zip.' }
+  if (-not (Get-Command cscript.exe -ErrorAction SilentlyContinue)) {
+    throw 'cscript.exe not found. Windows Script Host is required.'
   }
 
   $payload = Get-Content -LiteralPath $payloadPath -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -58,31 +74,32 @@ try {
 
   Write-Status -Message ('Connection : {0}' -f $conn)
   Write-Status -Message ('Client/User: {0} / {1} / {2}' -f $client, $user, $lang)
-  if ($VerifyOnly) {
-    Write-Status -Message 'Mode       : VERIFY'
-  } else {
-    Write-Status -Message 'Mode       : CREATE (real SAP write)'
-  }
-  Write-Status -Message 'Truth      : Browser Cognixa cannot write T001 - this agent can.'
+  if ($VerifyOnly) { Write-Status -Message 'Mode       : VERIFY' } else { Write-Status -Message 'Mode       : CREATE (real SAP write)' }
 
-  $sapOk = $false
-  try {
-    $gui = [Runtime.InteropServices.Marshal]::GetActiveObject('SAPGUI')
-    if ($gui) { $sapOk = $true }
-  } catch {
-    try {
-      $gui = New-Object -ComObject 'Sapgui.ScriptingCtrl.1'
-      if ($gui) { $sapOk = $true }
-    } catch {
-      $sapOk = $false
+  Write-Host ''
+  Write-Host '============================================================' -ForegroundColor Yellow
+  Write-Host ' REQUIRED BEFORE CREATE (this avoids the OpenConnection hang)' -ForegroundColor Yellow
+  Write-Host ' 1. Open SAP Logon' -ForegroundColor Yellow
+  Write-Host (' 2. Connect: {0}' -f $conn) -ForegroundColor Yellow
+  Write-Host (' 3. Log on: client {0} / user {1} / lang {2}' -f $client, $user, $lang) -ForegroundColor Yellow
+  Write-Host ' 4. Leave that SAP session open (Easy Access is fine)' -ForegroundColor Yellow
+  Write-Host ' 5. Accept any "A script is trying to access SAP GUI" prompt' -ForegroundColor Yellow
+  Write-Host '============================================================' -ForegroundColor Yellow
+  Write-Host ''
+
+  $sessions = Get-SapSessionCount
+  Write-Status -Message ('Current SAP GUI sessions detected: {0}' -f $sessions)
+  if ($sessions -lt 1) {
+    Write-Host 'No logged-on SAP session detected yet.' -ForegroundColor Yellow
+    Write-Host 'Log on in SAP GUI now, then come back here and press ENTER.' -ForegroundColor Yellow
+    [void](Read-Host 'Press ENTER after you are logged on in SAP GUI')
+    $sessions = Get-SapSessionCount
+    Write-Status -Message ('SAP GUI sessions after wait: {0}' -f $sessions)
+    if ($sessions -lt 1) {
+      throw 'Still no SAP GUI session. Open SAP Logon, log on fully, leave the window open, then re-run run.cmd.'
     }
-  }
-
-  if (-not $sapOk) {
-    Write-Status -Message 'SAP GUI Scripting COM not found yet. Will still try via VBS if SAP Logon is installed.' -Color Yellow
-    Write-Status -Message 'Enable: SAP GUI Options -> Scripting ON, and RZ11 sapgui/user_scripting=TRUE' -Color Yellow
   } else {
-    Write-Status -Message 'SAP GUI Scripting COM is available.' -Color Green
+    Write-Status -Message 'Existing SAP session found - will ATTACH (no OpenConnection).' -Color Green
   }
 
   if (-not $Password) {
@@ -90,45 +107,41 @@ try {
       $Password = ConvertTo-SecureString $env:CGX_SAP_PASSWORD -AsPlainText -Force
       Write-Status -Message 'Using password from CGX_SAP_PASSWORD env (session only).' -Color DarkYellow
     } else {
-      Write-Host ''
-      Write-Host '>>> Type password, then press ENTER <<<' -ForegroundColor Yellow
-      $prompt = 'SAP GUI password for {0} (not saved)' -f $user
+      Write-Host 'Password is only needed if SAP is still on the logon screen.' -ForegroundColor DarkGray
+      Write-Host '>>> Type password (or just press ENTER if already logged on) <<<' -ForegroundColor Yellow
+      $prompt = 'SAP GUI password for {0} (optional if already logged on)' -f $user
       $Password = Read-Host -Prompt $prompt -AsSecureString
-      Write-Host ''
-      Write-Status -Message 'Password received. Continuing...' -Color Green
     }
   }
 
   $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($Password)
-  try {
-    $plain = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
-  } finally {
-    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr) | Out-Null
-  }
-
-  if ([string]::IsNullOrWhiteSpace($plain)) {
-    throw 'Password is required to log on to SAP GUI. Re-run run.cmd and enter the password, then press ENTER.'
-  }
+  try { $plain = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr) }
+  finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr) | Out-Null }
+  if ([string]::IsNullOrWhiteSpace($plain)) { $plain = 'NOT_USED' }
 
   if ($VerifyOnly) { $mode = 'verify' } else { $mode = 'create' }
-  Write-Status -Message ('Launching Create-CGX1.vbs mode={0} ...' -f $mode) -Color Cyan
-  Write-Status -Message 'If this pauses: open SAP Logon, accept scripting prompts, handle transport popup.' -Color Yellow
+  $openMode = 'attach'
+  if ($env:CGX_SAP_OPEN_MODE) { $openMode = $env:CGX_SAP_OPEN_MODE }
 
-  $argList = New-Object System.Collections.Generic.List[string]
-  [void]$argList.Add('//nologo')
-  [void]$argList.Add('"' + $vbsPath + '"')
-  [void]$argList.Add('"' + $conn + '"')
-  [void]$argList.Add('"' + $client + '"')
-  [void]$argList.Add('"' + $user + '"')
-  [void]$argList.Add('"' + $plain + '"')
-  [void]$argList.Add('"' + $lang + '"')
-  [void]$argList.Add('"' + $bukrs + '"')
-  [void]$argList.Add('"' + ([string]$cc.butxt) + '"')
-  [void]$argList.Add('"' + ([string]$cc.ort01) + '"')
-  [void]$argList.Add('"' + ([string]$cc.land1) + '"')
-  [void]$argList.Add('"' + ([string]$cc.waers) + '"')
-  [void]$argList.Add('"' + ([string]$cc.spras) + '"')
-  [void]$argList.Add('"' + $mode + '"')
+  Write-Status -Message ('Launching Create-CGX1.vbs mode={0} openMode={1}' -f $mode, $openMode) -Color Cyan
+
+  $argList = @(
+    '//nologo',
+    '"' + $vbsPath + '"',
+    '"' + $conn + '"',
+    '"' + $client + '"',
+    '"' + $user + '"',
+    '"' + $plain + '"',
+    '"' + $lang + '"',
+    '"' + $bukrs + '"',
+    '"' + ([string]$cc.butxt) + '"',
+    '"' + ([string]$cc.ort01) + '"',
+    '"' + ([string]$cc.land1) + '"',
+    '"' + ([string]$cc.waers) + '"',
+    '"' + ([string]$cc.spras) + '"',
+    '"' + $mode + '"',
+    '"' + $openMode + '"'
+  )
 
   $psi = New-Object System.Diagnostics.ProcessStartInfo
   $psi.FileName = 'cscript.exe'
@@ -140,47 +153,64 @@ try {
 
   $proc = New-Object System.Diagnostics.Process
   $proc.StartInfo = $psi
-  Write-Status -Message 'Starting cscript / SAP GUI Scripting now...' -Color Cyan
-  [void]$proc.Start()
 
-  # Stream output so the window is not blank while SAP runs
-  $stdoutTask = $proc.StandardOutput.ReadToEndAsync()
-  $stderrTask = $proc.StandardError.ReadToEndAsync()
-  if (-not $proc.WaitForExit(180000)) {
-    try { $proc.Kill() } catch {}
-    throw 'Timed out after 180 seconds waiting for SAP GUI Scripting. Check SAP Logon is running, connection name matches, and scripting is enabled.'
+  # MessageData keeps log path visible inside PS5.1 event actions
+  $outEvent = Register-ObjectEvent -InputObject $proc -EventName OutputDataReceived -MessageData $logPath -Action {
+    $line = $Event.SourceEventArgs.Data
+    if ($line) {
+      [Console]::Out.WriteLine($line)
+      Add-Content -LiteralPath ([string]$Event.MessageData) -Value $line -Encoding ASCII
+    }
   }
-  $stdout = $stdoutTask.Result
-  $stderr = $stderrTask.Result
+  $errEvent = Register-ObjectEvent -InputObject $proc -EventName ErrorDataReceived -MessageData $logPath -Action {
+    $line = $Event.SourceEventArgs.Data
+    if ($line) {
+      [Console]::Error.WriteLine($line)
+      Add-Content -LiteralPath ([string]$Event.MessageData) -Value $line -Encoding ASCII
+    }
+  }
+
+  Write-Status -Message 'Starting cscript (attach mode). Watch for STEP| lines...' -Color Cyan
+  [void]$proc.Start()
+  $proc.BeginOutputReadLine()
+  $proc.BeginErrorReadLine()
+
+  $deadline = (Get-Date).AddSeconds(90)
+  $lastBeat = Get-Date
+  while (-not $proc.HasExited) {
+    if ((Get-Date) -gt $deadline) {
+      try { $proc.Kill() } catch {}
+      throw 'Timed out after 90s in SAP GUI Scripting. Click the SAP GUI window and Allow scripting / handle popups, then re-run. Prefer: log on in SAP first (attach mode).'
+    }
+    if (((Get-Date) - $lastBeat).TotalSeconds -ge 5) {
+      Write-Status -Message 'Still running... check SAP GUI for Allow/script/transport popups.' -Color DarkYellow
+      $lastBeat = Get-Date
+    }
+    Start-Sleep -Milliseconds 300
+  }
+  Start-Sleep -Milliseconds 500
+  Unregister-Event -SourceIdentifier $outEvent.Name -ErrorAction SilentlyContinue
+  Unregister-Event -SourceIdentifier $errEvent.Name -ErrorAction SilentlyContinue
+
   $plain = $null
   [GC]::Collect()
-
-  if ($stdout) {
-    Write-Host $stdout.TrimEnd()
-    Add-Content -LiteralPath $logPath -Value $stdout.TrimEnd() -Encoding ASCII
-  }
-  if ($stderr) {
-    Write-Host $stderr.TrimEnd() -ForegroundColor DarkYellow
-    Add-Content -LiteralPath $logPath -Value $stderr.TrimEnd() -Encoding ASCII
-  }
 
   $code = [int]$proc.ExitCode
   if ($code -eq 0) {
     Write-Status -Message ('SUCCESS - check OX02 / SE16N T001 for {0}' -f $bukrs) -Color Green
   } elseif ($code -eq 1) {
     Write-Status -Message ('VERIFY - {0} not found (expected before first create)' -f $bukrs) -Color Yellow
+  } elseif ($code -eq 4) {
+    Write-Status -Message 'NO_SESSION - log on in SAP GUI first, leave session open, re-run.' -Color Red
   } elseif ($code -eq 7) {
-    Write-Status -Message 'PARTIAL - confirm transport popup in SAP GUI, then re-run with -VerifyOnly' -Color Yellow
+    Write-Status -Message 'PARTIAL - confirm transport popup in SAP GUI, then verify OX02.' -Color Yellow
   } else {
-    Write-Status -Message ('FAILED (exit {0}). See README for scripting prerequisites / field-ID re-record.' -f $code) -Color Red
+    Write-Status -Message ('FINISHED with exit {0}. See STEP/ERROR lines above.' -f $code) -Color Red
   }
-
-  Write-Status -Message 'Preferred bulk path remains BC Sets (SCPR20) + CTS. This agent is residual.' -Color DarkGray
   exit $code
 }
 catch {
   Write-Status -Message ('ERROR: {0}' -f $_.Exception.Message) -Color Red
-  Write-Status -Message 'Fix: Extract All zip -> open extracted folder -> double-click run.cmd' -Color Yellow
-  Write-Status -Message 'Also need SAP GUI for Windows + scripting enabled.' -Color Yellow
+  Write-Status -Message 'Fix path: SAP Logon -> log on -> leave open -> Extracted folder -> run.cmd' -Color Yellow
   exit 10
 }

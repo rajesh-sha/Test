@@ -51,11 +51,17 @@ if errorlevel 1 (
 )
 
 echo.
-echo NEXT STEP:
-echo   1. Type the SAP password for Rajesh1
-echo   2. Press ENTER
-echo   3. Keep watching this window - progress prints here
-echo   4. If SAP Logon / transport popups appear, handle them
+echo IMPORTANT - do this FIRST to avoid getting stuck:
+echo   1. Open SAP Logon
+echo   2. Connect: S4HANA2023 SHARED GUI
+echo   3. Log on client 800 / user Rajesh1
+echo   4. Leave that SAP window open
+echo   5. Come back here and continue
+echo.
+echo Then in this window:
+echo   - Press ENTER when asked (after SAP is logged on)
+echo   - Enter password only if SAP is still on the logon screen
+echo   - Watch for STEP^| lines; click Allow if SAP asks about scripting
 echo.
 echo A copy of the run is also saved to agent-run.log
 echo.

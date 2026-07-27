@@ -1,26 +1,22 @@
-' Cognixa Desktop Agent — create company code via OX02 (SAP GUI Scripting)
-' Invoked by Run-Create-CGX1.ps1. Arguments (WScript.Arguments):
-'   0 connection description
-'   1 client
-'   2 user
-'   3 password
-'   4 language
-'   5 company code
-'   6 company name
-'   7 city
-'   8 country
-'   9 currency
-'  10 language key (SPRAS)
+' Cognixa Desktop Agent - create/verify company code via OX02 (SAP GUI Scripting)
+' ASCII-only. Invoked by Run-Create-CGX1.ps1.
+' Args:
+'  0 connName 1 client 2 user 3 pass 4 logonLang
+'  5 bukrs 6 butxt 7 ort01 8 land1 9 waers 10 spras
 '  11 mode: create | verify
+'  12 optional: attach (default) | open
+'
+' IMPORTANT: Default mode ATTACHES to an already logged-on SAP GUI session.
+' OpenConnection often hangs - log on manually in SAP GUI first.
 
 Option Explicit
 
-Dim connName, client, user, pass, lang, bukrs, butxt, ort01, land1, waers, spras, mode
+Dim connName, client, user, pass, lang, bukrs, butxt, ort01, land1, waers, spras, mode, openMode
 Dim SapGuiAuto, application, connection, session
-Dim i, found, rowCount, cellVal, errMsg
+Dim i
 
 If WScript.Arguments.Count < 12 Then
-  WScript.Echo "ERROR|Usage: Create-CGX1.vbs <conn> <client> <user> <pass> <logonLang> <bukrs> <butxt> <ort01> <land1> <waers> <spras> <create|verify>"
+  WScript.Echo "ERROR|Usage: Create-CGX1.vbs ... <create|verify> [attach|open]"
   WScript.Quit 2
 End If
 
@@ -36,45 +32,70 @@ land1    = UCase(WScript.Arguments(8))
 waers    = UCase(WScript.Arguments(9))
 spras    = UCase(WScript.Arguments(10))
 mode     = LCase(WScript.Arguments(11))
+openMode = "attach"
+If WScript.Arguments.Count >= 13 Then openMode = LCase(WScript.Arguments(12))
+
+Sub Step(msg)
+  WScript.Echo "STEP|" & msg
+  WScript.StdOut.Write ""  ' encourage flush
+End Sub
+
+Step "VBS start mode=" & mode & " openMode=" & openMode
+Step "Target company code=" & bukrs & " conn=" & connName
 
 On Error Resume Next
 
+Step "Getting SAPGUI object..."
 Set SapGuiAuto = GetObject("SAPGUI")
 If Err.Number <> 0 Or SapGuiAuto Is Nothing Then
   Err.Clear
+  Step "GetObject(SAPGUI) failed - trying Sapgui.ScriptingCtrl.1"
   Set SapGuiAuto = CreateObject("Sapgui.ScriptingCtrl.1")
 End If
 If Err.Number <> 0 Or SapGuiAuto Is Nothing Then
-  WScript.Echo "ERROR|SAP GUI Scripting engine not available. Open SAP Logon and enable scripting."
+  WScript.Echo "ERROR|SAP GUI Scripting engine not available. Open SAP Logon first and enable scripting."
   WScript.Quit 3
 End If
+Step "SAPGUI object OK"
 
+Step "GetScriptingEngine..."
 Set application = SapGuiAuto.GetScriptingEngine
 If Err.Number <> 0 Or application Is Nothing Then
   WScript.Echo "ERROR|GetScriptingEngine failed. Enable scripting in SAP GUI options and RZ11 sapgui/user_scripting=TRUE."
   WScript.Quit 3
 End If
+Step "Scripting engine OK. Connections=" & application.Children.Count
 
-' Prefer an existing connection; else open by description
 If application.Children.Count > 0 Then
+  Step "Attaching to existing connection(0)..."
   Set connection = application.Children(0)
-Else
+ElseIf openMode = "open" Then
+  Step "WARNING: OpenConnection can hang. Starting OpenConnection('" & connName & "')..."
   Set connection = application.OpenConnection(connName, True)
-End If
-If Err.Number <> 0 Or connection Is Nothing Then
-  WScript.Echo "ERROR|Could not open connection '" & connName & "'. Check SAP Logon entry name."
+  Step "OpenConnection returned. Err=" & Err.Number
+Else
+  WScript.Echo "ERROR|NO_SESSION|No SAP GUI connection open."
+  WScript.Echo "ERROR|Do this: open SAP Logon -> S4HANA2023 SHARED GUI -> log on client 800 / Rajesh1 -> leave the session open -> run run.cmd again."
   WScript.Quit 4
 End If
+
+If Err.Number <> 0 Or connection Is Nothing Then
+  WScript.Echo "ERROR|Could not use connection '" & connName & "'. Err=" & Err.Description
+  WScript.Quit 4
+End If
+Step "Connection OK. Sessions=" & connection.Children.Count
 
 If connection.Children.Count > 0 Then
   Set session = connection.Children(0)
+  Step "Attached session(0)"
 Else
-  WScript.Echo "ERROR|No SAP session after open."
+  WScript.Echo "ERROR|No SAP session on the connection. Log on fully in SAP GUI first."
   WScript.Quit 4
 End If
 
-' Logon screen if present
+' If still on logon screen, fill it
 If HasId(session, "wnd[0]/usr/txtRSYST-MANDT") Then
+  Step "Logon screen detected - filling client/user/password..."
   session.findById("wnd[0]/usr/txtRSYST-MANDT").text = client
   session.findById("wnd[0]/usr/txtRSYST-BNAME").text = user
   session.findById("wnd[0]/usr/pwdRSYST-BCODE").text = pass
@@ -82,9 +103,11 @@ If HasId(session, "wnd[0]/usr/txtRSYST-MANDT") Then
     session.findById("wnd[0]/usr/txtRSYST-LANGU").text = lang
   End If
   session.findById("wnd[0]").sendVKey 0
-  WScript.Sleep 1200
-  ' license / multiple logon / copyright popups
+  WScript.Sleep 1500
   DismissCommonPopups session
+  Step "Logon send complete"
+Else
+  Step "Already logged on - skipping password logon screen"
 End If
 
 If Err.Number <> 0 Then
@@ -92,79 +115,75 @@ If Err.Number <> 0 Then
   WScript.Quit 5
 End If
 
-' Open OX02
+Step "Opening /nOX02 ..."
 session.findById("wnd[0]/tbar[0]/okcd").text = "/nOX02"
 session.findById("wnd[0]").sendVKey 0
-WScript.Sleep 800
+WScript.Sleep 1000
 DismissCommonPopups session
+Step "OX02 opened (or attempted)"
 
 If mode = "verify" Then
-  found = CompanyCodeVisible(session, bukrs)
-  If found Then
+  If CompanyCodeVisible(session, bukrs) Then
     WScript.Echo "OK|FOUND|" & bukrs & "|Company code exists in OX02/T001"
     WScript.Quit 0
   Else
-    WScript.Echo "OK|MISSING|" & bukrs & "|Company code not found — create it with mode=create"
+    WScript.Echo "OK|MISSING|" & bukrs & "|Company code not found - create it with mode=create"
     WScript.Quit 1
   End If
 End If
 
-' Already exists?
 If CompanyCodeVisible(session, bukrs) Then
-  WScript.Echo "OK|EXISTS|" & bukrs & "|Already present — no write needed"
+  WScript.Echo "OK|EXISTS|" & bukrs & "|Already present - no write needed"
   WScript.Quit 0
 End If
 
-' New Entries (toolbar btn varies; try common patterns)
+Step "Company code not found - pressing New Entries..."
 Err.Clear
 If HasId(session, "wnd[0]/tbar[1]/btn[5]") Then
   session.findById("wnd[0]/tbar[1]/btn[5]").press
 ElseIf HasId(session, "wnd[0]/tbar[1]/btn[8]") Then
   session.findById("wnd[0]/tbar[1]/btn[8]").press
 Else
-  session.findById("wnd[0]").sendVKey 21 ' Ctrl+F5 often New Entries in view maintenance
+  session.findById("wnd[0]").sendVKey 21
 End If
-WScript.Sleep 600
+WScript.Sleep 700
+Step "Filling New Entries fields for " & bukrs
 
 If Not FillNewEntry(session, bukrs, butxt, ort01, land1, waers, spras) Then
   WScript.Echo "ERROR|Could not fill New Entries fields. Re-record OX02 field IDs (see README)."
   WScript.Quit 6
 End If
+Step "Fields filled - pressing Save..."
 
-' Save
 Err.Clear
 session.findById("wnd[0]/tbar[0]/btn[11]").press
-WScript.Sleep 900
+WScript.Sleep 1000
 DismissCommonPopups session
 
-' Address popup (optional) — continue
 If HasId(session, "wnd[1]") Then
   On Error Resume Next
+  Step "Popup detected after Save - try Continue / handle transport in SAP GUI"
   If HasId(session, "wnd[1]/tbar[0]/btn[0]") Then session.findById("wnd[1]/tbar[0]/btn[0]").press
   If HasId(session, "wnd[1]/tbar[0]/btn[11]") Then session.findById("wnd[1]/tbar[0]/btn[11]").press
-  WScript.Sleep 500
+  WScript.Sleep 600
 End If
 
-' Transport request popup — leave for user if present, try Enter/Continue
 If HasId(session, "wnd[1]") Then
-  WScript.Echo "WARN|Transport popup open — select/create customizing request in SAP GUI, then continue"
-  ' Do not auto-invent a transport; user must confirm
+  WScript.Echo "WARN|Transport popup open - select/create customizing request in SAP GUI, then continue"
 End If
 
-WScript.Sleep 800
+Step "Re-opening OX02 to verify..."
 session.findById("wnd[0]/tbar[0]/okcd").text = "/nOX02"
 session.findById("wnd[0]").sendVKey 0
-WScript.Sleep 700
+WScript.Sleep 800
 
 If CompanyCodeVisible(session, bukrs) Then
-  WScript.Echo "OK|CREATED|" & bukrs & "|Company code written — verify transport saved"
+  WScript.Echo "OK|CREATED|" & bukrs & "|Company code written - verify transport saved"
   WScript.Quit 0
 Else
   WScript.Echo "WARN|SAVE_UNCONFIRMED|" & bukrs & "|Fill/save may need transport confirm or field-ID fix. Check OX02 manually."
   WScript.Quit 7
 End If
-
-' ----------------- helpers -----------------
 
 Function HasId(sess, id)
   On Error Resume Next
@@ -176,7 +195,7 @@ End Function
 
 Sub DismissCommonPopups(sess)
   On Error Resume Next
-  Dim n, guard
+  Dim guard
   guard = 0
   Do While guard < 5
     guard = guard + 1
@@ -184,7 +203,6 @@ Sub DismissCommonPopups(sess)
       sess.findById("wnd[1]/usr/radMULTI_LOGON_OPT2").select
       sess.findById("wnd[1]/tbar[0]/btn[0]").press
     ElseIf HasId(sess, "wnd[1]/tbar[0]/btn[0]") Then
-      ' copyright / info — continue carefully only for known info screens
       If InStr(1, LCase(sess.findById("wnd[1]").Text), "copyright") > 0 Or InStr(1, LCase(sess.findById("wnd[1]").Text), "license") > 0 Then
         sess.findById("wnd[1]/tbar[0]/btn[0]").press
       Else
@@ -200,9 +218,8 @@ End Sub
 
 Function CompanyCodeVisible(sess, code)
   On Error Resume Next
-  Dim posBtn
   CompanyCodeVisible = False
-  ' Position
+  Step "Position/search for " & code & " in OX02..."
   If HasId(sess, "wnd[0]/tbar[1]/btn[1]") Then
     sess.findById("wnd[0]/tbar[1]/btn[1]").press
     WScript.Sleep 400
@@ -239,7 +256,6 @@ Function FillNewEntry(sess, bukrs, butxt, ort01, land1, waers, spras)
   Dim ok
   ok = False
 
-  ' Pattern A — classic V_T001 view maintenance table
   If HasId(sess, "wnd[0]/usr/tblSAPL0F00TVIEW/txtV_T001-BUKRS[0,0]") Or HasId(sess, "wnd[0]/usr/tblSAPL0F00TVIEW/txtV_T001-BUKRS[0]") Then
     SetText sess, Array( _
       "wnd[0]/usr/tblSAPL0F00TVIEW/txtV_T001-BUKRS[0,0]", _
@@ -265,7 +281,6 @@ Function FillNewEntry(sess, bukrs, butxt, ort01, land1, waers, spras)
     ok = True
   End If
 
-  ' Pattern B — single-field entry screen
   If Not ok Then
     If HasId(sess, "wnd[0]/usr/txtV_T001-BUKRS") Then
       sess.findById("wnd[0]/usr/txtV_T001-BUKRS").text = bukrs
