@@ -5775,8 +5775,8 @@ class Component extends DCLogic {
       if(n>=14){ if(this._botT){ clearInterval(this._botT); this._botT=null; }
         this._cfgBotSyncDeploy(14,true);
         this.setState({ cfgBot:{ step:14, playing:false, done:true, mode:m } });
-        const pb = m==='gui' ? 'CFG-BOT/GUI/FI/CGX1' : (m==='bcset' ? 'CFG-BOT/BCSET/FI/0001' : 'CFG-BOT/CBC/FI/0001');
-        const act = m==='gui' ? 'Define Company Code CGX1 (simulation — not written to A4H)' : 'Define Company Code AU01';
+        const pb = m==='gui' ? 'CFG-BOT/GUI/FI/CGX1' : (m==='bcset' ? 'CFG-BOT/BCSET/FI/CGX1' : 'CFG-BOT/CBC/FI/0001');
+        const act = m==='gui' ? 'Define Company Code CGX1 (simulation — not written to A4H)' : (m==='bcset' ? 'Activate BC Set ZCGX_FI_CGX1 → CGX1 (SCPR / CTS)' : 'Define Company Code AU01');
         const rules=this._compoundIpRuleset([{
           playbook: pb,
           activity: act,
@@ -5785,9 +5785,9 @@ class Component extends DCLogic {
           source: 'configuration-bot'
         }]);
         const toast = m==='gui'
-          ? 'Simulation only — CGX1 was NOT created in A4H. Cognixa does not drive SAP GUI from the browser. Create CGX1 manually in OX02/SPRO, or use a Desktop Agent. IP ruleset updated ('+rules.length+').'
+          ? 'Simulation only — CGX1 was NOT created in A4H. Prefer BC Set + CTS automation package. IP ruleset updated ('+rules.length+').'
           : (m==='bcset'
-            ? 'Bot complete — BC Sets → CTS · '+pb+' compounded ('+rules.length+' IP rules). Forward to PRD when ready.'
+            ? 'Preferred path demo complete — download BC Set + CTS package for ZCGX_FI_CGX1 / CGX1 · '+pb+' ('+rules.length+' IP rules).'
             : 'Bot complete — CBC pipeline · '+pb+' compounded ('+rules.length+' IP rules). Forward to PROD when ready.');
         this.showToast(toast,'Configuration Bot');
         return;
@@ -5804,10 +5804,10 @@ class Component extends DCLogic {
     let d=this._deployDefaults();
     try{ d=Object.assign(d, JSON.parse(localStorage.getItem('dl_cgx_deploy')||'{}')); }catch(e){}
     const onprem=(d.s4Edition||'public')==='onprem';
-    const pb = mode==='gui' ? 'CFG-BOT/GUI/FI/CGX1' : (mode==='bcset' ? 'CFG-BOT/BCSET/FI/0001' : 'CFG-BOT/CBC/FI/0001');
+    const pb = mode==='gui' ? 'CFG-BOT/GUI/FI/CGX1' : (mode==='bcset' ? 'CFG-BOT/BCSET/FI/CGX1' : 'CFG-BOT/CBC/FI/0001');
     const rules=this._compoundIpRuleset([{
       playbook: pb,
-      activity: mode==='gui' ? 'Define Company Code CGX1 (simulation — not written to A4H)' : 'Define Company Code AU01',
+      activity: mode==='gui' ? 'Define Company Code CGX1 (simulation — not written to A4H)' : (mode==='bcset' ? 'Activate BC Set ZCGX_FI_CGX1 → CGX1 (SCPR / CTS)' : 'Define Company Code AU01'),
       decision: mode==='gui' ? 'residual-gui-simulate' : (mode==='bcset' ? 'bcset-activate' : 'cbc-confirm'),
       clause: 'ORG-STR-001 §2.1',
       source: 'configuration-bot',
