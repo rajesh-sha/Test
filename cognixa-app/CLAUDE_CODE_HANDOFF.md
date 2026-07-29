@@ -1,23 +1,24 @@
 # Cognixa → Claude Code handoff pack
 
-Use this folder/zip as context when continuing Cognixa work in **Claude Code**.
+**Whole source** for continuing Cognixa in Claude Code.  
+Your live demo URL (example): `…/Cognixa.html` served from `cognixa-app` on port 8765.
 
 ## What Cognixa is
-Digitori Labs AI SAP S/4HANA delivery demo (Claude Design single-file app).
-Twins must stay in sync: `Cognixa.html` ≡ `Cognixa.dc_25th July.html`.
+Digitori Labs AI SAP S/4HANA delivery demo (Claude Design single-file app).  
+Twins must stay identical: `Cognixa.html` ≡ `Cognixa.dc_25th July.html`.
 
 ## Repo / branch
 - Repo: `rajesh-sha/Test`
 - Branch: `cursor/cognixa-july-features-7d34`
 - Base: `claude/smart-field-mapper-xlfx1h`
 - PR: https://github.com/rajesh-sha/Test/pull/3
+- Commit (pack refresh): session-detect fix for Desktop Agent + this handoff
 
 ## How to run locally (important)
 Do **not** open `Cognixa.html` alone via `file://` — you will see raw `{{ placeholders }}`.
 
 ```bash
-# preferred: full runnable zip
-unzip Cognixa-runnable.zip -d cognixa-run && cd cognixa-run
+cd cognixa-app   # or unzip Cognixa-runnable.zip / this pack
 python3 -m http.server 8765
 # open http://localhost:8765/Cognixa.html
 ```
@@ -40,6 +41,10 @@ Required next to HTML: `support.js`, `vendor/react*.js`, `FeedbackToast.dc.html`
 - Customizing TR example: `A4HK900589`
 - Cognixa UI: **Confirm live A4H: CGX1** records IP playbook `CFG-BOT/BCSET/FI/CGX1`
 
+### Desktop Agent “0 sessions” fix
+Easy Access open ≠ scriptable. Causes: 64-bit PS vs 32-bit SAP GUI, scripting off, Admin elevation.  
+Package `desktop-agent/cgx1-company-code/` now uses `Detect-SapSessions.vbs` + SysWOW64 PowerShell via `run.cmd` / `diagnose.cmd`.
+
 ### IP asset
 `IP-CFG-ENT-001` — Enterprise Structure automation when no safe create API exists.
 - Doc: `desktop-agent/enterprise-config-rfc/IP-CFG-ENT-001-Enterprise-Structure-Automation.md`
@@ -51,23 +56,26 @@ Required next to HTML: `support.js`, `vendor/react*.js`, `FeedbackToast.dc.html`
 Prefer **abapGit / CTS / gCTS** — not browser paste forever; no unsupported “upload .abap via public API”.
 
 ### Conduct AI (competitor research)
-Public story = connect + **read** SAP + AI agents (fit-gap, specs, change lifecycle) + Cloud ALM.
-They do **not** publicly claim free-field Enterprise Structure create API.
+Public story = connect + **read** SAP + AI agents (fit-gap, specs, change lifecycle) + Cloud ALM.  
+They do **not** publicly claim free-field Enterprise Structure create API.  
 Cognixa differentiator = playbooks + BC Set deploy + evidence ladder.
 
-## Key paths
+## Pack contents (whole source)
 ```
-cognixa-app/
-  Cognixa.html                          # main app
-  Cognixa.dc_25th July.html             # twin (keep identical)
-  Cognixa-runnable.zip                  # shareable runnable pack
-  support.js + vendor/ + FeedbackToast.dc.html
+cognixa-app/   (root of this zip)
+  Cognixa.html
+  Cognixa.dc_25th July.html          # twin — keep identical
+  support.js
+  vendor/react*.js
+  FeedbackToast.dc.html
+  index.html + sister product .dc.html stubs
+  README.md
+  CLAUDE_CODE_HANDOFF.md             # this file
+  Cognixa-runnable.zip               # slim runnable subset
   desktop-agent/
-    bcset-cgx1/                         # CGX1 BC Set package
-    bcset-cgx1.zip
-    enterprise-config-rfc/              # RFC IP + ENT catalog
-    enterprise-config-rfc.zip
-    cgx1-company-code/                  # residual GUI agent (last resort)
+    bcset-cgx1/ + .zip
+    enterprise-config-rfc/ + .zip
+    cgx1-company-code/ + .zip        # residual GUI agent (last resort)
 ```
 
 ## A4H profile (non-secret)
@@ -85,3 +93,4 @@ cognixa-app/
 - Prefer surgical diffs; do not rewrite whole Cognixa.html
 - Do not invent customizing table-write APIs
 - Before claiming “browser creates company code”: false — browser demos + evidence only
+- Prefer BC Set path over Desktop Agent GUI scripting
