@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><script src="./support.js"></script></head>
+<body>
+<x-dc>
+<div style="font-family:'IBM Plex Sans',system-ui,sans-serif;padding:26px 30px 40px;max-width:1200px;color:#131826">
+  <div style="font-size:22px;font-weight:700;margin-bottom:6px">Accelerators · IP Library</div>
+  <div style="font-size:13px;color:#5A6473;margin-bottom:18px;max-width:720px">Reusable Cognixa assets — templates, playbooks and config packs. Decisions from Configure (bot / worklist) compound into the live ruleset below.</div>
+
+  <div style="background:#F0FBF4;border:1px solid #CDEBD7;border-radius:14px;padding:16px 18px;margin-bottom:18px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:#15803D">Live config IP ruleset</div>
+        <div style="font-size:12px;color:#2A6140;margin-top:3px;line-height:1.45">{{ rulesLead }}</div>
+      </div>
+      <span style="font-size:11px;font-weight:700;color:#15803D;background:#E7F6EC;padding:3px 10px;border-radius:20px;font-family:'IBM Plex Mono',monospace">{{ ruleCount }} rules</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px">
+      <sc-for list="{{ liveRules }}" as="r" hint-placeholder-count="3">
+      <div style="background:#fff;border:1px solid #CDEBD7;border-radius:10px;padding:12px 13px">
+        <div style="font-size:10px;font-family:'IBM Plex Mono',monospace;font-weight:700;color:#4F46E5">{{ r.playbook }}</div>
+        <div style="font-size:12.5px;font-weight:600;color:#131826;margin-top:5px;line-height:1.4">{{ r.activity }}</div>
+        <div style="font-size:11px;color:#5A6473;margin-top:5px">{{ r.meta }}</div>
+      </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+    <sc-for list="{{ assets }}" as="a" hint-placeholder-count="6">
+      <div style="background:#fff;border:1px solid #E5E9F0;border-radius:14px;padding:18px" style-hover="border-color:#C7CEFF">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:#8A93A3">{{ a.kind }}</div>
+        <div style="font-size:15px;font-weight:700;margin-top:8px">{{ a.name }}</div>
+        <div style="font-size:12.5px;color:#5A6473;margin-top:6px;line-height:1.5">{{ a.desc }}</div>
+        <button onClick="{{ a.use }}" style="margin-top:14px;background:#4F46E5;border:none;color:#fff;font-weight:600;font-size:12.5px;padding:8px 12px;border-radius:8px;cursor:pointer">Use in engagement</button>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals(){
+    const use=(n)=>()=>{(this.props.onToast||(()=>{}))('Added “'+n+'” to the engagement accelerator tray (demo)');};
+    let rules=[];
+    try{ const raw=localStorage.getItem('dl_cgx_ip_ruleset'); if(raw){ const a=JSON.parse(raw); if(Array.isArray(a)) rules=a; } }catch(e){}
+    const liveRules = (rules.length ? rules.slice().reverse().slice(0,6) : [
+      {playbook:'CFG-BOT/CBC/FI/0001', activity:'Define Company Code AU01', meta:'Seed — run Configure Bot to compound'},
+      {playbook:'CFG-BOT/BCSET/FI/0001', activity:'BC Set AU_ORG_FI (On-Prem)', meta:'Seed — switch edition + run preferred bot'},
+      {playbook:'CFG-BOT/GUI/SD/0201', activity:'Residual pricing IMG (no BC Set)', meta:'Seed — last-resort path only'}
+    ]).map(r=>({
+      playbook:r.playbook,
+      activity:r.activity,
+      meta: r.reuse ? ('reuse ×'+r.reuse+' · '+(r.decision||'apply')+' · '+(r.hash||'')) : (r.meta||'from Configure')
+    }));
+    const assets=[
+      {kind:'TEMPLATE', name:'O2C Functional Spec pack', desc:'Worked Meridian Foods FS sections with CBC cross-refs.', use:use('O2C Functional Spec pack')},
+      {kind:'PLAYBOOK', name:'Clean-core decision tree', desc:'Route every gap to BTP / config / standard.', use:use('Clean-core decision tree')},
+      {kind:'PLAYBOOK', name:'Config deploy truth table', desc:'Public CBC vs On-Prem BC Sets/CTS vs residual GUI — researched preferred paths.', use:use('Config deploy truth table')},
+      {kind:'CONFIG', name:'Pricing procedure ZVAA01', desc:'Condition types & access sequences for AU retail.', use:use('Pricing procedure ZVAA01')},
+      {kind:'TEST', name:'Negative auth suite', desc:'SoD-aware negative tests for finance roles.', use:use('Negative auth suite')},
+      {kind:'RUNBOOK', name:'Evidence pack exporter', desc:'Signed design → playbook → transport → hash (Configure screen).', use:use('Evidence pack exporter')}
+    ];
+    return {
+      assets,
+      liveRules,
+      ruleCount: String(rules.length),
+      rulesLead: rules.length
+        ? 'Compounded from this engagement’s Configure decisions. Next client reuses these playbook scores automatically.'
+        : 'No live rules yet — open Configure, run the Configuration Bot or Apply a worklist, then return here.'
+    };
+  }
+}
+</script>
+</body>
+</html>

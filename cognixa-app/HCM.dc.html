@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><script src="./support.js"></script></head>
+<body>
+<x-dc>
+<div style="font-family:'IBM Plex Sans',system-ui,sans-serif;padding:26px 30px 40px;max-width:1200px;color:#131826">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px">
+    <div>
+      <div style="font-size:22px;font-weight:700">Cognixa for HCM</div>
+      <div style="font-size:13px;color:#5A6473;margin-top:6px">SuccessFactors EC + ECP delivery workspace — Meridian Foods sample.</div>
+    </div>
+    <span style="background:linear-gradient(120deg,#10B981,#0F766E);color:#fff;font-size:11px;font-weight:700;padding:5px 10px;border-radius:8px">SF · DEMO</span>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+    <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+      <div onClick="{{ t.pick }}" style="padding:8px 14px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.color }}">{{ t.label }}</div>
+    </sc-for>
+  </div>
+  <div style="background:#fff;border:1px solid #E5E9F0;border-radius:14px;padding:22px">
+    <div style="font-size:16px;font-weight:700">{{ activeTitle }}</div>
+    <div style="font-size:13px;color:#5A6473;margin-top:8px;line-height:1.6">{{ activeBody }}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px">
+      <sc-for list="{{ cards }}" as="c" hint-placeholder-count="3">
+        <div style="border:1px solid #EEF1F6;border-radius:12px;padding:14px;background:#F8FAFC">
+          <div style="font-size:12px;color:#8A93A3;font-weight:600">{{ c.k }}</div>
+          <div style="font-size:20px;font-weight:700;margin-top:4px">{{ c.v }}</div>
+        </div>
+      </sc-for>
+    </div>
+    <button onClick="{{ ping }}" style="margin-top:18px;background:#0F766E;border:none;color:#fff;font-weight:600;font-size:13px;padding:10px 16px;border-radius:9px;cursor:pointer">Continue HCM flow</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { tab: (this.props.activeTab||this.props['active-tab']||'arch') };
+  componentDidUpdate(p){ const t=this.props.activeTab||this.props['active-tab']; if(t && t!==(p.activeTab||p['active-tab']) && t!==this.state.tab) this.setState({ tab:t }); }
+  toast(m){ const fn=this.props.onToast||this.props['on-toast']; if(typeof fn==='function') fn(m); }
+  renderVals(){
+    const tab=this.state.tab||'arch';
+    const meta={
+      arch:{title:'Architecture & EC Core', body:'Implementing EC Core method — org structure, foundation objects, and replication topology for Meridian Foods.', cards:[{k:'FOUNDATION OBJS',v:'42'},{k:'REPLICATION',v:'EC→ECP'},{k:'SSO',v:'Entra'}]},
+      design:{title:'Design workbooks', body:'AI-drafted EC config workbooks and RBP matrices ready for HRIS review.', cards:[{k:'WORKBOOKS',v:'11'},{k:'RBP ROLES',v:'28'},{k:'OPEN ITEMS',v:'5'}]},
+      integrate:{title:'Integrate', body:'EC ↔ ECP ↔ S/4 interface register with payload samples and error handling.', cards:[{k:'INTERFACES',v:'9'},{k:'MAPPED',v:'87%'},{k:'BLOCKERS',v:'1'}]},
+      assure:{title:'Assure & sign-off', body:'Works-council sensitive fields gated; hash-bound multi-party sign-off.', cards:[{k:'PACKS',v:'4'},{k:'SIGNED',v:'2'},{k:'HELD',v:'1'}]},
+      sign:{title:'Sign-off desk', body:'Pending HRIS + Payroll + Works Council rows.', cards:[{k:'DUE',v:'Fri'},{k:'READY',v:'3'},{k:'CONDITIONAL',v:'1'}]}
+    }[tab] || {title:'HCM', body:'Select a tab to continue.', cards:[]};
+    const tabs=['arch','design','integrate','assure','sign'].map(k=>({
+      label:k.toUpperCase(), pick:()=>{ this.setState({tab:k}); this.toast('HCM → '+k); },
+      bg: tab===k?'#0F766E':'#fff', color: tab===k?'#fff':'#3A4252', bd: tab===k?'#0F766E':'#D8DEE8'
+    }));
+    return { tabs, activeTitle:meta.title, activeBody:meta.body, cards:meta.cards, ping:()=>this.toast('HCM flow advanced (demo)') };
+  }
+}
+</script>
+</body>
+</html>

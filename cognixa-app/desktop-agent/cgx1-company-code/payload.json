@@ -1,0 +1,32 @@
+{
+  "playbook": "CFG-BOT/GUI/FI/CGX1",
+  "system": {
+    "connectionDescription": "S4HANA2023 SHARED GUI",
+    "sid": "A4H",
+    "host": "115.245.150.98",
+    "instance": "18",
+    "client": "800",
+    "user": "Rajesh1",
+    "language": "EN",
+    "product": "S/4HANA ON PREMISE 2023"
+  },
+  "companyCode": {
+    "bukrs": "CGX1",
+    "butxt": "Cognixa Demo AU",
+    "ort01": "Perth",
+    "land1": "AU",
+    "waers": "AUD",
+    "spras": "EN"
+  },
+  "path": {
+    "preferredBulk": "BC Sets (SCPR20) + CTS — use GUI agent only as residual",
+    "tcode": "OX02",
+    "img": "SPRO → SAP Reference IMG → Enterprise Structure → Definition → Financial Accounting → Define, copy, delete, check company code → Define company code",
+    "verifyTable": "T001"
+  },
+  "advice": {
+    "publicCloud": "Create company codes only in CBC Organizational Structure — no public write API; BPA UI bot is last resort.",
+    "onPremPreferred": "BC Sets + classic CTS/STMS.",
+    "onPremResidual": "This Desktop Agent (SAP GUI Scripting) or SAP Build Process Automation."
+  }
+}

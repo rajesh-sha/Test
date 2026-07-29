@@ -1,0 +1,6 @@
+1. Extract All this zip
+2. Double-click START-COGNIXA.cmd
+3. Opens http://127.0.0.1:8765/Cognixa.html
+
+Main file: Cognixa.html
+Keep support.js + vendor + FeedbackToast.dc.html next to it.

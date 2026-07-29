@@ -1,0 +1,38 @@
+{
+  "playbook": "CFG-BOT/BCSET/FI/CGX1",
+  "method": "bcset-cts",
+  "preferred": true,
+  "rank": 1,
+  "system": {
+    "sid": "A4H",
+    "client": "800",
+    "host": "115.245.150.98",
+    "instance": "18",
+    "userHint": "technical user with SCPR20 + CTS auth (demo: Rajesh1)"
+  },
+  "bcSet": {
+    "id": "ZCGX_FI_CGX1",
+    "text": "Cognixa tiny example - company code CGX1",
+    "category": "C"
+  },
+  "companyCode": {
+    "bukrs": "CGX1",
+    "butxt": "Cognixa Demo AU",
+    "ort01": "Perth",
+    "land1": "AU",
+    "waers": "AUD",
+    "spras": "EN"
+  },
+  "automation": {
+    "createOnce": "SCPR20 / Create BC Set from customizing (see Create-BCSet-in-SCPR20.md)",
+    "activateApi": "SCPR_ACTIVATE_BCSETS_REMOTE",
+    "activateUi": "SCPR20 -> Activate",
+    "transport": "Customizing TR from activation -> SE09 release -> STMS import",
+    "orchestrate": "Cloud ALM Feature Deployment (optional)"
+  },
+  "verify": {
+    "tcode": "OX02",
+    "table": "T001",
+    "key": "CGX1"
+  }
+}
