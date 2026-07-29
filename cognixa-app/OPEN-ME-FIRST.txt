@@ -1,20 +1,6 @@
-# Cognixa UI — open correctly
+1. Extract All this zip
+2. Double-click START-COGNIXA.cmd
+3. Opens http://127.0.0.1:8765/Cognixa.html
 
-## Wrong (causes `{{ c.n }}` / `{{ reviewVerdict… }}` errors)
-- Double-click `Cognixa.html` **inside** the zip
-- Open from `AppData\Local\Temp\…zip…`
-
-## Right
-1. Right-click zip → **Extract All…**
-2. Open the extracted folder
-3. Double-click **`START-COGNIXA.cmd`**
-4. Browser opens `http://127.0.0.1:8765/Cognixa.html`
-
-Needs Python on PATH (`py` or `python`).
-
-## Files (keep together)
-- Cognixa.html
-- support.js
-- vendor/react*.js
-- FeedbackToast.dc.html
-- START-COGNIXA.cmd
+Main file: Cognixa.html
+Keep support.js + vendor + FeedbackToast.dc.html next to it.
