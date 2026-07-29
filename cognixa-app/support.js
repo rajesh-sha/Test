@@ -1435,8 +1435,11 @@
       //! nosemgrep: create-script-element
       const s = document.createElement("script");
       s.src = src;
-      s.integrity = integrity;
-      s.crossOrigin = "anonymous";
+      // file:// + SRI/crossOrigin often blocks React load → raw {{ }} placeholders.
+      if (typeof location !== "undefined" && location.protocol !== "file:" && integrity) {
+        s.integrity = integrity;
+        s.crossOrigin = "anonymous";
+      }
       s.async = false;
       s.onload = () => resolve2();
       s.onerror = () => reject(new Error(`failed to load ${src}`));
@@ -1450,6 +1453,33 @@
       loadScript(REACT_URL, REACT_SRI),
       loadScript(REACT_DOM_URL, REACT_DOM_SRI)
     ]).then(() => void 0);
+  }
+  function showCognixaBootHelp(err) {
+    try {
+      const href = String(location && location.href || "");
+      const fromZipTemp = /AppData[\\/]+Local[\\/]+Temp/i.test(href) || /\.zip\./i.test(href);
+      const isFile = location && location.protocol === "file:";
+      const msg = err && err.message ? err.message : String(err || "boot failed");
+      document.documentElement.innerHTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Cognixa — how to open</title>
+<style>body{font-family:system-ui,sans-serif;max-width:640px;margin:48px auto;padding:0 20px;color:#131826;line-height:1.5}
+h1{font-size:22px;margin:0 0 12px}code,pre{background:#F4F6F9;padding:2px 6px;border-radius:6px}
+.box{background:#EEF2FF;border:1px solid #C7D2FE;border-radius:12px;padding:16px 18px;margin:18px 0}
+.err{color:#B91C1C;font-size:13px;margin-top:16px}</style></head><body>
+<h1>Cognixa did not start</h1>
+<p>You opened <code>Cognixa.html</code> from a zip temp folder or without its runtime files. That shows raw <code>{{ }}</code> text.</p>
+<div class="box">
+<strong>Do this instead:</strong>
+<ol>
+<li>In File Explorer: right-click the zip → <b>Extract All…</b> to a normal folder (e.g. Downloads\\cognixa-ui).</li>
+<li>Open that extracted folder.</li>
+<li>Double-click <b>START-COGNIXA.cmd</b> (preferred), <b>or</b> run:<br>
+<code>python -m http.server 8765</code> then open <code>http://localhost:8765/Cognixa.html</code></li>
+</ol>
+<p>Do <b>not</b> open the HTML from inside the zip preview / Temp path.</p>
+</div>
+<p class="err">Detail: ${msg.replace(/[<>&]/g, "")}${isFile ? " · protocol=file:" : ""}${fromZipTemp ? " · zip Temp path detected" : ""}</p>
+</body></html>`;
+    } catch (_) {}
   }
   function init() {
     const runtime = createRuntime(document);
@@ -1505,9 +1535,19 @@
     if (document.readyState !== "loading") api.__dcBoot();
     else document.addEventListener("DOMContentLoaded", () => api.__dcBoot());
   }
-  hideRawTemplate();
-  loadReactUmd().then(init).catch((err) => {
-    console.error("[dc] failed to load React or boot:", err);
-    throw err;
-  });
+    hideRawTemplate();
+  // Zip-preview Temp path: scripts usually missing → fail fast with instructions.
+  try {
+    const href = String(location && location.href || "");
+    if (/AppData[\\/]+Local[\\/]+Temp/i.test(href) && /\.zip/i.test(href)) {
+      showCognixaBootHelp(new Error("Opened from Windows zip Temp preview — Extract All first, then START-COGNIXA.cmd"));
+    } else {
+      loadReactUmd().then(init).catch((err) => {
+        console.error("[dc] failed to load React or boot:", err);
+        showCognixaBootHelp(err);
+      });
+    }
+  } catch (err) {
+    showCognixaBootHelp(err);
+  }
 })();
