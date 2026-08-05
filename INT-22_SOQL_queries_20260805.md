@@ -89,3 +89,58 @@ WHERE Client__c = 'nbn'
 To confirm: parent-to-child relationship name (assumed `sitetracker__Activities__r`), exact
 Activity `Name` values for ID66/ID164, `Client__c` value ('nbn' vs 'NBN'), `Job_Type__c`
 API name.
+
+## ODM — CREATE_SO (Service Order / WBS creation)
+
+```sql
+SELECT Id, Name,
+       Project_Name__c,
+       Address__c,
+       Description__c,
+       Project_Start_A__c,
+       sitetracker__Project_Status__c,
+       Business_Flow_Type__c,
+       Work_Type__c,
+       Job_Type__c,
+       State__c,
+       Region__c,
+       CCR__c,
+       CreatedDate, LastModifiedDate
+FROM sitetracker__Project__c
+WHERE CreatedDate >= ${lastSuccessfulPullTimestamp}
+```
+
+To confirm: `CCR__c` (Commercial Contract number) does not exist yet — field to be created
+in SiteTracker to populate `header.clientContractId`. `Work_Type__c` / `Job_Type__c` /
+`State__c` / `Region__c` API names proposed from labels; verify whether the
+`header.serviceHierarchy` source is workType or costCode.
+
+## ODM — RCTI (replaces the ODM_SS_STIFS flat-file extract; base query validated in POC Test 3)
+
+```sql
+SELECT Id, Name,
+       sitetracker__Job__c,
+       sitetracker__Job__r.Name,
+       sitetracker__Job__r.Project_Name__c,
+       sitetracker__Job__r.Date_Job_Invoiced__c,
+       sitetracker__Job__r.Total_Job_Amount__c,
+       sitetracker__Job__r.Business_Flow_Type__c,
+       sitetracker__Job__r.sitetracker__Vendor__r.Vendor_ID__c,
+       sitetracker__Job__r.sitetracker__Vendor__r.Name,
+       sitetracker__Job__r.Project__r.Project_Name__c,
+       sitetracker__Job__r.Project__r.Address__c,
+       Item_Name__r.Item_Id__c,
+       Item_Name__r.sitetracker__Primary_UoM__c,
+       Subie_Rate__c,
+       Total_Actual_Amount__c,
+       LastModifiedDate
+FROM sitetracker__Production_Plan_Line__c
+WHERE sitetracker__Job__r.sitetracker__Job_Status__c = 'Invoiced'
+  AND (LastModifiedDate >= ${lastSuccessfulPullTimestamp}
+       OR sitetracker__Job__r.LastModifiedDate >= ${lastSuccessfulPullTimestamp})
+```
+
+To confirm: `Total_Job_Amount__c` and `Business_Flow_Type__c` are added beyond the Test 3
+field list. The business-flow fallback (project → ticket → job) is an iFlow mapping rule,
+not SOQL. GL code (73020), tax code (GST10) and quantity (1) — hardcoded in the current
+file — move to SAP-side determination. Negative amounts (credit lines) pass through as-is.
