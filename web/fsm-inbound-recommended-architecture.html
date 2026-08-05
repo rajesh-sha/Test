@@ -67,7 +67,7 @@
 
 <!-- ============ SLIDE 1 — THE ONE CONCISE SLIDE ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 1 / 7 — SUMMARY (the one-slide version)</span>
+  <span class="sno">SLIDE 1 / 8 — SUMMARY (the one-slide version)</span>
   <h2>Recommended: CPI orchestrates. Each FSM interface is an explicit PUSH or PULL — nothing else.</h2>
   <p class="lede">One distribution layer in CPI. Delivery mode is a per-FSM configuration value with exactly four allowed values. No intermediate business database anywhere.</p>
   <div class="diag">
@@ -113,7 +113,7 @@
 
 <!-- ============ SLIDE 2 — END-TO-END MESSAGE PATH ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 2 / 7 — END-TO-END MESSAGE PATH</span>
+  <span class="sno">SLIDE 2 / 8 — END-TO-END MESSAGE PATH</span>
   <h2>End-to-end path — every hop numbered, with protocol and direction</h2>
   <p class="lede">Two detection mechanisms feed one identical downstream path. Steps 3–7 are the same for every FSM; only step 7's adapter differs.</p>
   <div class="diag">
@@ -125,8 +125,8 @@
     </div>
     <div class="hop">
       <div class="n">1</div>
-      <div class="proto">PUSH · AMQP topic</div>
-      <div class="sub2">S/4 → Advanced Event Mesh<br>(key-only event)</div>
+      <div class="proto">PUSH · event channel</div>
+      <div class="sub2">S/4 → Event Mesh channel<br>(Public Edition standard, key-only event)</div>
       <div class="ln"></div>
     </div>
     <div class="sys">
@@ -141,7 +141,7 @@
     <div class="hop">
       <div class="n">6</div>
       <div class="proto">PUSH · HTTPS / SFTP</div>
-      <div class="sub2">per-FSM protocol —<br>slides 3–6</div>
+      <div class="sub2">per-FSM protocol —<br>slides 4–7</div>
       <div class="ln"></div>
     </div>
     <div class="sys">
@@ -151,7 +151,7 @@
     </div>
   </div>
   <ul class="explain">
-    <li><b>1a PUSH (preferred):</b> S/4 sends a standard business event to Advanced Event Mesh and CPI receives it. Near real time. <b>1b PULL (backup):</b> CPI checks the existing S/4 APIs on a timer for records changed since the last check — one central check instead of ten FSMs each checking. Chosen per object; both feed step 2 the same way.</li>
+    <li><b>1a PUSH (preferred):</b> S/4HANA Cloud Public Edition sends a standard business event through its built-in Enterprise Event Enablement channel (600+ standard events published on the SAP Business Accelerator Hub) and CPI receives it. Near real time. <b>1b PULL (backup):</b> CPI checks the existing S/4 APIs on a timer for records changed since the last check — one central check instead of ten FSMs each checking. Chosen per object; both feed step 2 the same way.</li>
     <li><b>2:</b> events carry only the record key — CPI always re-reads the full record from S/4 before sending it out, so what is delivered is always the current state, even if events arrive late or out of order.</li>
     <li><b>3:</b> the subscription list is plain configuration under change control; an FSM physically cannot receive data outside its own contracts (this is where Defence data separation is enforced).</li>
     <li><b>4:</b> one queue per FSM: if one FSM is down, the others keep receiving; messages that keep failing move to that FSM's error queue and its support team is alerted.</li>
@@ -159,9 +159,33 @@
   </ul>
 </section>
 
-<!-- ============ SLIDE 3 — JAMS ============ -->
+<!-- ============ SLIDE 3 — DATA COVERAGE ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 3 / 7 — JAMS IMPLEMENTATION</span>
+  <span class="sno">SLIDE 3 / 8 — DATA COVERAGE: EVERY REQUIRED DATA SET CAN BE PUBLISHED</span>
+  <h2>All data the FSMs need today can be published through this architecture</h2>
+  <p class="lede">These are the same base S/4 APIs already confirmed for the pull design (GET · Base + Entity + <code>systemId</code> mandatory + OData filters, per the API Business Hub). The distribution layer calls the <b>same APIs with the same call rules</b> — once, centrally — so anything the pull endpoint can serve, CPI can publish.</p>
+  <table>
+    <tr><th>Data set</th><th>Existing S/4 API (unchanged)</th><th>Change detected by</th><th>Standard event (Public Edition)</th><th>Timed-check filter field</th><th>Published to</th></tr>
+    <tr><td>Service Orders</td><td><code>/S4/serviceorders</code></td><td>Event, timed check as backup</td><td>Yes — Service Order changed/created (Business Accelerator Hub)</td><td><code>ServiceDocChangedDateTime</code> — proven filterable in the sample payload</td><td>JAMS · SN ITSM · SN Defence · (Sitetracker TBC)</td></tr>
+    <tr><td>Enterprise Project + WBS</td><td><code>/enterpriseprojects</code> (<code>$expand</code> WBS)</td><td>Event, timed check as backup</td><td>Yes — Enterprise Project changed</td><td>project change date on the released API</td><td>JAMS · SN Defence</td></tr>
+    <tr><td>Customer Invoice</td><td><code>/invoicebilling</code></td><td>Event, timed check as backup</td><td>Yes — Billing Document events</td><td>billing document change/creation date</td><td>JAMS</td></tr>
+    <tr><td>Supplier Invoice / RCTI</td><td><code>/RCTI</code></td><td>Event, timed check as backup</td><td>Yes — Supplier Invoice events</td><td>invoice change/posting date</td><td>JAMS</td></tr>
+    <tr><td>Project Time &amp; Equipment Usage</td><td><code>/journalentry</code> <small>(replacement CDS view from Lucas to follow — affects both options equally)</small></td><td>Timed check</td><td>To confirm on the Hub — timed check is the guaranteed path</td><td>posting date / last-changed on journal entry</td><td>JAMS · SN Defence</td></tr>
+    <tr><td>Available Stock (cost &amp; quantity)</td><td><code>/journalentry</code></td><td>Timed check</td><td>No standard event expected — timed check</td><td>posting date, aggregated per window</td><td>JAMS · SN Defence</td></tr>
+    <tr><td>All Purchase Orders (JAMS)</td><td>purchase order released API</td><td>Event, timed check as backup</td><td>Yes — Purchase Order changed</td><td>PO change date</td><td>JAMS</td></tr>
+  </table>
+  <ul class="explain">
+    <li><b>Coverage is guaranteed by construction:</b> the distribution layer reads through the same released APIs, with the same mandatory <code>systemId</code> and OData filter rules, that the pull design already validated end-to-end (200 OK sample on <code>/S4/serviceorders</code>). No new S/4 access is needed for any data set.</li>
+    <li><b>Where a standard event exists</b> (service order, project, customer invoice, supplier invoice, purchase order), the FSMs get near-real-time updates. <b>Where it doesn't</b> (stock, time &amp; equipment), the timed check delivers on its interval — same freshness as Option B's best case, achieved once centrally instead of per FSM.</li>
+    <li><b>Every data set lands on every subscribed FSM in that FSM's own delivery mode</b> (slides 4–7) — the "Published to" column is the starting subscription list, to be confirmed with system owners.</li>
+    <li><b>Event names to be pinned per object</b> from the SAP Business Accelerator Hub as part of my Friday prep — the "Standard event" column above is the expected position; the timed check column is the guaranteed fallback for every row, so no data set is at risk either way.</li>
+  </ul>
+  <div class="okline">Conclusion: 7 of 7 required data sets are publishable with this architecture — 5 in near real time via standard events, 2 via the timed check — using only APIs already proven in the pull design.</div>
+</section>
+
+<!-- ============ SLIDE 4 — JAMS ============ -->
+<section class="slide">
+  <span class="sno">SLIDE 4 / 8 — JAMS IMPLEMENTATION</span>
   <h2>JAMS — <span class="badge push">PUSH · API</span> CPI posts upserts to one new JAMS web service</h2>
   <p class="lede">Direction: CPI → JAMS. JAMS builds one small new endpoint to receive data. Scheduling, change detection, filtering and retry all stay in CPI — nothing else changes in JAMS.</p>
   <div class="diag">
@@ -189,12 +213,12 @@
     <tr><td>Error path</td><td>Error/timeout → CPI retries automatically → failed messages park on the JAMS error queue → JAMS support alerted · re-sent after recovery</td></tr>
     <tr><td>First load</td><td>Re-send a date range per object (<code>ChangedDateTime</code> from–to), same endpoint</td></tr>
   </table>
-  <div class="okline">Day-one scope: the core CPI layer + this adapter. Works with the timed data check alone — no dependency on Advanced Event Mesh.</div>
+  <div class="okline">Day-one scope: the core CPI layer + this adapter. Works with the timed data check alone — no dependency on the event channel.</div>
 </section>
 
 <!-- ============ SLIDE 4 — SERVICENOW ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 4 / 7 — SERVICENOW IMPLEMENTATION (ITSM + DEFENCE)</span>
+  <span class="sno">SLIDE 5 / 8 — SERVICENOW IMPLEMENTATION (ITSM + DEFENCE)</span>
   <h2>ServiceNow ITSM &amp; Defence — <span class="badge push">PUSH · API</span> Import Set API, out of the box <span class="badge cfg">CONFIG ONLY</span></h2>
   <p class="lede">Direction: CPI → ServiceNow. No ServiceNow development: the Import Set API and transform maps are platform features configured by a SN admin.</p>
   <div class="diag">
@@ -227,7 +251,7 @@
 
 <!-- ============ SLIDE 5 — SITETRACKER ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 5 / 7 — SITETRACKER IMPLEMENTATION</span>
+  <span class="sno">SLIDE 6 / 8 — SITETRACKER IMPLEMENTATION</span>
   <h2>Sitetracker — <span class="badge push">PUSH · API</span> Salesforce-standard REST upsert <span class="badge cfg">CONFIG ONLY</span></h2>
   <p class="lede">Direction: CPI → Sitetracker. Sitetracker is native on the Salesforce platform, so the standard Salesforce REST/Bulk APIs are already there for every standard and custom object.</p>
   <div class="diag">
@@ -258,7 +282,7 @@
 
 <!-- ============ SLIDE 6 — NO-API FSM ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 6 / 7 — FSM WITHOUT A USABLE API</span>
+  <span class="sno">SLIDE 7 / 8 — FSM WITHOUT A USABLE API</span>
   <h2>No-API FSM — <span class="badge push">PUSH · FILE</span> file drop, or <span class="badge pull">PULL · API</span> the existing Response Type 2 endpoint</h2>
   <p class="lede">Two clear backup options, both served by the same CPI layer. Chosen per FSM in the configuration — never a new architecture, and never an extra database.</p>
   <div class="diag">
@@ -298,7 +322,7 @@
 
 <!-- ============ SLIDE 7 — IMPLEMENTATION TABLE ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 7 / 7 — IMPLEMENTATION SUMMARY (no ambiguity)</span>
+  <span class="sno">SLIDE 8 / 8 — IMPLEMENTATION SUMMARY (no ambiguity)</span>
   <h2>Per-FSM implementation — one row per system, direction explicit</h2>
   <table>
     <tr><th>FSM</th><th>Mode</th><th>Protocol / endpoint</th><th>Auth</th><th>FSM build</th><th>CPI build</th></tr>
