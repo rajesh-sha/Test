@@ -155,6 +155,19 @@ What we should **not** do for a no-API FSM: build an intermediate database it re
 recreates the JDW problem — the ARB's "additional considerations" already names it: any
 intermediate store becomes a system of record in practice.
 
+Equally ruled out: **CPI writing directly into an FSM's database.** For ServiceNow and
+Sitetracker this is simply impossible — as SaaS products they never expose a database;
+their APIs are the only inbound path. For JAMS it is technically possible and still wrong:
+a direct SQL write bypasses JAMS's validations, workflow triggers, security rules and audit
+history (records end up in states the application could never create); the internal schema
+is not a contract, so every JAMS upgrade risks breaking the integration; vendor support for
+externally-written data is compromised; and integration-by-database is a named
+enterprise-integration anti-pattern. The small JAMS upsert endpoint achieves the same
+result through JAMS's own logic at equal effort. Note also that today no external system
+writes into JAMS's database — as-is, JAMS *reads* the Jobpac warehouse — so DB-direct write
+would introduce a new, tighter database coupling in the same program that is retiring the
+last one.
+
 ### 5.4 Ten FSMs, none needing all the data
 
 This is the strongest argument *for* Option D. The answer is a **subscription registry**:

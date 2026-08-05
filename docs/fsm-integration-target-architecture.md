@@ -180,7 +180,15 @@ rung 1** (Salesforce REST/Bulk), **JAMS → rung 3** (agreed direction), **acqui
 assessed against the ladder during onboarding (§11)**.
 
 Explicitly excluded at every rung: any intermediate business database (recreates the
-JDW/system-of-record problem the ARB flagged).
+JDW/system-of-record problem the ARB flagged), and **any direct write into an FSM's own
+database**. Direct DB write is impossible for the SaaS FSMs (ServiceNow and
+Sitetracker/Salesforce never expose their databases — APIs are the only inbound path) and
+wrong for the rest: it bypasses the application's validations, workflows, security rules and
+audit history; couples the integration to an internal schema that changes on every vendor
+upgrade; puts vendor support for the affected data at risk; and is a named
+enterprise-integration anti-pattern ("Integration databases: don't do it" — Nygard,
+*Release It!*). The rung 3 upsert endpoint delivers the same outcome through the
+application's own logic at equal effort.
 
 ## 8. Delivery semantics, errors, and replay
 

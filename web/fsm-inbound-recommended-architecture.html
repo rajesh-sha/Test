@@ -67,7 +67,7 @@
 
 <!-- ============ SLIDE 1 — THE ONE CONCISE SLIDE ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 1 / 8 — SUMMARY (the one-slide version)</span>
+  <span class="sno">SLIDE 1 / 9 — SUMMARY (the one-slide version)</span>
   <h2>Recommended: CPI orchestrates. Each FSM interface is an explicit PUSH or PULL — nothing else.</h2>
   <p class="lede">One distribution layer in CPI. Delivery mode is a per-FSM configuration value with exactly four allowed values. No intermediate business database anywhere.</p>
   <div class="diag">
@@ -113,7 +113,7 @@
 
 <!-- ============ SLIDE 2 — END-TO-END MESSAGE PATH ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 2 / 8 — END-TO-END MESSAGE PATH</span>
+  <span class="sno">SLIDE 2 / 9 — END-TO-END MESSAGE PATH</span>
   <h2>End-to-end path — every hop numbered, with protocol and direction</h2>
   <p class="lede">Two detection mechanisms feed one identical downstream path. Steps 3–7 are the same for every FSM; only step 7's adapter differs.</p>
   <div class="diag">
@@ -161,7 +161,7 @@
 
 <!-- ============ SLIDE 3 — DATA COVERAGE ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 3 / 8 — DATA COVERAGE: EVERY REQUIRED DATA SET CAN BE PUBLISHED</span>
+  <span class="sno">SLIDE 3 / 9 — DATA COVERAGE: EVERY REQUIRED DATA SET CAN BE PUBLISHED</span>
   <h2>All data the FSMs need today can be published through this architecture</h2>
   <p class="lede">These are the same base S/4 APIs already confirmed for the pull design (GET · Base + Entity + <code>systemId</code> mandatory + OData filters, per the API Business Hub). The distribution layer calls the <b>same APIs with the same call rules</b> — once, centrally — so anything the pull endpoint can serve, CPI can publish.</p>
   <table>
@@ -185,7 +185,7 @@
 
 <!-- ============ SLIDE 4 — JAMS ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 4 / 8 — JAMS IMPLEMENTATION</span>
+  <span class="sno">SLIDE 4 / 9 — JAMS IMPLEMENTATION</span>
   <h2>JAMS — <span class="badge push">PUSH · API</span> CPI posts upserts to one new JAMS web service</h2>
   <p class="lede">Direction: CPI → JAMS. JAMS builds one small new endpoint to receive data. Scheduling, change detection, filtering and retry all stay in CPI — nothing else changes in JAMS.</p>
   <div class="diag">
@@ -218,7 +218,7 @@
 
 <!-- ============ SLIDE 4 — SERVICENOW ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 5 / 8 — SERVICENOW IMPLEMENTATION (ITSM + DEFENCE)</span>
+  <span class="sno">SLIDE 5 / 9 — SERVICENOW IMPLEMENTATION (ITSM + DEFENCE)</span>
   <h2>ServiceNow ITSM &amp; Defence — <span class="badge push">PUSH · API</span> Import Set API, out of the box <span class="badge cfg">CONFIG ONLY</span></h2>
   <p class="lede">Direction: CPI → ServiceNow. No ServiceNow development: the Import Set API and transform maps are platform features configured by a SN admin.</p>
   <div class="diag">
@@ -251,7 +251,7 @@
 
 <!-- ============ SLIDE 5 — SITETRACKER ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 6 / 8 — SITETRACKER IMPLEMENTATION</span>
+  <span class="sno">SLIDE 6 / 9 — SITETRACKER IMPLEMENTATION</span>
   <h2>Sitetracker — <span class="badge push">PUSH · API</span> Salesforce-standard REST upsert <span class="badge cfg">CONFIG ONLY</span></h2>
   <p class="lede">Direction: CPI → Sitetracker. Sitetracker is native on the Salesforce platform, so the standard Salesforce REST/Bulk APIs are already there for every standard and custom object.</p>
   <div class="diag">
@@ -282,7 +282,7 @@
 
 <!-- ============ SLIDE 6 — NO-API FSM ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 7 / 8 — FSM WITHOUT A USABLE API</span>
+  <span class="sno">SLIDE 7 / 9 — FSM WITHOUT A USABLE API</span>
   <h2>No-API FSM — <span class="badge push">PUSH · FILE</span> file drop, or <span class="badge pull">PULL · API</span> the existing Response Type 2 endpoint</h2>
   <p class="lede">Two clear backup options, both served by the same CPI layer. Chosen per FSM in the configuration — never a new architecture, and never an extra database.</p>
   <div class="diag">
@@ -320,9 +320,31 @@
   <div class="warnline">Excluded in all cases: an intermediate business database for the FSM to query. Any such store becomes a system of record — the JDW problem being decommissioned.</div>
 </section>
 
-<!-- ============ SLIDE 7 — IMPLEMENTATION TABLE ============ -->
+<!-- ============ SLIDE 8 — DIRECT DB UPDATE RULED OUT ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 8 / 8 — IMPLEMENTATION SUMMARY (no ambiguity)</span>
+  <span class="sno">SLIDE 8 / 9 — DIRECT DATABASE UPDATE INTO AN FSM (ruled out)</span>
+  <h2>"Why not have CPI write straight into the FSM database?" — because it can't for most, and shouldn't for any</h2>
+  <p class="lede">Expected question, answered up front. Writing into an application's database from outside skips the application itself — and for the SaaS FSMs there is no database to reach in the first place.</p>
+  <table>
+    <tr><th>FSM</th><th>Is direct DB write even possible?</th></tr>
+    <tr><td>ServiceNow (ITSM / Defence)</td><td><b>No.</b> SaaS — ServiceNow does not expose its database to customers at all. Every inbound integration goes through its APIs (Import Set / Table). There is nothing to connect a SQL write to.</td></tr>
+    <tr><td>Sitetracker</td><td><b>No.</b> SaaS on the Salesforce platform — same situation: platform APIs are the only inbound path.</td></tr>
+    <tr><td>JAMS</td><td><b>Technically yes — and still the wrong choice</b> (reasons below). Note today's pattern is JAMS <i>reading</i> the Jobpac warehouse; no system writes into JAMS's own database from outside today. Direct write would be a new, tighter coupling introduced in the same program that is retiring the last database-level integration.</td></tr>
+  </table>
+  <ul class="explain">
+    <li><b>It skips the application's own logic.</b> Validations, workflow triggers, notifications, calculated fields, security rules and audit history all live in the application layer. A SQL write updates the table but the application never "sees" the change — records can end up in states the application itself could never create, and nobody can tell how they got there.</li>
+    <li><b>The database schema is not a contract.</b> Vendors change internal tables between versions without notice. Every FSM upgrade becomes a re-test (and possible rewrite) of the integration. An API is a published, versioned contract; a table layout is not.</li>
+    <li><b>Vendor support is at risk.</b> Writing directly to an application's tables typically voids or complicates support for the affected data — the vendor cannot warrant data their application didn't write.</li>
+    <li><b>Security and audit get worse, not better.</b> Middleware holding database write credentials is a far larger attack surface than one scoped API user, and contract-level access control plus audit trail exist in the application layer, not in SQL.</li>
+    <li><b>It is a named industry anti-pattern.</b> Integration through a shared/written-to database is a classic enterprise-integration anti-pattern — "Integration databases: don't do it. Not even with views. Not even with stored procedures." (Michael Nygard, <i>Release It!</i>). It also contradicts the SAP clean-core, API-led direction the program has already adopted.</li>
+    <li><b>The right answer gives the same outcome safely:</b> the small JAMS upsert endpoint (slide 4) puts the same data in the same JAMS tables — but through JAMS's own logic, with JAMS's own validation and audit. Equal effort to the pull build (Trajce), none of the risks above.</li>
+  </ul>
+  <div class="warnline">Position for Friday: direct database update is not an option for the fleet (impossible for SaaS FSMs) and not acceptable for JAMS (unsupported, upgrade-fragile, unauditable). It is not a fifth delivery option.</div>
+</section>
+
+<!-- ============ SLIDE 9 — IMPLEMENTATION TABLE ============ -->
+<section class="slide">
+  <span class="sno">SLIDE 9 / 9 — IMPLEMENTATION SUMMARY (no ambiguity)</span>
   <h2>Per-FSM implementation — one row per system, direction explicit</h2>
   <table>
     <tr><th>FSM</th><th>Mode</th><th>Protocol / endpoint</th><th>Auth</th><th>FSM build</th><th>CPI build</th></tr>
