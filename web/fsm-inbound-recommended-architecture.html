@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recommended Architecture — FSM Inbound (Option D)</title>
+<style>
+  :root{
+    --navy:#1F3864; --navy2:#1F4E79; --paper:#f4f6f9; --line:#d9dee6;
+    --green:#dcfce7; --greenText:#16A34A;
+    --amber:#fef9c3; --amberText:#CA8A04;
+    --red:#fee2e2; --redText:#DC2626;
+    --grey:#e5e7eb; --greyText:#6B7280;
+    --blue:#dbeafe; --blueText:#1e56a0;
+  }
+  *{box-sizing:border-box;}
+  body{font-family:Arial,"Helvetica Neue",sans-serif; background:var(--paper); margin:0; color:#1a1a1a;}
+  header{background:var(--navy); color:#fff; padding:12px 24px;}
+  header h1{font-size:17px; margin:0; font-weight:700;}
+  header .sub{font-size:11.5px; opacity:.85; margin-top:2px;}
+  main{max-width:1280px; margin:0 auto; padding:18px 24px 40px;}
+
+  .panel{background:#fff; border:1px solid var(--line); border-radius:10px; padding:18px 22px 20px; margin-bottom:18px;}
+  .panel.rec{border:2px solid var(--greenText);}
+  .panel.notrec{border:1px solid var(--line);}
+  .panel h2{font-size:16px; margin:0 0 4px; color:#1a73e8; font-weight:700; display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .panel.rec h2{color:#0f7a3d;}
+  .panel .desc{font-size:12.5px; color:#444; margin:2px 0 14px;}
+  .pill{font-size:11px; font-weight:700; padding:4px 12px; border-radius:14px; white-space:nowrap;}
+  .pill.rec{background:var(--greenText); color:#fff;}
+  .pill.notrec{background:var(--redText); color:#fff;}
+  .pill.note{background:var(--grey); color:#374151;}
+
+  /* flow row */
+  .flow{display:flex; align-items:stretch; gap:0; flex-wrap:wrap; row-gap:22px; margin:10px 0 6px;}
+  .node{position:relative; border:2px solid #1a1a1a; border-radius:10px; padding:14px 14px 10px; background:#fff; min-width:120px; align-self:center;}
+  .node .tag{position:absolute; top:-9px; left:10px; background:#1a1a1a; color:#fff; font-size:9.5px; font-weight:700; letter-spacing:.04em; padding:2px 8px; border-radius:8px; white-space:nowrap;}
+  .node .tag.grey{background:#6B7280;}
+  .node .tag.red{background:var(--redText);}
+  .node .tag.green{background:var(--greenText);}
+  .node .box{border:1.5px solid #1a1a1a; border-radius:6px; padding:5px 10px; font-size:12.5px; font-weight:700; text-align:center; margin-top:4px; background:#fff;}
+  .node .box.slim{font-weight:600; font-size:11.5px;}
+  .node .box + .box{margin-top:5px;}
+  .node .box.blue{border-color:#1a73e8; color:#1a73e8;}
+  .node .box.redln{border-color:var(--redText); color:var(--redText); background:#fff7f7;}
+  .node.redframe{border-color:var(--redText); background:#fff7f7;}
+  .node .cap{font-size:10px; color:#666; text-align:center; margin-top:5px;}
+  .arrow{display:flex; flex-direction:column; justify-content:center; align-items:center; padding:0 10px; min-width:86px; align-self:center;}
+  .arrow .lbl{font-size:10.5px; font-weight:700; text-align:center; line-height:1.25; margin-bottom:3px;}
+  .arrow .lbl.green{color:var(--greenText);} .arrow .lbl.blue{color:#1a73e8;}
+  .arrow .lbl.red{color:var(--redText);} .arrow .lbl.grey{color:#6B7280;}
+  .arrow .ln{width:100%; height:2px; background:#1a1a1a; position:relative;}
+  .arrow .ln::after{content:""; position:absolute; right:-1px; top:-4px; border-left:8px solid #1a1a1a; border-top:5px solid transparent; border-bottom:5px solid transparent;}
+  .arrow .ln.both::before{content:""; position:absolute; left:-1px; top:-4px; border-right:8px solid #1a1a1a; border-top:5px solid transparent; border-bottom:5px solid transparent;}
+
+  /* FSM stack on the right */
+  .fsmstack{display:flex; flex-direction:column; gap:14px;}
+  .fsmstack .node{min-width:230px;}
+
+  .keyline{font-size:12px; color:#333; margin:12px 0 0;}
+  .keyline.red{color:var(--redText); font-weight:700;}
+  .keyline.green{color:#0f7a3d; font-weight:700;}
+
+  /* card rows */
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; margin-top:14px;}
+  .card{background:#f7f9fb; border:1px solid var(--line); border-radius:8px; padding:12px 14px;}
+  .card h3{margin:0 0 6px; font-size:13px; color:#1a73e8;}
+  .card p{margin:0; font-size:12px; color:#444; line-height:1.45;}
+  .card .rung{display:inline-block; font-size:10px; font-weight:700; background:#1a1a1a; color:#fff; border-radius:8px; padding:2px 8px; margin-bottom:6px;}
+  .card.g{border-left:4px solid var(--greenText);}
+  .card.a{border-left:4px solid var(--amberText);}
+  .card.r{border-left:4px solid var(--redText);}
+
+  /* subscription matrix */
+  table{border-collapse:collapse; width:100%; margin-top:12px; font-size:11.5px;}
+  th,td{border:1px solid var(--line); padding:6px 8px; text-align:center;}
+  th{background:#eef2f7; color:#1F3864; font-size:11px;}
+  td:first-child, th:first-child{text-align:left; font-weight:700;}
+  .y{color:var(--greenText); font-weight:700;}
+  .n{color:#c3c9d2;}
+  .q{color:var(--amberText); font-weight:700;}
+  .scope{display:block; font-weight:400; font-size:9.5px; color:#6B7280;}
+  .foot{font-size:10.5px; color:#6B7280; margin-top:6px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Recommended Architecture — FSM Inbound, all field systems</h1>
+  <div class="sub">Option D · SAP CPI orchestrates distribution of S/4HANA data · FSMs receive through endpoints they already have · Design Council — Friday session</div>
+</header>
+<main>
+
+  <!-- OPTION B -->
+  <div class="panel notrec">
+    <h2 style="color:#1a73e8;">Option B — every FSM orchestrates its own pull <span class="pill notrec">Not recommended as the rule</span></h2>
+    <div class="desc">Each field system builds a scheduler, delta-pull logic, filtering and reconciliation against the CPI pull endpoint. CPI is only an S/4 API wrapper.</div>
+    <div class="flow">
+      <div class="node">
+        <span class="tag grey">FIELD SYSTEMS ×10</span>
+        <div class="box">JAMS · ServiceNow · Sitetracker …</div>
+        <div class="box redln slim">each builds: scheduler · delta pull · filters · retry</div>
+      </div>
+      <div class="arrow"><div class="lbl blue">GET on own schedule<br>contract ID + OData filters</div><div class="ln both"></div></div>
+      <div class="node">
+        <span class="tag">SAP BTP · SAP CPI</span>
+        <div class="box">Registered queries (pull endpoint)</div>
+        <div class="cap">API wrapper + robustness only</div>
+      </div>
+      <div class="arrow"><div class="lbl green">passthrough GET</div><div class="ln both"></div></div>
+      <div class="node">
+        <span class="tag">SAP CLOUD</span>
+        <div class="box">S/4HANA released APIs</div>
+      </div>
+    </div>
+    <div class="keyline red">Orchestration logic is duplicated — and trusted — in every FSM. An acquired FSM must be modified before it can see its own S/4 data.</div>
+  </div>
+
+  <!-- OPTION D -->
+  <div class="panel rec">
+    <h2>Option D — CPI orchestrates, FSMs just receive <span class="pill rec">Recommended</span></h2>
+    <div class="desc">CPI detects change once, filters centrally per FSM subscription, and delivers in whatever mode each FSM can already accept. S/4 stays the single source of truth — <b>no new data store anywhere</b>.</div>
+    <div class="flow">
+      <div class="node">
+        <span class="tag">SAP CLOUD</span>
+        <div class="box">S/4HANA</div>
+        <div class="cap">released APIs + business events</div>
+      </div>
+      <div class="arrow"><div class="lbl green">business events (AEM)<br>or central delta poll</div><div class="ln"></div></div>
+      <div class="node">
+        <span class="tag">SAP BTP · SAP CPI</span>
+        <span class="tag green" style="left:auto; right:10px;">NO NEW DATA STORE</span>
+        <div class="box slim">Change detection <span style="font-weight:400;">(events · watermark delta poll)</span></div>
+        <div class="box slim">Canonical envelope <span style="font-weight:400;">(existing canonical model)</span></div>
+        <div class="box blue">Subscription registry — FSM × object × contract scope</div>
+        <div class="box slim">Per-FSM JMS queue · retry · DLQ</div>
+        <div class="box slim">Delivery adapters <span style="font-weight:400;">(API push · file · pull)</span></div>
+        <div class="cap">state held: watermarks + registry config + in-flight messages only</div>
+      </div>
+      <div class="arrow"><div class="lbl green">push — each FSM gets<br>only its subset</div><div class="ln"></div></div>
+      <div class="fsmstack">
+        <div class="node">
+          <span class="tag grey">FIELD SYSTEM</span>
+          <div class="box">JAMS</div>
+          <div class="cap">one upsert web service — small one-off build</div>
+        </div>
+        <div class="node">
+          <span class="tag grey">FIELD SYSTEM</span>
+          <div class="box">ServiceNow ITSM / Defence</div>
+          <div class="cap">Import Set API — out of the box, config only</div>
+        </div>
+        <div class="node">
+          <span class="tag grey">FIELD SYSTEM</span>
+          <div class="box">Sitetracker</div>
+          <div class="cap">Salesforce REST / Bulk — standard, config only</div>
+        </div>
+        <div class="node">
+          <span class="tag grey">FIELD SYSTEM</span>
+          <div class="box">Acquired / future FSM</div>
+          <div class="cap">assessed on the delivery ladder — FSM unchanged if it has APIs</div>
+        </div>
+      </div>
+    </div>
+    <div class="keyline green">Change is detected once, filtered once, audited once. Onboarding FSM #11 = registry rows + one adapter iFlow — never a new architecture.</div>
+    <div class="keyline">The existing Response Type 2 pull endpoint is retained as the lowest delivery rung, so nothing already designed is thrown away.</div>
+  </div>
+
+  <!-- DELIVERY LADDER -->
+  <div class="panel">
+    <h2 style="color:#1a73e8;">Delivery ladder — a per-FSM setting, not a per-FSM architecture</h2>
+    <div class="desc">Every FSM lands on one rung. All four rungs are served by the same distribution layer.</div>
+    <div class="cards">
+      <div class="card g"><span class="rung">RUNG 1 — API PUSH</span>
+        <h3>FSM has a standard inbound API</h3>
+        <p>CPI adapter pushes upserts directly. <b>Configuration only</b> on the FSM side — credentials and field maps. <br><i>ServiceNow · Sitetracker</i></p></div>
+      <div class="card g"><span class="rung">RUNG 2 — FILE</span>
+        <h3>FSM has an import job, no API</h3>
+        <p>CPI drops CSV/JSON to SFTP; the FSM's existing import consumes it. Still no FSM development.</p></div>
+      <div class="card a"><span class="rung">RUNG 3 — THIN ENDPOINT</span>
+        <h3>FSM can build one small receiver</h3>
+        <p>FSM stands up a single upsert endpoint; scheduling, deltas and retries stay in CPI. <br><i>JAMS</i></p></div>
+      <div class="card r"><span class="rung">RUNG 4 — PULL</span>
+        <h3>FSM has nothing, no appetite</h3>
+        <p>FSM uses the existing Response Type 2 pull endpoint — Option B survives as the documented exception for that system only.</p></div>
+    </div>
+    <div class="keyline red">Excluded at every rung: an intermediate business database. Any such store becomes a system of record — the JDW problem being decommissioned.</div>
+  </div>
+
+  <!-- SUBSCRIPTION MATRIX -->
+  <div class="panel">
+    <h2 style="color:#1a73e8;">Subscription registry — ~10 FSMs, none needs all the data</h2>
+    <div class="desc">Filtering is enforced centrally at the CPI router. An FSM physically never receives data outside its contract scope — the Defence segregation and audit story in one place. Starting matrix, to be validated with system owners:</div>
+    <table>
+      <tr><th>Canonical object</th><th>JAMS</th><th>SN ITSM</th><th>SN Defence</th><th>Sitetracker</th><th>Future FSM</th></tr>
+      <tr><td>Service Orders</td><td class="y">✔<span class="scope">own contracts</span></td><td class="y">✔</td><td class="y">✔<span class="scope">Defence contracts only</span></td><td class="q">?</td><td class="y">per contract</td></tr>
+      <tr><td>Enterprise Project / WBS</td><td class="y">✔</td><td class="n">—</td><td class="y">✔</td><td class="q">?</td><td class="y">per contract</td></tr>
+      <tr><td>Customer Invoice</td><td class="y">✔</td><td class="n">—</td><td class="n">—</td><td class="q">?</td><td class="y">per contract</td></tr>
+      <tr><td>Supplier Invoice / RCTI</td><td class="y">✔</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="y">per contract</td></tr>
+      <tr><td>Project Time &amp; Equipment</td><td class="y">✔</td><td class="n">—</td><td class="y">✔</td><td class="q">?</td><td class="y">per contract</td></tr>
+      <tr><td>Available Stock</td><td class="y">✔</td><td class="n">—</td><td class="y">✔</td><td class="n">—</td><td class="y">per contract</td></tr>
+    </table>
+    <div class="foot">Owners to confirm Friday — Trajce (JAMS) · Chamila (ServiceNow ITSM + Defence) · Sitetracker owner TBC · Rajesh (CPI, AEM entitlement, volumes)</div>
+  </div>
+
+  <!-- BUILD / RUN / ONBOARD -->
+  <div class="panel">
+    <h2 style="color:#1a73e8;">What Apollo builds, runs and gains</h2>
+    <div class="cards">
+      <div class="card"><h3>Build</h3><p>One distribution spine in CPI: delta poller + watermarks, canonical envelope, subscription registry, router, per-FSM queues, thin adapters. Reuses the passthrough APIs, canonical model, JMS and error logging already designed.</p></div>
+      <div class="card"><h3>Run</h3><p>One team, one toolset, one monitoring pane for both legs. Per-FSM queues isolate outages; DLQ alerts route to the owning FSM support team; replay covers recovery and initial loads.</p></div>
+      <div class="card"><h3>Onboard</h3><p>New or acquired FSM = assess against the ladder, add registry rows, one adapter, initial-load window, verify. Weeks of CPI work; FSM effort limited to credentials and field mapping.</p></div>
+    </div>
+    <div class="keyline green">Sequencing: JAMS day-one scope (spine + JAMS adapter) is complete without Advanced Event Mesh — the AEM entitlement question improves freshness later but gates nothing.</div>
+  </div>
+
+</main>
+</body>
+</html>
