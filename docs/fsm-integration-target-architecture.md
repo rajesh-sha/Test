@@ -181,7 +181,13 @@ assessed against the ladder during onboarding (§11)**.
 
 Explicitly excluded at every rung: any intermediate business database (recreates the
 JDW/system-of-record problem the ARB flagged), and **any direct write into an FSM's own
-database**. Direct DB write is impossible for the SaaS FSMs (ServiceNow and
+database**. To be precise: CPI *can* technically do this — the Integration Suite JDBC
+receiver adapter runs INSERT/UPDATE/DELETE and stored procedures against Oracle, MS SQL
+Server, DB2, PostgreSQL, HANA and others, including on-premise databases via SAP Cloud
+Connector — so capability is not the constraint, and "CPI can't" is the wrong argument.
+SAP's own guidance (ISA-M, clean-core integration) is API-first and event-first, with JDBC
+positioned for legacy/edge cases such as staging tables or databases you own outright.
+Beyond that, direct DB write is impossible for the SaaS FSMs (ServiceNow and
 Sitetracker/Salesforce never expose their databases — APIs are the only inbound path) and
 wrong for the rest: it bypasses the application's validations, workflows, security rules and
 audit history; couples the integration to an internal schema that changes on every vendor

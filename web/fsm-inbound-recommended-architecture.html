@@ -56,6 +56,8 @@
   td code, .proto code, li code{font-family:Consolas,Menlo,monospace; font-size:10.5px; background:#f4f6f9; padding:1px 4px; border:1px solid #e3e7ee;}
   .warnline{font-size:11.5px; color:var(--warn); font-weight:700; margin-top:10px;}
   .okline{font-size:11.5px; color:var(--push); font-weight:700; margin-top:10px;}
+  .hl{background:#fef9c3; border:1.5px solid #eab308; padding:12px 16px; margin:12px 0 4px; font-size:12px; line-height:1.55;}
+  .hl b.t{display:block; font-size:12.5px; margin-bottom:5px;}
 </style>
 </head>
 <body>
@@ -325,6 +327,11 @@
   <span class="sno">SLIDE 8 / 9 — DIRECT DATABASE UPDATE INTO AN FSM (ruled out)</span>
   <h2>"Why not have CPI write straight into the FSM database?" — because it can't for most, and shouldn't for any</h2>
   <p class="lede">Expected question, answered up front. Writing into an application's database from outside skips the application itself — and for the SaaS FSMs there is no database to reach in the first place.</p>
+  <div class="hl">
+    <b class="t">⚠ Be precise on Friday: CPI CAN technically update a database — that is not the constraint.</b>
+    SAP Integration Suite ships a <b>JDBC receiver adapter</b> that can run <code>INSERT</code> / <code>UPDATE</code> / <code>DELETE</code> and stored procedures against Oracle, MS SQL Server, IBM DB2, PostgreSQL, HANA and others — including <b>on-premise databases via SAP Cloud Connector</b>. So "CPI can't do it" is the wrong argument and will lose the room the moment someone opens the adapter list.
+    The correct argument: <b>capability ≠ recommendation.</b> SAP's own integration guidance (ISA-M and the clean-core integration white paper) is <b>API-first and event-first</b>; the JDBC adapter exists for legacy and edge cases — typically staging tables or databases you own outright — not for writing into a vendor application's tables. Using it against JAMS's database would be us choosing a pattern SAP documents as the exception, against every reason listed below.
+  </div>
   <table>
     <tr><th>FSM</th><th>Is direct DB write even possible?</th></tr>
     <tr><td>ServiceNow (ITSM / Defence)</td><td><b>No.</b> SaaS — ServiceNow does not expose its database to customers at all. Every inbound integration goes through its APIs (Import Set / Table). There is nothing to connect a SQL write to.</td></tr>

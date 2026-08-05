@@ -155,9 +155,14 @@ What we should **not** do for a no-API FSM: build an intermediate database it re
 recreates the JDW problem — the ARB's "additional considerations" already names it: any
 intermediate store becomes a system of record in practice.
 
-Equally ruled out: **CPI writing directly into an FSM's database.** For ServiceNow and
-Sitetracker this is simply impossible — as SaaS products they never expose a database;
-their APIs are the only inbound path. For JAMS it is technically possible and still wrong:
+Equally ruled out: **CPI writing directly into an FSM's database.** First, the precise
+technical position: CPI *is* capable of it — the Integration Suite JDBC receiver adapter
+supports INSERT/UPDATE/DELETE and stored procedures against the major databases, including
+on-premise ones via SAP Cloud Connector — so the case against it rests on recommendation,
+not capability. SAP's own guidance (ISA-M, clean core) is API- and event-first, with JDBC
+reserved for legacy/edge cases such as staging tables or databases we own outright. Second,
+for ServiceNow and Sitetracker it is simply impossible regardless — as SaaS products they
+never expose a database; their APIs are the only inbound path. For JAMS it is technically possible and still wrong:
 a direct SQL write bypasses JAMS's validations, workflow triggers, security rules and audit
 history (records end up in states the application could never create); the internal schema
 is not a contract, so every JAMS upgrade risks breaking the integration; vendor support for
