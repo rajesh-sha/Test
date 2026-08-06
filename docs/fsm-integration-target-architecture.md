@@ -90,8 +90,11 @@ lowest rung of the delivery ladder.
 | C13 | Error logging | Existing | Extend | Same canonical error-logging iFlow; add per-queue DLQ alerting |
 | C14 | Replay console | Runbook + iFlow | New (small) | Re-emit from DLQ or re-run delta window on demand (§8) |
 
-Everything except C1 depends only on existing entitlements. C1 (event ingestion) needs the
-AEM entitlement check; if it fails, C2 covers every object at lower freshness.
+Everything except C1 depends only on existing entitlements. C1 (event ingestion) uses the
+Event Mesh capability of Integration Suite (EMIS), included at no extra cost in standard and
+premium editions — remaining check is confirming our edition. Advanced Event Mesh is not
+required. If eventing is unavailable for an object, C2 covers it at lower freshness. No AI
+services are used anywhere in the design.
 
 ## 4. Change detection
 
@@ -255,7 +258,7 @@ and field mapping — the concrete answer to the acquisition scenario.
 
 | Package | Contents | Depends on | When |
 |---|---|---|---|
-| P0 | AEM entitlement check; event availability per object; volume sizing | — | Before Friday (Rajesh) |
+| P0 | Confirm Integration Suite edition (EMIS included in standard/premium); event availability per object; volume sizing | — | Before Friday (Rajesh) |
 | P1 | Core spine: C2 delta poller, C3 watermarks, C4 envelope, C5 registry, C6 router, C7 queues, C13 logging | Existing passthrough APIs | First build increment |
 | P2 | JAMS adapter (C8) + JAMS upsert endpoint | P1; Trajce's endpoint | Aligned to JAMS go-live scope |
 | P3 | ServiceNow adapter (C9) + Defence scope validation | P1; Chamila's confirmations | When ITSM/Defence need firms up |
@@ -263,11 +266,11 @@ and field mapping — the concrete answer to the acquisition scenario.
 | P5 | File adapter (C11), replay console (C14), Sitetracker adapter (C10) | P1 | As demanded |
 
 Key sequencing point for Friday: **P1+P2 is the JAMS day-one scope and does not depend on the
-event mesh** — the AEM question improves freshness later but gates nothing.
+event broker** — eventing improves freshness later but gates nothing.
 
 ## 13. Open items (carried from the research paper)
 
-- AEM entitlement in our Integration Suite tier; standard event availability for our six
+- Integration Suite edition confirmation (EMIS included in standard/premium; AEM not required); standard event availability for our six
   objects (Rajesh).
 - JAMS inbound endpoint is upsert-capable; sequencing constraints (Trajce).
 - Import Set API acceptability under Defence security posture; ITSM need confirmation

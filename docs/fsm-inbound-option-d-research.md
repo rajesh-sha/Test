@@ -83,8 +83,12 @@ flowchart LR
   changed, invoice posted, project updated) natively into SAP Integration Suite **Advanced
   Event Mesh (AEM)**, which is built exactly for one-publisher/many-subscribers distribution.
   This is SAP's recommended event-driven pattern and gives near-real-time delivery without
-  polling. Licensing note: AEM is a capability within our Integration Suite entitlement tier —
-  I will confirm our tier covers it before Friday.
+  polling. Licensing note (verified): the Event Mesh capability of Integration Suite (EMIS)
+  is included in Integration Suite standard and premium editions at no additional licence
+  cost — activation only — and its limits (1 MB message, 2 GB buffer) fit key-only events.
+  Advanced Event Mesh is a separately licensed, higher-volume product and is **not required**
+  for this design. The S/4-side Enterprise Event Enablement framework is delivered within
+  S/4HANA Cloud and configured through standard apps.
 - **Central delta poll (no new licence).** Where an object has no usable event, one
   timer-based CPI iFlow polls the *existing* passthrough API with a change-date `$filter` and a
   stored watermark — the identical query the FSMs would each have written under Option B, run
@@ -217,8 +221,10 @@ repeatable per FSM — versus a bespoke build inside every acquired product fore
 - **CPI becomes an operational platform, not a wrapper.** Per-FSM queues need monitoring,
   alerting and a support runbook. Mitigation: this is one team's runbook instead of ten;
   existing error-logging extends to it.
-- **AEM licensing/entitlement** for the event-driven leg — I'm confirming our Integration
-  Suite tier. Fallback is the central delta poll, which needs no new licence.
+- **Event broker licensing — verified:** the Event Mesh capability of Integration Suite
+  (EMIS) is included in standard and premium editions at no extra cost; Advanced Event Mesh
+  is separately licensed and not required. Remaining check: confirm our edition. Fallback is
+  the central delta poll, which needs nothing new either way.
 - **Message volumes** count against Integration Suite metering; fan-out multiplies messages.
   Needs sizing against contract volumes — I'll bring an estimate Friday.
 - **Canonical model versioning** now has ten consumers of pushed shapes; adapter iFlows
@@ -231,7 +237,7 @@ repeatable per FSM — versus a bespoke build inside every acquired product fore
 
 ## 8. Data still to gather before Friday (owners per Ian's table)
 
-- **Rajesh (CPI):** AEM entitlement in our Integration Suite tier; which S/4 standard business
+- **Rajesh (CPI):** confirm Integration Suite edition (EMIS included in standard/premium); which S/4 standard business
   events exist for our six objects vs which need the delta poll; message-volume estimate;
   build estimate for registry + router + 3 adapters.
 - **Trajce (JAMS):** confirm equal-effort read; whether JAMS's inbound endpoint would be
