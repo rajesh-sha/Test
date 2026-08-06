@@ -57,6 +57,9 @@
   .warnline{font-size:11.5px; color:var(--warn); font-weight:700; margin-top:10px;}
   .okline{font-size:11.5px; color:var(--push); font-weight:700; margin-top:10px;}
   .hl{background:#fef9c3; border:1.5px solid #eab308; padding:12px 16px; margin:12px 0 4px; font-size:12px; line-height:1.55;}
+  details{margin-top:10px; border:1px solid var(--line); background:#fafbfd; padding:8px 14px;}
+  details summary{cursor:pointer; font-size:11.5px; font-weight:700; color:#1e56a0; list-style-position:inside;}
+  details[open] summary{margin-bottom:4px;}
   .hl b.t{display:block; font-size:12.5px; margin-bottom:5px;}
 </style>
 </head>
@@ -174,6 +177,7 @@
       <div class="comp">Upsert on object key<small>7 · safe to receive twice;<br>newest change wins (<code>changedAt</code>)</small></div>
     </div>
   </div>
+  <details><summary>Step-by-step notes — open when needed</summary>
   <ul class="explain">
     <li><b>1a PUSH (preferred):</b> S/4HANA Cloud Public Edition sends a standard business event through its built-in Enterprise Event Enablement channel (600+ standard events published on the SAP Business Accelerator Hub) and CPI receives it. Near real time. <b>1b PULL (backup):</b> CPI checks the existing S/4 APIs on a timer for records changed since the last check — one central check instead of ten FSMs each checking. Chosen per object; both feed step 2 the same way.</li>
     <li><b>2:</b> events carry only the record key — CPI always re-reads the full record from S/4 before sending it out, so what is delivered is always the current state, even if events arrive late or out of order.</li>
@@ -182,6 +186,7 @@
     <li><b>7:</b> every receiving system applies the data as insert-or-update ("upsert") on the S/4 record key — receiving the same message twice causes no harm.</li>
     <li><b>Works for documents created through the canonical leg too:</b> a service order or purchase order posted into S/4 by an FSM's canonical message (Leg 1) is detected exactly like any other change — detection does not care how the document got into S/4. The fast acknowledgement (status + correlation ID) stays as designed; the document details then come back to the originating FSM as a push carrying the S/4 document number, status and values, matched to its request via the correlation ID. That replaces today's "read the warehouse to see what happened to what I sent" — and every other subscribed FSM gets the same document through its own subscription. No loop risk: FSMs apply the inbound push as a system update; it never re-triggers a canonical send.</li>
   </ul>
+  </details>
 </section>
 
 <!-- ============ SLIDE 3 — DATA COVERAGE ============ -->
@@ -189,6 +194,7 @@
   <span class="sno">SLIDE 3 / 10 — DATA COVERAGE: EVERY REQUIRED DATA SET CAN BE PUBLISHED</span>
   <h2>All data the FSMs need today can be published through this architecture</h2>
   <p class="lede">These are the same base S/4 APIs already confirmed for the pull design (GET · Base + Entity + <code>systemId</code> mandatory + OData filters, per the API Business Hub). The distribution layer calls the <b>same APIs with the same call rules</b> — once, centrally — so anything the pull endpoint can serve, CPI can publish.</p>
+  <details><summary>Detail per data set — open when needed</summary>
   <table>
     <tr><th>Data set</th><th>Existing S/4 API (unchanged)</th><th>Change detected by</th><th>Standard event (SAP Business Accelerator Hub)</th><th>Timed-check filter field</th><th>Published to</th></tr>
     <tr><td>Service Orders</td><td><code>/S4/serviceorders</code></td><td>Event, timed check as backup</td><td>Expected — service order events are in scope of the 600+ published events; exact name to confirm on the Hub</td><td><code>ServiceDocChangedDateTime</code> — proven filterable in the sample payload</td><td>JAMS · SN ITSM · SN Defence · (Sitetracker TBC)</td></tr>
@@ -205,6 +211,7 @@
     <li><b>Every data set lands on every subscribed FSM in that FSM's own delivery mode</b> (slides 4–7) — the "Published to" column is the starting subscription list, to be confirmed with system owners.</li>
     <li><b>Event names to be pinned per object</b> from the SAP Business Accelerator Hub as part of my Friday prep — the "Standard event" column above is the expected position; the timed check column is the guaranteed fallback for every row, so no data set is at risk either way. <b>The topic format is already confirmed in our own tenant:</b> <code>sap/s4/beh/&lt;object&gt;/v1/&lt;Object&gt;/Changed/v1</code>, with <code>ServiceEntrySheet/Changed</code> bound and running (Status Ok, API State Released) on the active <code>EMIS_COM_0092</code> channel — so pinning the remaining names is a lookup, not a risk.</li>
   </ul>
+  </details>
   <div class="okline">Conclusion: 7 of 7 required data sets are publishable with this architecture. The timed check on the already-proven APIs guarantees every row; standard events (to be confirmed per object on the Hub) upgrade up to 5 of them to near real time.</div>
 </section>
 
@@ -230,6 +237,7 @@
       <div class="comp">JAMS DB updated by JAMS itself<small>replaces today's SQL against JDW</small></div>
     </div>
   </div>
+  <details><summary>Implementation detail — open when needed</summary>
   <table>
     <tr><th>Item</th><th>Value</th></tr>
     <tr><td>Delivery mode</td><td><span class="badge push">PUSH · API</span> — JAMS never polls; data arrives when S/4 changes</td></tr>
@@ -238,6 +246,7 @@
     <tr><td>Error path</td><td>Error/timeout → CPI retries automatically → failed messages park on the JAMS error queue → JAMS support alerted · re-sent after recovery</td></tr>
     <tr><td>First load</td><td>Re-send a date range per object (<code>ChangedDateTime</code> from–to), same endpoint</td></tr>
   </table>
+  </details>
   <div class="okline">Day-one scope: the core CPI layer + this adapter. Works with the timed data check alone — no dependency on the event channel.</div>
 </section>
 
@@ -263,6 +272,7 @@
       <div class="comp">Transform map → target table<small>matches on S/4 key = built-in insert-or-update · SN admin config, not code</small></div>
     </div>
   </div>
+  <details><summary>Implementation detail — open when needed</summary>
   <table>
     <tr><th>Item</th><th>Value</th></tr>
     <tr><td>Delivery mode</td><td><span class="badge push">PUSH · API</span> to each instance separately (ITSM and Defence are separate subscription entries, separate queues, separate credentials)</td></tr>
@@ -271,6 +281,7 @@
     <tr><td>Defence data separation</td><td>Enforced twice: contract scope on the subscription list in CPI (primary) + separate credential and queue per instance. Fully auditable from CPI logs.</td></tr>
     <tr><td>Error path</td><td>Import Set API confirms each row; row errors go to the standard error logging; connection errors → automatic retry, then the error queue</td></tr>
   </table>
+  </details>
   <div class="okline">ServiceNow's own guidance prefers Import Set API over custom scripted endpoints — this is the platform-intended inbound pattern.</div>
 </section>
 
@@ -296,6 +307,7 @@
       <div class="comp">External ID field per object<small>admin config</small></div>
     </div>
   </div>
+  <details><summary>Implementation detail — open when needed</summary>
   <table>
     <tr><th>Item</th><th>Value</th></tr>
     <tr><td>Delivery mode</td><td><span class="badge push">PUSH · API</span> — REST upsert for steady state, Bulk API 2.0 for initial load</td></tr>
@@ -303,6 +315,7 @@
     <tr><td>Sitetracker builds</td><td>Nothing. External ID fields + integration user + connected app = configuration <span class="badge cfg">CONFIG ONLY</span></td></tr>
     <tr><td>Open item</td><td>Confirm current-phase need, API access tier in our licence, and object owner (name TBC)</td></tr>
   </table>
+  </details>
 </section>
 
 <!-- ============ SLIDE 6 — NO-API FSM ============ -->
@@ -355,6 +368,7 @@
     SAP Integration Suite ships a <b>JDBC receiver adapter</b> that can run <code>INSERT</code> / <code>UPDATE</code> / <code>DELETE</code> and stored procedures against Oracle, MS SQL Server, IBM DB2, PostgreSQL, HANA and others — including <b>on-premise databases via SAP Cloud Connector</b>. So "CPI can't do it" is the wrong argument and will lose the room the moment someone opens the adapter list.
     The correct argument: <b>capability ≠ recommendation.</b> SAP's own published guidance (the Integration Solution Advisory Methodology and the Clean Core integration white paper) is <b>API-first and event-first</b>; the JDBC adapter exists for legacy and edge cases — typically staging tables or databases you own outright — not for writing into a vendor application's tables. Using it against JAMS's database would be us choosing a pattern SAP documents as the exception, against every reason listed below.
   </div>
+  <details><summary>Per-FSM answer and the full reasons — open when needed</summary>
   <table>
     <tr><th>FSM</th><th>Is direct DB write even possible?</th></tr>
     <tr><td>ServiceNow (ITSM / Defence)</td><td><b>No.</b> SaaS — ServiceNow does not expose its database to customers at all. Every inbound integration goes through its APIs (Import Set / Table). There is nothing to connect a SQL write to.</td></tr>
@@ -369,6 +383,7 @@
     <li><b>It is a named industry anti-pattern.</b> Integration through a shared/written-to database is a classic enterprise-integration anti-pattern — "Integration databases: don't do it. Not even with views. Not even with stored procedures." (Michael Nygard, <i>Release It!</i>). It also contradicts the SAP clean-core, API-led direction the program has already adopted.</li>
     <li><b>The right answer gives the same outcome safely:</b> the small JAMS upsert endpoint (slide 4) puts the same data in the same JAMS tables — but through JAMS's own logic, with JAMS's own validation and audit. Equal effort to the pull build (Trajce), none of the risks above.</li>
   </ul>
+  </details>
   <div class="warnline">Position for Friday: direct database update is not an option for the fleet (impossible for SaaS FSMs) and not acceptable for JAMS (unsupported, upgrade-fragile, unauditable). It is not a fifth delivery option.</div>
 </section>
 
@@ -399,7 +414,7 @@
   <h2>Step-by-step build plan — S/4 and CPI, each step marked standard configuration or build</h2>
   <p class="lede">Direct answer to "is this standard, or does something need to be built?": <b>everything on the S/4 side is standard configuration through delivered apps — no development in S/4 at all</b> (Public Edition does not allow it, and none is needed). All development sits in CPI, and even there it uses only standard delivered adapters — no custom platform components.</p>
 
-  <b style="font-size:12.5px;">A — S/4HANA side (all standard configuration, done in delivered Fiori apps)</b>
+  <details><summary>A — S/4HANA side: all standard configuration in delivered apps — open for steps</summary>
   <table>
     <tr><th>#</th><th>Step</th><th>Type</th><th>Detail — the SAP-documented way</th></tr>
     <tr><td>A1</td><td>Communication user + communication system for CPI</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>Standard "Maintain Communication Users" / "Communication Systems" apps — same mechanism the existing pull design already uses.</td></tr>
@@ -408,9 +423,10 @@
     <tr><td>A4</td><td>Channel binding</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>Standard app "Enterprise Event Enablement — Configure Channel Binding": pick the channel created by A3.</td></tr>
     <tr><td>A5</td><td>Outbound topic binding per object</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>In the same app, add each event object (service order, project, billing document, supplier invoice, purchase order) and tick the event types wanted (create / update / delete). This is the per-object switch from slide 2.</td></tr>
   </table>
+  </details>
   <div class="okline">Proven in our own tenant (client FLA/100): channel <code>EMIS_COM_0092</code> for Enterprise Event Enablement is <b>Active</b>, with outbound topic binding <code>sap/s4/beh/serviceentrysheet/v1/ServiceEntrySheet/Changed/v1</code> showing Status <b>Ok</b> and API State <b>Released</b> — steps A3–A5 are not theory, they are working configuration today. The delivered "Event Monitor" app gives runtime visibility of emitted events.</div>
 
-  <b style="font-size:12.5px; display:block; margin-top:14px;">B — BTP platform preparation (standard activation, no development)</b>
+  <details><summary>B — Platform preparation: standard activations, no development — open for steps</summary>
   <table>
     <tr><th>#</th><th>Step</th><th>Type</th><th>Detail</th></tr>
     <tr><td>B1</td><td>Activate the Event Mesh capability of Integration Suite (EMIS)</td><td><span class="badge cfg">STANDARD CONFIG</span> <span class="badge push">DONE</span></td><td>EMIS is included in Integration Suite standard and premium editions at <b>no additional licence cost</b> — and the active <code>EMIS_COM_0092</code> channel in our tenant shows the capability is already activated and connected. This check is closed.</td></tr>
@@ -418,8 +434,9 @@
     <tr><td>B3</td><td>Credentials stored per FSM</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>CPI Security Material store: one OAuth client / certificate / SSH key per FSM endpoint. No shared credentials.</td></tr>
     <tr><td>B4</td><td>Transport route DEV → TEST → PROD</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>Standard SAP Cloud Transport Management — flows and the subscription list move together, change-controlled.</td></tr>
   </table>
+  </details>
 
-  <b style="font-size:12.5px; display:block; margin-top:14px;">C — CPI flows (this is the build — using standard delivered adapters only)</b>
+  <details><summary>C — CPI flows: the only development, built from standard adapters — open for steps</summary>
   <table>
     <tr><th>#</th><th>Step</th><th>Type</th><th>Detail — standard CPI toolkit, no custom components</th></tr>
     <tr><td>C-a</td><td>Event receiver flow (per event-enabled object)</td><td><span class="badge new">BUILD</span></td><td>Standard event/AMQP adapter subscribes to the topic from A5; on receipt, calls the released API (standard OData receiver adapter) to fetch the full record.</td></tr>
@@ -428,16 +445,18 @@
     <tr><td>C-d</td><td>Delivery adapter per FSM</td><td><span class="badge new">BUILD</span></td><td>One flow per FSM: standard HTTP receiver adapter (JAMS), standard HTTP receiver to ServiceNow Import Set API, standard Salesforce/HTTP receiver (Sitetracker), standard SFTP receiver (file FSMs). Mapping canonical → FSM fields is standard graphical mapping.</td></tr>
     <tr><td>C-e</td><td>Error handling + re-send</td><td><span class="badge new">BUILD</span></td><td>Extend the existing error-logging flow; standard JMS retry settings per queue; a small re-send flow that re-runs a date range for recovery and first loads.</td></tr>
   </table>
+  </details>
 
-  <b style="font-size:12.5px; display:block; margin-top:14px;">D — FSM side (as per slides 4–7)</b>
+  <details><summary>D — FSM side: configuration only, except one small JAMS endpoint — open for steps</summary>
   <table>
     <tr><th>#</th><th>Step</th><th>Type</th><th>Detail</th></tr>
     <tr><td>D1</td><td>ServiceNow: staging tables, transform maps, integration user</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>Built-in platform features, set up by a ServiceNow admin.</td></tr>
     <tr><td>D2</td><td>Sitetracker: external ID fields, connected app, integration user</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>Standard Salesforce administration.</td></tr>
     <tr><td>D3</td><td>JAMS: one receiving endpoint per object (insert-or-update)</td><td><span class="badge new">BUILD</span></td><td>The single FSM-side build in the whole plan — small, one-off, equal effort to the pull client it replaces (Trajce).</td></tr>
   </table>
+  </details>
 
-  <b style="font-size:12.5px; display:block; margin-top:14px;">E — Licensing: what our existing licences already cover</b>
+  <details><summary>E — Licensing: no new licences expected — open for the breakdown</summary>
   <table>
     <tr><th>Item</th><th>Licence position</th></tr>
     <tr><td>Enterprise Event Enablement (S/4 side)</td><td>Delivered framework inside S/4HANA Cloud — configured through standard apps; no separate S/4-side licence is documented for it. The licensing question sits on the broker side, not in S/4. (Formal confirmation with the SAP account team recommended as due diligence.)</td></tr>
@@ -447,6 +466,7 @@
     <tr><td>Message volume</td><td>The one commercial variable: Integration Suite is metered on message volume, and fan-out multiplies messages. Sizing against contract volumes is the open action — a metering question under the existing licence, not a new licence.</td></tr>
     <tr><td>AI components</td><td><b>None.</b> This design uses no AI services, no SAP Joule, no AI-unit consumption — nothing in it touches AI licensing.</td></tr>
   </table>
+  </details>
 
   <ul class="explain">
     <li><b>Sequence:</b> A1–A2 and B2–B4 exist or are trivial; start with C-b + C-c + C-d(JAMS) + D3 — that is the JAMS day-one scope and needs no event broker. A3–A5, B1 and C-a follow as the near-real-time upgrade, object by object.</li>
@@ -458,6 +478,7 @@
 <section class="slide">
   <span class="sno">SOURCES — every external fact in this document, with where it comes from</span>
   <h2>Sources</h2>
+  <details><summary>Fact-by-fact source list — open when needed</summary>
   <table>
     <tr><th>Fact used in this document</th><th>Source</th></tr>
     <tr><td>S/4HANA Cloud Public Edition publishes 600+ standard business events via its built-in Enterprise Event Enablement channel; event names follow the pattern <code>sap.s4.beh.&lt;object&gt;…Changed</code></td><td><a href="https://help.sap.com/docs/abap-cloud/abap-integration-connectivity/enterprise-event-enablement">SAP Help — Enterprise Event Enablement</a> · <a href="https://developers.sap.com/tutorials/prepare-hub..html">SAP Tutorials — Exploring events on the Business Accelerator Hub</a> · <a href="https://cap.cloud.sap/docs/guides/messaging/s4">SAP capire — Receiving events from S/4HANA Cloud</a></td></tr>
@@ -470,6 +491,7 @@
     <tr><td>SAP's integration guidance is API-first and event-first (Integration Solution Advisory Methodology; Clean Core)</td><td><a href="https://community.sap.com/t5/enterprise-resource-planning-blog-posts-by-sap/why-sap-isa-m-still-matters-a-strategic-foundation-for-modern-integration/ba-p/14162231">SAP Community — Why ISA-M still matters</a> · <a href="https://community.sap.com/t5/technology-blog-posts-by-sap/introducing-the-clean-core-integration-white-paper/ba-p/14454507">SAP Community — Clean Core Integration white paper</a></td></tr>
     <tr><td>Integration through a shared or directly-written database is a recognised anti-pattern ("Integration databases: don't do it. Not even with views. Not even with stored procedures." — Michael Nygard, <i>Release It!</i>)</td><td><a href="https://blog.iannelson.uk/enterprise-integration-anti-patterns-1-the-shared-database/">Enterprise Integration Anti-Patterns — The Shared Database</a> · <a href="https://www.ben-morris.com/a-shared-database-is-still-an-anti-pattern-no-matter-what-the-justification/">Ben Morris — A shared database is still an anti-pattern</a></td></tr>
   </table>
+  </details>
   <ul class="explain">
     <li><b>Program facts</b> (existing pull design, call rules, canonical model, JAMS/Jobpac as-is, owner names) come from the Apollo design pack and the Design Council session — not external sources.</li>
     <li><b>Marked as "expected / to confirm":</b> exact standard event names per object (Business Accelerator Hub), Advanced Event Mesh entitlement in our Integration Suite tier, filterable change-date fields per released API, and message-volume sizing. These are the pre-Friday checks and are flagged as such wherever they appear.</li>
