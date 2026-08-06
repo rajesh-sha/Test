@@ -163,7 +163,7 @@
       <div class="comp">C4 Message builder<small>2 · re-read full object: OData GET (PULL)<br>always sends current state, safe to send twice</small></div>
       <div class="comp reg">C6 Router + C5 subscription list<small>3 · match FSM × object × contract scope</small></div>
       <div class="comp">C7 Queue per FSM<small>4 · automatic retries · error queue · in order per record</small></div>
-      <div class="comp">C8–C11 Delivery adapter<small>5 · map canonical → FSM schema</small></div>
+      <div class="comp">C8–C11 Delivery adapter<small>5 · convert to the receiving system's own field names</small></div>
     </div>
     <div class="hop">
       <div class="n">6</div>
@@ -233,23 +233,23 @@
 <!-- ============ SLIDE 4 — JAMS ============ -->
 <section class="slide">
   <span class="sno">SLIDE 4 / 10 — JAMS IMPLEMENTATION</span>
-  <h2>JAMS — <span class="badge push">PUSH · API</span> CPI posts insert-or-update records to one new JAMS web service</h2>
-  <p class="lede">Direction: CPI → JAMS. JAMS builds one small new endpoint to receive data. Scheduling, change detection, filtering and retry all stay in CPI — nothing else changes in JAMS.</p>
+  <h2>JAMS — <span class="badge push">PUSH · API</span> CPI sends each changed record to JAMS; JAMS saves it itself</h2>
+  <p class="lede">Direction: CPI → JAMS, one call per changed record. JAMS builds <b>6 small receiving endpoints — one per data set</b> (service orders, projects, customer invoices, supplier invoices/RCTI, time &amp; equipment, stock). That is the whole JAMS scope: no scheduler, no data checking, no filtering, no retry logic — all of that stays in CPI.</p>
   <div class="diag">
     <div class="sys"><span class="zone">SAP BTP · CPI</span>
       <div class="name">JAMS adapter (C8)</div>
-      <div class="comp">Map canonical → JAMS schema<small>per object: service order, project, invoices, time &amp; equipment, stock</small></div>
+      <div class="comp">Convert the standard message into JAMS's own field names<small>one field-mapping table per data set (6 total) —<br>written down and agreed between the CPI team and the JAMS team before build</small></div>
     </div>
     <div class="hop">
       <div class="n">6</div>
       <div class="proto">PUSH · HTTPS POST</div>
-      <div class="sub2"><code>POST /api/s4/{object}/upsert</code><br>auth: OAuth 2.0 client credentials<br>(or certificate-based auth if the JAMS stack requires)</div>
+      <div class="sub2">one web-service address per data set —<br>exact paths named by the JAMS team<br>(<code>/api/s4/serviceorders</code> shown as an example only)<br>login: OAuth 2.0 system user, agreed with JAMS</div>
       <div class="ln"></div>
     </div>
     <div class="sys"><span class="zone g">FIELD SYSTEM</span>
       <div class="name">JAMS</div>
-      <div class="comp">NEW: inbound upsert endpoint <small>one endpoint per object · upsert on S/4 key · returns 200/4xx</small></div>
-      <div class="comp">JAMS DB updated by JAMS itself<small>replaces today's SQL against JDW</small></div>
+      <div class="comp">NEW: 6 receiving endpoints<small>each one: create the record if new, update it if it exists —<br>matched on the S/4 document number ·<br>reply "saved" (200) or "rejected + reason" (400)</small></div>
+      <div class="comp">JAMS saves to its own database itself<small>replaces today's SQL read of the Jobpac warehouse — no outside system ever touches JAMS's database</small></div>
     </div>
   </div>
   <details><summary>Implementation detail — open when needed</summary>
@@ -257,7 +257,7 @@
     <tr><th>Item</th><th>Value</th></tr>
     <tr><td>Delivery mode</td><td><span class="badge push">PUSH · API</span> — JAMS never polls; data arrives when S/4 changes</td></tr>
     <tr><td>CPI builds</td><td>C8 adapter flow + JAMS delivery queue <span class="badge new">NEW</span></td></tr>
-    <tr><td>JAMS builds</td><td>One upsert web service per object (Trajce: equal effort to building pull — direction changes) <span class="badge new">NEW</span></td></tr>
+    <tr><td>JAMS builds</td><td>6 receiving web services, one per data set (Trajce: equal effort to building the pull client it replaces — the direction changes, the work does not grow) <span class="badge new">NEW</span></td></tr>
     <tr><td>Error path</td><td>Error/timeout → CPI retries automatically → failed messages park on the JAMS error queue → JAMS support alerted · re-sent after recovery</td></tr>
     <tr><td>First load</td><td>Re-send a date range per object (<code>ChangedDateTime</code> from–to), same endpoint</td></tr>
   </table>
@@ -273,7 +273,7 @@
   <div class="diag">
     <div class="sys"><span class="zone">SAP BTP · CPI</span>
       <div class="name">ServiceNow adapter (C9)</div>
-      <div class="comp">Map canonical → import set rows<small>Defence data pre-filtered by the subscription list: only Defence contracts ever reach this queue</small></div>
+      <div class="comp">Convert the standard message into import-set rows (ServiceNow's staging format)<small>Defence data pre-filtered by the subscription list: only Defence contracts ever reach this queue</small></div>
     </div>
     <div class="hop">
       <div class="n">6</div>
@@ -308,7 +308,7 @@
   <div class="diag">
     <div class="sys"><span class="zone">SAP BTP · CPI</span>
       <div class="name">Sitetracker adapter (C10)</div>
-      <div class="comp">Map canonical → Sitetracker objects<small>upsert via Salesforce external ID = S/4 object key</small></div>
+      <div class="comp">Convert the standard message into Sitetracker's fields<small>matched on an ID field holding the S/4 document number</small></div>
     </div>
     <div class="hop">
       <div class="n">6</div>
@@ -341,7 +341,7 @@
   <div class="diag">
     <div class="sys"><span class="zone">SAP BTP · CPI</span>
       <div class="name">File adapter (C11)</div>
-      <div class="comp">Canonical → CSV / JSON file<small>one file per object per interval · tracking fields (IDs, dates) as columns</small></div>
+      <div class="comp">Convert the standard message into a CSV / JSON file<small>one file per data set per interval · tracking fields (IDs, dates) as columns</small></div>
     </div>
     <div class="hop">
       <div class="n">6</div>
@@ -408,7 +408,7 @@
   <h2>Per-FSM implementation — one row per system, direction explicit</h2>
   <table>
     <tr><th>FSM</th><th>Mode</th><th>Protocol / endpoint</th><th>Auth</th><th>FSM build</th><th>CPI build</th></tr>
-    <tr><td>JAMS</td><td><span class="badge push">PUSH · API</span></td><td>HTTPS POST <code>/api/s4/{object}/upsert</code> (new JAMS service)</td><td>OAuth 2.0 (or certificates)</td><td>One upsert endpoint per object</td><td>C8 adapter + queue</td></tr>
+    <tr><td>JAMS</td><td><span class="badge push">PUSH · API</span></td><td>HTTPS POST to 6 new JAMS web services, one per data set — paths named by the JAMS team</td><td>OAuth 2.0 (or certificates)</td><td>6 receiving endpoints</td><td>C8 adapter + queue</td></tr>
     <tr><td>ServiceNow ITSM</td><td><span class="badge push">PUSH · API</span></td><td>HTTPS POST <code>/api/now/import/{staging_table}</code> (built-in)</td><td>OAuth 2.0</td><td>None — config only</td><td>C9 adapter + queue</td></tr>
     <tr><td>ServiceNow Defence</td><td><span class="badge push">PUSH · API</span></td><td>Same as ITSM, separate instance/queue/credential; subscription scope = Defence contracts only</td><td>OAuth 2.0</td><td>None — config only</td><td>Shares C9 + own queue</td></tr>
     <tr><td>Sitetracker</td><td><span class="badge push">PUSH · API</span></td><td>HTTPS PATCH Salesforce upsert on external ID · Bulk 2.0 for loads</td><td>OAuth 2.0</td><td>None — config only</td><td>C10 adapter + queue</td></tr>
