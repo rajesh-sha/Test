@@ -69,7 +69,7 @@
 
 <!-- ============ SLIDE 1 — THE ONE CONCISE SLIDE ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 1 / 9 — SUMMARY (the one-slide version)</span>
+  <span class="sno">SLIDE 1 / 10 — SUMMARY (the one-slide version)</span>
   <h2>Recommended: CPI orchestrates. Each FSM interface is an explicit PUSH or PULL — nothing else.</h2>
   <p class="lede">One distribution layer in CPI. Delivery mode is a per-FSM configuration value with exactly four allowed values. No intermediate business database anywhere.</p>
   <div class="diag">
@@ -115,7 +115,7 @@
 
 <!-- ============ SLIDE 2 — END-TO-END MESSAGE PATH ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 2 / 9 — END-TO-END MESSAGE PATH</span>
+  <span class="sno">SLIDE 2 / 10 — END-TO-END MESSAGE PATH</span>
   <h2>End-to-end path — every hop numbered, with protocol and direction</h2>
   <p class="lede">Two detection mechanisms feed one identical downstream path. Steps 3–7 are the same for every FSM; only step 7's adapter differs.</p>
   <div class="diag">
@@ -163,7 +163,7 @@
 
 <!-- ============ SLIDE 3 — DATA COVERAGE ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 3 / 9 — DATA COVERAGE: EVERY REQUIRED DATA SET CAN BE PUBLISHED</span>
+  <span class="sno">SLIDE 3 / 10 — DATA COVERAGE: EVERY REQUIRED DATA SET CAN BE PUBLISHED</span>
   <h2>All data the FSMs need today can be published through this architecture</h2>
   <p class="lede">These are the same base S/4 APIs already confirmed for the pull design (GET · Base + Entity + <code>systemId</code> mandatory + OData filters, per the API Business Hub). The distribution layer calls the <b>same APIs with the same call rules</b> — once, centrally — so anything the pull endpoint can serve, CPI can publish.</p>
   <table>
@@ -187,7 +187,7 @@
 
 <!-- ============ SLIDE 4 — JAMS ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 4 / 9 — JAMS IMPLEMENTATION</span>
+  <span class="sno">SLIDE 4 / 10 — JAMS IMPLEMENTATION</span>
   <h2>JAMS — <span class="badge push">PUSH · API</span> CPI posts upserts to one new JAMS web service</h2>
   <p class="lede">Direction: CPI → JAMS. JAMS builds one small new endpoint to receive data. Scheduling, change detection, filtering and retry all stay in CPI — nothing else changes in JAMS.</p>
   <div class="diag">
@@ -220,7 +220,7 @@
 
 <!-- ============ SLIDE 4 — SERVICENOW ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 5 / 9 — SERVICENOW IMPLEMENTATION (ITSM + DEFENCE)</span>
+  <span class="sno">SLIDE 5 / 10 — SERVICENOW IMPLEMENTATION (ITSM + DEFENCE)</span>
   <h2>ServiceNow ITSM &amp; Defence — <span class="badge push">PUSH · API</span> Import Set API, out of the box <span class="badge cfg">CONFIG ONLY</span></h2>
   <p class="lede">Direction: CPI → ServiceNow. No ServiceNow development: the Import Set API and transform maps are platform features configured by a SN admin.</p>
   <div class="diag">
@@ -253,7 +253,7 @@
 
 <!-- ============ SLIDE 5 — SITETRACKER ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 6 / 9 — SITETRACKER IMPLEMENTATION</span>
+  <span class="sno">SLIDE 6 / 10 — SITETRACKER IMPLEMENTATION</span>
   <h2>Sitetracker — <span class="badge push">PUSH · API</span> Salesforce-standard REST upsert <span class="badge cfg">CONFIG ONLY</span></h2>
   <p class="lede">Direction: CPI → Sitetracker. Sitetracker is native on the Salesforce platform, so the standard Salesforce REST/Bulk APIs are already there for every standard and custom object.</p>
   <div class="diag">
@@ -284,7 +284,7 @@
 
 <!-- ============ SLIDE 6 — NO-API FSM ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 7 / 9 — FSM WITHOUT A USABLE API</span>
+  <span class="sno">SLIDE 7 / 10 — FSM WITHOUT A USABLE API</span>
   <h2>No-API FSM — <span class="badge push">PUSH · FILE</span> file drop, or <span class="badge pull">PULL · API</span> the existing Response Type 2 endpoint</h2>
   <p class="lede">Two clear backup options, both served by the same CPI layer. Chosen per FSM in the configuration — never a new architecture, and never an extra database.</p>
   <div class="diag">
@@ -324,7 +324,7 @@
 
 <!-- ============ SLIDE 8 — DIRECT DB UPDATE RULED OUT ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 8 / 9 — DIRECT DATABASE UPDATE INTO AN FSM (ruled out)</span>
+  <span class="sno">SLIDE 8 / 10 — DIRECT DATABASE UPDATE INTO AN FSM (ruled out)</span>
   <h2>"Why not have CPI write straight into the FSM database?" — because it can't for most, and shouldn't for any</h2>
   <p class="lede">Expected question, answered up front. Writing into an application's database from outside skips the application itself — and for the SaaS FSMs there is no database to reach in the first place.</p>
   <div class="hl">
@@ -351,7 +351,7 @@
 
 <!-- ============ SLIDE 9 — IMPLEMENTATION TABLE ============ -->
 <section class="slide">
-  <span class="sno">SLIDE 9 / 9 — IMPLEMENTATION SUMMARY (no ambiguity)</span>
+  <span class="sno">SLIDE 9 / 10 — IMPLEMENTATION SUMMARY (no ambiguity)</span>
   <h2>Per-FSM implementation — one row per system, direction explicit</h2>
   <table>
     <tr><th>FSM</th><th>Mode</th><th>Protocol / endpoint</th><th>Auth</th><th>FSM build</th><th>CPI build</th></tr>
@@ -370,6 +370,55 @@
   </ul>
 </section>
 
+<!-- ============ SLIDE 10 — BUILD PLAN ============ -->
+<section class="slide">
+  <span class="sno">SLIDE 10 / 10 — IMPLEMENTATION PLAN: WHAT IS STANDARD, WHAT IS BUILT</span>
+  <h2>Step-by-step build plan — S/4 and CPI, each step marked standard configuration or build</h2>
+  <p class="lede">Direct answer to "is this standard, or does something need to be built?": <b>everything on the S/4 side is standard configuration through delivered apps — no development in S/4 at all</b> (Public Edition does not allow it, and none is needed). All development sits in CPI, and even there it uses only standard delivered adapters — no custom platform components.</p>
+
+  <b style="font-size:12.5px;">A — S/4HANA side (all standard configuration, done in delivered Fiori apps)</b>
+  <table>
+    <tr><th>#</th><th>Step</th><th>Type</th><th>Detail — the SAP-documented way</th></tr>
+    <tr><td>A1</td><td>Communication user + communication system for CPI</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>Standard "Maintain Communication Users" / "Communication Systems" apps — same mechanism the existing pull design already uses.</td></tr>
+    <tr><td>A2</td><td>Communication arrangement per released API</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>One arrangement per API scenario (scenario IDs listed with each API on the SAP Business Accelerator Hub). Already in place for the six pull APIs — reused as-is, nothing new for the timed check.</td></tr>
+    <tr><td>A3</td><td>Communication arrangement for eventing: scenario <code>SAP_COM_0092</code></td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>Create the arrangement, set the namespace field (e.g. <code>em/client/s4h</code>) — this is the SAP-documented step that connects S/4 to the event broker.</td></tr>
+    <tr><td>A4</td><td>Channel binding</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>Standard app "Enterprise Event Enablement — Configure Channel Binding": pick the channel created by A3.</td></tr>
+    <tr><td>A5</td><td>Outbound topic binding per object</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>In the same app, add each event object (service order, project, billing document, supplier invoice, purchase order) and tick the event types wanted (create / update / delete). This is the per-object switch from slide 2.</td></tr>
+  </table>
+
+  <b style="font-size:12.5px; display:block; margin-top:14px;">B — BTP platform preparation (standard activation, no development)</b>
+  <table>
+    <tr><th>#</th><th>Step</th><th>Type</th><th>Detail</th></tr>
+    <tr><td>B1</td><td>Activate the event broker capability (Event Mesh capability of Integration Suite, or Event Hub)</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>Subscription/entitlement toggle in the BTP cockpit — confirm which broker our Integration Suite tier includes (open pre-Friday check).</td></tr>
+    <tr><td>B2</td><td>Message queues (JMS) enabled on the CPI tenant</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>Standard Integration Suite capability — already required by the existing Leg 1 design, so likely already on.</td></tr>
+    <tr><td>B3</td><td>Credentials stored per FSM</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>CPI Security Material store: one OAuth client / certificate / SSH key per FSM endpoint. No shared credentials.</td></tr>
+    <tr><td>B4</td><td>Transport route DEV → TEST → PROD</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>Standard SAP Cloud Transport Management — flows and the subscription list move together, change-controlled.</td></tr>
+  </table>
+
+  <b style="font-size:12.5px; display:block; margin-top:14px;">C — CPI flows (this is the build — using standard delivered adapters only)</b>
+  <table>
+    <tr><th>#</th><th>Step</th><th>Type</th><th>Detail — standard CPI toolkit, no custom components</th></tr>
+    <tr><td>C-a</td><td>Event receiver flow (per event-enabled object)</td><td><span class="badge new">BUILD</span></td><td>Standard event/AMQP adapter subscribes to the topic from A5; on receipt, calls the released API (standard OData receiver adapter) to fetch the full record.</td></tr>
+    <tr><td>C-b</td><td>Timed check flow (one, parameterised per object)</td><td><span class="badge new">BUILD</span></td><td>Standard Timer start + OData receiver adapter with <code>ChangedDateTime gt {last run time}</code>; last-run values kept in CPI's standard variables/data store.</td></tr>
+    <tr><td>C-c</td><td>Message builder + router</td><td><span class="badge new">BUILD</span></td><td>Standard message mapping wraps the record; standard content-based router reads the subscription list (standard value mappings) and writes one message per matched FSM to that FSM's queue (standard JMS adapter).</td></tr>
+    <tr><td>C-d</td><td>Delivery adapter per FSM</td><td><span class="badge new">BUILD</span></td><td>One flow per FSM: standard HTTP receiver adapter (JAMS), standard HTTP receiver to ServiceNow Import Set API, standard Salesforce/HTTP receiver (Sitetracker), standard SFTP receiver (file FSMs). Mapping canonical → FSM fields is standard graphical mapping.</td></tr>
+    <tr><td>C-e</td><td>Error handling + re-send</td><td><span class="badge new">BUILD</span></td><td>Extend the existing error-logging flow; standard JMS retry settings per queue; a small re-send flow that re-runs a date range for recovery and first loads.</td></tr>
+  </table>
+
+  <b style="font-size:12.5px; display:block; margin-top:14px;">D — FSM side (as per slides 4–7)</b>
+  <table>
+    <tr><th>#</th><th>Step</th><th>Type</th><th>Detail</th></tr>
+    <tr><td>D1</td><td>ServiceNow: staging tables, transform maps, integration user</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>Built-in platform features, set up by a ServiceNow admin.</td></tr>
+    <tr><td>D2</td><td>Sitetracker: external ID fields, connected app, integration user</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>Standard Salesforce administration.</td></tr>
+    <tr><td>D3</td><td>JAMS: one receiving endpoint per object (insert-or-update)</td><td><span class="badge new">BUILD</span></td><td>The single FSM-side build in the whole plan — small, one-off, equal effort to the pull client it replaces (Trajce).</td></tr>
+  </table>
+
+  <ul class="explain">
+    <li><b>Sequence:</b> A1–A2 and B2–B4 exist or are trivial; start with C-b + C-c + C-d(JAMS) + D3 — that is the JAMS day-one scope and needs no event broker. A3–A5, B1 and C-a follow as the near-real-time upgrade, object by object.</li>
+    <li><b>Summary for the room:</b> S/4 side — 100% standard configuration in delivered apps. BTP side — standard activations. CPI side — the only development, built entirely from standard delivered adapters. FSM side — configuration only, except one small JAMS endpoint.</li>
+  </ul>
+</section>
+
 <!-- ============ SOURCES ============ -->
 <section class="slide">
   <span class="sno">SOURCES — every external fact in this document, with where it comes from</span>
@@ -377,6 +426,7 @@
   <table>
     <tr><th>Fact used in this document</th><th>Source</th></tr>
     <tr><td>S/4HANA Cloud Public Edition publishes 600+ standard business events via its built-in Enterprise Event Enablement channel; event names follow the pattern <code>sap.s4.beh.&lt;object&gt;…Changed</code></td><td><a href="https://help.sap.com/docs/abap-cloud/abap-integration-connectivity/enterprise-event-enablement">SAP Help — Enterprise Event Enablement</a> · <a href="https://developers.sap.com/tutorials/prepare-hub..html">SAP Tutorials — Exploring events on the Business Accelerator Hub</a> · <a href="https://cap.cloud.sap/docs/guides/messaging/s4">SAP capire — Receiving events from S/4HANA Cloud</a></td></tr>
+    <tr><td>S/4HANA Cloud event setup is standard configuration: communication arrangement <code>SAP_COM_0092</code> (with namespace), then channel binding and per-object outbound topic bindings in the delivered "Enterprise Event Enablement — Configure Channel Binding" app</td><td><a href="https://community.sap.com/t5/technology-blog-posts-by-members/enable-events-from-s-4hana-cloud-to-event-mesh/ba-p/13559401">SAP Community — Enable events from S/4HANA Cloud to Event Mesh</a> · <a href="https://community.sap.com/t5/integration-blog-posts/event-based-integrations-in-s-4hana-cloud-using-event-mesh-for-integration/ba-p/13952304">SAP Community — Event-based integrations using EMIS</a> · <a href="https://developers.sap.com/tutorials/eh-setup-s4hc..html">SAP Tutorials — S/4HANA Cloud Public Edition event connectivity setup</a></td></tr>
     <tr><td>Event-driven distribution to many subscribed consumers is SAP's published reference pattern</td><td><a href="https://help.sap.com/docs/sap-btp-guidance-framework/integration-architecture-guide/event-driven-architecture">SAP BTP Guidance Framework — Event-driven Architecture</a> · <a href="https://architecture.learning.sap.com/docs/ref-arch/fbdc46aaae">SAP Architecture Center — Designing Event-Driven Applications</a></td></tr>
     <tr><td>ServiceNow accepts pushed data through its built-in Import Set API (staging table + transform map), configured rather than coded; ServiceNow guidance prefers it over custom scripted endpoints</td><td><a href="https://www.servicenow.com/community/developer-articles/import-set-api-goodbye-srapis/ta-p/2318624">ServiceNow Community — Import Set API</a> · <a href="https://www.servicenow.com/community/servicenow-ai-platform-blog/seamless-servicenow-integrations-part-2-inbound-integrations/ba-p/3222406">ServiceNow Community — Inbound Integrations</a></td></tr>
     <tr><td>Sitetracker is built natively on the Salesforce platform and supports the standard Salesforce REST, SOAP and Bulk APIs for inbound data</td><td><a href="https://www.sitetracker.com/products-services/integrations/">Sitetracker — Integrations</a> · <a href="https://appexchange.salesforce.com/appxListingDetail?listingId=a0N3A00000DvOROUA3">Salesforce AppExchange — Sitetracker</a></td></tr>
