@@ -258,7 +258,7 @@ and field mapping — the concrete answer to the acquisition scenario.
 
 | Package | Contents | Depends on | When |
 |---|---|---|---|
-| P0 | Confirm Integration Suite edition (EMIS included in standard/premium); event availability per object; volume sizing | — | Before Friday (Rajesh) |
+| P0 | ~~EMIS check~~ closed: channel EMIS_COM_0092 active in our tenant with a working topic binding; remaining: event availability per object; volume sizing | — | Before Friday (Rajesh) |
 | P1 | Core spine: C2 delta poller, C3 watermarks, C4 envelope, C5 registry, C6 router, C7 queues, C13 logging | Existing passthrough APIs | First build increment |
 | P2 | JAMS adapter (C8) + JAMS upsert endpoint | P1; Trajce's endpoint | Aligned to JAMS go-live scope |
 | P3 | ServiceNow adapter (C9) + Defence scope validation | P1; Chamila's confirmations | When ITSM/Defence need firms up |
@@ -270,7 +270,7 @@ event broker** — eventing improves freshness later but gates nothing.
 
 ## 13. Open items (carried from the research paper)
 
-- Integration Suite edition confirmation (EMIS included in standard/premium; AEM not required); standard event availability for our six
+- EMIS confirmed active in our tenant (channel EMIS_COM_0092; AEM not required); standard event availability for our six
   objects (Rajesh).
 - JAMS inbound endpoint is upsert-capable; sequencing constraints (Trajce).
 - Import Set API acceptability under Defence security posture; ITSM need confirmation

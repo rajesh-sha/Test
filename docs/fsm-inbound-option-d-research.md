@@ -237,7 +237,7 @@ repeatable per FSM — versus a bespoke build inside every acquired product fore
 
 ## 8. Data still to gather before Friday (owners per Ian's table)
 
-- **Rajesh (CPI):** confirm Integration Suite edition (EMIS included in standard/premium); which S/4 standard business
+- **Rajesh (CPI):** EMIS confirmed active in our tenant (channel EMIS_COM_0092, working topic binding for ServiceEntrySheet.Changed) — edition check closed; which S/4 standard business
   events exist for our six objects vs which need the delta poll; message-volume estimate;
   build estimate for registry + router + 3 adapters.
 - **Trajce (JAMS):** confirm equal-effort read; whether JAMS's inbound endpoint would be
