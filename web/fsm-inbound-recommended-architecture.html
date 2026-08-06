@@ -158,6 +158,7 @@
     <li><b>3:</b> the subscription list is plain configuration under change control; an FSM physically cannot receive data outside its own contracts (this is where Defence data separation is enforced).</li>
     <li><b>4:</b> one queue per FSM: if one FSM is down, the others keep receiving; messages that keep failing move to that FSM's error queue and its support team is alerted.</li>
     <li><b>7:</b> every receiving system applies the data as insert-or-update ("upsert") on the S/4 record key — receiving the same message twice causes no harm.</li>
+    <li><b>Works for documents created through the canonical leg too:</b> a service order or purchase order posted into S/4 by an FSM's canonical message (Leg 1) is detected exactly like any other change — detection does not care how the document got into S/4. The fast acknowledgement (status + correlation ID) stays as designed; the document details then come back to the originating FSM as a push carrying the S/4 document number, status and values, matched to its request via the correlation ID. That replaces today's "read the warehouse to see what happened to what I sent" — and every other subscribed FSM gets the same document through its own subscription. No loop risk: FSMs apply the inbound push as a system update; it never re-triggers a canonical send.</li>
   </ul>
 </section>
 
