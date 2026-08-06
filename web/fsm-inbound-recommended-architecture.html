@@ -147,7 +147,7 @@
     <div class="sys">
       <span class="zone">SAP CLOUD</span>
       <div class="name">S/4HANA</div>
-      <div class="comp">Business events<small>service order · project · invoice …</small></div>
+      <div class="comp">Business events<small>service order · project · invoices · PO · goods movement<br>full list below ↓</small></div>
       <div class="comp">Released OData APIs<small>existing passthrough set</small></div>
     </div>
     <div class="hop">
@@ -177,6 +177,21 @@
       <div class="comp">Upsert on object key<small>7 · safe to receive twice;<br>newest change wins (<code>changedAt</code>)</small></div>
     </div>
   </div>
+  <details><summary>All events to configure on the S/4 channel (step A5 of the build plan) — open for the full list</summary>
+  <table>
+    <tr><th>#</th><th>Data set</th><th>SAP Object Type (select in the binding dialog)</th><th>Expected topics (pattern proven in our tenant)</th><th>Status</th></tr>
+    <tr><td>1</td><td>Service Orders</td><td><code>ServiceOrder</code></td><td><code>sap/s4/beh/serviceorder/v1/ServiceOrder/Created/v1</code> · <code>…/Changed/v1</code></td><td>To bind</td></tr>
+    <tr><td>2</td><td>Service Confirmations (if needed separately)</td><td><code>ServiceConfirmation</code></td><td><code>sap/s4/beh/serviceconfirmation/v1/ServiceConfirmation/Created/v1</code> · <code>…/Changed/v1</code></td><td>Optional</td></tr>
+    <tr><td>3</td><td>Enterprise Project + WBS</td><td><code>EnterpriseProject</code></td><td><code>sap/s4/beh/enterpriseproject/v1/EnterpriseProject/Created/v1</code> · <code>…/Changed/v1</code></td><td>To bind</td></tr>
+    <tr><td>4</td><td>Customer Invoice</td><td><code>BillingDocument</code></td><td><code>sap/s4/beh/billingdocument/v1/BillingDocument/Created/v1</code> · <code>…/Changed/v1</code></td><td>To bind</td></tr>
+    <tr><td>5</td><td>Supplier Invoice / RCTI</td><td><code>SupplierInvoice</code></td><td><code>sap/s4/beh/supplierinvoice/v1/SupplierInvoice/Created/v1</code> · <code>…/Changed/v1</code></td><td>To bind</td></tr>
+    <tr><td>6</td><td>Service Entry Sheet (procurement flow)</td><td><code>ServiceEntrySheet</code></td><td><code>sap/s4/beh/serviceentrysheet/v1/ServiceEntrySheet/Changed/v1</code></td><td><b>Already bound — Status Ok</b></td></tr>
+    <tr><td>7</td><td>Purchase Orders</td><td><code>PurchaseOrder</code></td><td><code>sap/s4/beh/purchaseorder/v1/PurchaseOrder/Created/v1</code> · <code>…/Changed/v1</code></td><td>To bind</td></tr>
+    <tr><td>8</td><td>Available Stock (goods movements change stock)</td><td><code>MaterialDocument</code></td><td><code>sap/s4/beh/materialdocument/v1/MaterialDocument/Created/v1</code></td><td>Verify in dialog; timed check if unsuitable</td></tr>
+    <tr><td>9</td><td>Project Time &amp; Equipment</td><td>search dialog for a time-sheet type</td><td>—</td><td>Timed check is the planned path</td></tr>
+  </table>
+  <div style="font-size:10.5px; color:#6B7280; margin-top:6px;">All bindings go on the existing active channel <code>EMIS_COM_0092</code>, each ticked for Created/Changed in the "Configure Channel Binding" app — the same two-minute step already done for ServiceEntrySheet. The topic strings above follow the tenant-proven pattern; the binding dialog's 183-item Object Type list is the final authority on names. Events carry keys only — every topic pairs with the API re-read in step 2, so binding an event never changes what data is sent, only how fast.</div>
+  </details>
   <details><summary>Step-by-step notes — open when needed</summary>
   <ul class="explain">
     <li><b>1a PUSH (preferred):</b> S/4HANA Cloud Public Edition sends a standard business event through its built-in Enterprise Event Enablement channel (600+ standard events published on the SAP Business Accelerator Hub) and CPI receives it. Near real time. <b>1b PULL (backup):</b> CPI checks the existing S/4 APIs on a timer for records changed since the last check — one central check instead of ten FSMs each checking. Chosen per object; both feed step 2 the same way.</li>
@@ -421,8 +436,21 @@
     <tr><td>A2</td><td>Communication arrangement per released API</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>One arrangement per API scenario (scenario IDs listed with each API on the SAP Business Accelerator Hub). Already in place for the six pull APIs — reused as-is, nothing new for the timed check.</td></tr>
     <tr><td>A3</td><td>Communication arrangement for eventing: scenario <code>SAP_COM_0092</code></td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>Create the arrangement, set the namespace field (e.g. <code>em/client/s4h</code>) — this is the SAP-documented step that connects S/4 to the event broker.</td></tr>
     <tr><td>A4</td><td>Channel binding</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>Standard app "Enterprise Event Enablement — Configure Channel Binding": pick the channel created by A3.</td></tr>
-    <tr><td>A5</td><td>Outbound topic binding per object</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>In the same app, add each event object (service order, project, billing document, supplier invoice, purchase order) and tick the event types wanted (create / update / delete). This is the per-object switch from slide 2.</td></tr>
+    <tr><td>A5</td><td>Outbound topic binding per object</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>In the same app, add each event object and tick the event types wanted (created / changed). The SAP Object Types to select from the tenant's list (183 available) are below — the selection dialog is the final authority on exact names.</td></tr>
   </table>
+  <details><summary>SAP Object Types to bind, per data set — open for the pick list</summary>
+  <table>
+    <tr><th>Data set</th><th>SAP Object Type to select in the dialog</th><th>Events to tick</th><th>Note</th></tr>
+    <tr><td>Service Orders</td><td><code>ServiceOrder</code> (add <code>ServiceConfirmation</code> if confirmations are needed separately)</td><td>Created · Changed</td><td>—</td></tr>
+    <tr><td>Enterprise Project + WBS</td><td><code>EnterpriseProject</code></td><td>Created · Changed</td><td>Project-level events; WBS detail comes from the API re-read</td></tr>
+    <tr><td>Customer Invoice</td><td><code>BillingDocument</code></td><td>Created · Changed</td><td>—</td></tr>
+    <tr><td>Supplier Invoice / RCTI</td><td><code>SupplierInvoice</code></td><td>Created · Changed</td><td><code>ServiceEntrySheet</code> is already bound in our tenant and covers the entry-sheet step of the same flow</td></tr>
+    <tr><td>Purchase Orders</td><td><code>PurchaseOrder</code></td><td>Created · Changed</td><td>—</td></tr>
+    <tr><td>Available Stock</td><td><code>MaterialDocument</code> — likely the right trigger, since goods movements are what change stock</td><td>Created</td><td>Verify in the dialog; if absent or unsuitable, this data set stays on the timed check as planned</td></tr>
+    <tr><td>Project Time &amp; Equipment</td><td>Search the dialog for a time-sheet object type</td><td>—</td><td>May not exist as an event; timed check is the planned path for this data set anyway</td></tr>
+  </table>
+  <div class="foot" style="font-size:10.5px; color:#6B7280; margin-top:6px;">How to verify each one in two minutes: type the object type in this dialog's filter — if it appears, select it and tick Created/Changed; the binding then shows the full topic (e.g. <code>sap/s4/beh/serviceorder/v1/ServiceOrder/Changed/v1</code>) with Status and API State, exactly as ServiceEntrySheet does today.</div>
+  </details>
   </details>
   <div class="okline">Proven in our own tenant (client FLA/100): channel <code>EMIS_COM_0092</code> for Enterprise Event Enablement is <b>Active</b>, with outbound topic binding <code>sap/s4/beh/serviceentrysheet/v1/ServiceEntrySheet/Changed/v1</code> showing Status <b>Ok</b> and API State <b>Released</b> — steps A3–A5 are not theory, they are working configuration today. The delivered "Event Monitor" app gives runtime visibility of emitted events.</div>
 
