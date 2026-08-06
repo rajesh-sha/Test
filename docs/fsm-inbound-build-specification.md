@@ -245,6 +245,11 @@ listed here so the build plan includes them, not because they are build:
 4. Outbound topic bindings, one per data set, on that channel — pick the object type,
    tick Created and Changed. One (ServiceEntrySheet) is already bound and working; the
    remaining list is in section 13.1.
+5. In the BTP global account, assign the "SAP S/4HANA Cloud Extensibility — messaging"
+   plan to the integration subaccount. The plan is already listed in the global account
+   with no commercial type (included with the S/4 subscription) and the S/4 tenant is
+   registered as its resource provider — this is an administrator assignment, not a
+   purchase.
 
 ## 12. Environments, deployment, testing
 

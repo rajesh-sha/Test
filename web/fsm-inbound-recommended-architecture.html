@@ -461,6 +461,7 @@
     <tr><td>B2</td><td>Message queues (JMS) enabled on the CPI tenant</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>Standard Integration Suite capability — already required by the existing Leg 1 design, so likely already on.</td></tr>
     <tr><td>B3</td><td>Credentials stored per FSM</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>CPI Security Material store: one OAuth client / certificate / SSH key per FSM endpoint. No shared credentials.</td></tr>
     <tr><td>B4</td><td>Transport route DEV → TEST → PROD</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>Standard SAP Cloud Transport Management — flows and the subscription list move together, change-controlled.</td></tr>
+    <tr><td>B5</td><td>Assign the "SAP S/4HANA Cloud Extensibility — messaging" plan to the integration subaccount</td><td><span class="badge cfg">STANDARD CONFIG</span></td><td>The plan is already in our global account with Commercial Type: none (included with the S/4 subscription); our tenant is registered as resource provider. An administrator assigns it to the subaccount — an entitlement assignment, not a purchase.</td></tr>
   </table>
   </details>
 
@@ -487,7 +488,7 @@
   <details><summary>E — Licensing: no new licences expected — open for the breakdown</summary>
   <table>
     <tr><th>Item</th><th>Licence position</th></tr>
-    <tr><td>Enterprise Event Enablement (S/4 side)</td><td>Delivered framework inside S/4HANA Cloud — configured through standard apps; no separate S/4-side licence is documented for it. The licensing question sits on the broker side, not in S/4. (Formal confirmation with the SAP account team recommended as due diligence.)</td></tr>
+    <tr><td>Enterprise Event Enablement (S/4 side)</td><td>Delivered framework inside S/4HANA Cloud — configured through standard apps; no separate S/4-side licence. <b>Confirmed in our own BTP global account:</b> the "SAP S/4HANA Cloud Extensibility" service (plans <code>api-access</code> and <code>messaging</code>, resource provider = our tenant my435863) shows <b>Commercial Type: none</b> — these plans come with the S/4 subscription. "Not assigned" on that screen means no subaccount has the plan yet, which is an administrator assignment step, not a purchase.</td></tr>
     <tr><td>Event broker</td><td><b>Included and already active:</b> the Event Mesh capability of Integration Suite (EMIS) comes with Integration Suite standard and premium editions at no additional cost — and our tenant's active <code>EMIS_COM_0092</code> channel with a working topic binding proves it is switched on and connected today. Its limits (1&nbsp;MB max message, 2&nbsp;GB buffer) comfortably fit this design, because our events carry keys only and the full record travels over the API call.</td></tr>
     <tr><td>Advanced Event Mesh</td><td><b>Not required.</b> Separately licensed product aimed at much higher volumes — this design does not depend on it; it remains a future scale-up option only.</td></tr>
     <tr><td>Message queues (JMS), OData/HTTP/SFTP adapters, transport</td><td>Standard Integration Suite capabilities under the existing CPI licence — already exercised by the Leg 1 design.</td></tr>
