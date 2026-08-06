@@ -99,15 +99,15 @@
       <div class="ln"></div>
     </div>
     <div class="stack">
-      <div class="sys"><span class="zone g">FSM</span><div class="name">JAMS <span class="badge push">PUSH · API</span></div><div class="det">HTTPS POST upsert → JAMS web service</div></div>
-      <div class="sys"><span class="zone g">FSM</span><div class="name">ServiceNow ITSM / Defence <span class="badge push">PUSH · API</span></div><div class="det">HTTPS POST → Import Set API (OOTB)</div></div>
-      <div class="sys"><span class="zone g">FSM</span><div class="name">Sitetracker <span class="badge push">PUSH · API</span></div><div class="det">HTTPS POST → Salesforce REST upsert</div></div>
+      <div class="sys"><span class="zone g">FSM</span><div class="name">JAMS <span class="badge push">PUSH · API</span></div><div class="det">HTTPS POST (insert-or-update) → JAMS service</div></div>
+      <div class="sys"><span class="zone g">FSM</span><div class="name">ServiceNow ITSM / Defence <span class="badge push">PUSH · API</span></div><div class="det">HTTPS POST → Import Set API (built-in)</div></div>
+      <div class="sys"><span class="zone g">FSM</span><div class="name">Sitetracker <span class="badge push">PUSH · API</span></div><div class="det">HTTPS POST → Salesforce REST API</div></div>
       <div class="sys"><span class="zone g">FSM</span><div class="name">No-API FSM <span class="badge push">PUSH · FILE</span> <span class="badge pull">PULL · API</span></div><div class="det">SFTP file drop, or existing Response Type 2 GET</div></div>
     </div>
   </div>
   <ul class="explain">
     <li><b>Why:</b> change is detected once, filtered once, audited once in CPI — instead of ten FSMs each building schedulers, delta pulls and filters.</li>
-    <li><b>FSM impact:</b> configuration only where a standard API exists (ServiceNow, Sitetracker); one small upsert endpoint for JAMS; zero build for file or pull FSMs.</li>
+    <li><b>FSM impact:</b> configuration only where a standard API exists (ServiceNow, Sitetracker); one small receiving endpoint for JAMS; zero build for file or pull FSMs.</li>
     <li><b>Reuse:</b> the canonical model, S/4 APIs, message queues and error logging from the current design are all reused; the existing Response Type 2 pull endpoint stays as the backup option.</li>
     <li><b>Adding FSM #11</b> (incl. acquisitions): a few configuration rows + one adapter in CPI. The FSM itself is not modified.</li>
   </ul>
@@ -149,7 +149,7 @@
     <div class="sys">
       <span class="zone g">FIELD SYSTEM</span>
       <div class="name">FSM endpoint</div>
-      <div class="comp">Upsert on object key<small>7 · idempotent apply,<br>last-write-wins on <code>changedAt</code></small></div>
+      <div class="comp">Upsert on object key<small>7 · safe to receive twice;<br>newest change wins (<code>changedAt</code>)</small></div>
     </div>
   </div>
   <ul class="explain">
@@ -167,22 +167,22 @@
   <h2>All data the FSMs need today can be published through this architecture</h2>
   <p class="lede">These are the same base S/4 APIs already confirmed for the pull design (GET · Base + Entity + <code>systemId</code> mandatory + OData filters, per the API Business Hub). The distribution layer calls the <b>same APIs with the same call rules</b> — once, centrally — so anything the pull endpoint can serve, CPI can publish.</p>
   <table>
-    <tr><th>Data set</th><th>Existing S/4 API (unchanged)</th><th>Change detected by</th><th>Standard event (Public Edition)</th><th>Timed-check filter field</th><th>Published to</th></tr>
-    <tr><td>Service Orders</td><td><code>/S4/serviceorders</code></td><td>Event, timed check as backup</td><td>Yes — Service Order changed/created (Business Accelerator Hub)</td><td><code>ServiceDocChangedDateTime</code> — proven filterable in the sample payload</td><td>JAMS · SN ITSM · SN Defence · (Sitetracker TBC)</td></tr>
-    <tr><td>Enterprise Project + WBS</td><td><code>/enterpriseprojects</code> (<code>$expand</code> WBS)</td><td>Event, timed check as backup</td><td>Yes — Enterprise Project changed</td><td>project change date on the released API</td><td>JAMS · SN Defence</td></tr>
-    <tr><td>Customer Invoice</td><td><code>/invoicebilling</code></td><td>Event, timed check as backup</td><td>Yes — Billing Document events</td><td>billing document change/creation date</td><td>JAMS</td></tr>
-    <tr><td>Supplier Invoice / RCTI</td><td><code>/RCTI</code></td><td>Event, timed check as backup</td><td>Yes — Supplier Invoice events</td><td>invoice change/posting date</td><td>JAMS</td></tr>
+    <tr><th>Data set</th><th>Existing S/4 API (unchanged)</th><th>Change detected by</th><th>Standard event (SAP Business Accelerator Hub)</th><th>Timed-check filter field</th><th>Published to</th></tr>
+    <tr><td>Service Orders</td><td><code>/S4/serviceorders</code></td><td>Event, timed check as backup</td><td>Expected — service order events are in scope of the 600+ published events; exact name to confirm on the Hub</td><td><code>ServiceDocChangedDateTime</code> — proven filterable in the sample payload</td><td>JAMS · SN ITSM · SN Defence · (Sitetracker TBC)</td></tr>
+    <tr><td>Enterprise Project + WBS</td><td><code>/enterpriseprojects</code> (<code>$expand</code> WBS)</td><td>Event, timed check as backup</td><td>Expected — confirm exact event name on the Hub</td><td>project change date on the released API</td><td>JAMS · SN Defence</td></tr>
+    <tr><td>Customer Invoice</td><td><code>/invoicebilling</code></td><td>Event, timed check as backup</td><td>Expected — confirm exact event name on the Hub</td><td>billing document change/creation date</td><td>JAMS</td></tr>
+    <tr><td>Supplier Invoice / RCTI</td><td><code>/RCTI</code></td><td>Event, timed check as backup</td><td>Expected — confirm exact event name on the Hub</td><td>invoice change/posting date</td><td>JAMS</td></tr>
     <tr><td>Project Time &amp; Equipment Usage</td><td><code>/journalentry</code> <small>(replacement CDS view from Lucas to follow — affects both options equally)</small></td><td>Timed check</td><td>To confirm on the Hub — timed check is the guaranteed path</td><td>posting date / last-changed on journal entry</td><td>JAMS · SN Defence</td></tr>
     <tr><td>Available Stock (cost &amp; quantity)</td><td><code>/journalentry</code></td><td>Timed check</td><td>No standard event expected — timed check</td><td>posting date, aggregated per window</td><td>JAMS · SN Defence</td></tr>
-    <tr><td>All Purchase Orders (JAMS)</td><td>purchase order released API</td><td>Event, timed check as backup</td><td>Yes — Purchase Order changed</td><td>PO change date</td><td>JAMS</td></tr>
+    <tr><td>All Purchase Orders (JAMS)</td><td>purchase order released API</td><td>Event, timed check as backup</td><td>Expected — confirm exact event name on the Hub</td><td>PO change date</td><td>JAMS</td></tr>
   </table>
   <ul class="explain">
     <li><b>Coverage is guaranteed by construction:</b> the distribution layer reads through the same released APIs, with the same mandatory <code>systemId</code> and OData filter rules, that the pull design already validated end-to-end (200 OK sample on <code>/S4/serviceorders</code>). No new S/4 access is needed for any data set.</li>
-    <li><b>Where a standard event exists</b> (service order, project, customer invoice, supplier invoice, purchase order), the FSMs get near-real-time updates. <b>Where it doesn't</b> (stock, time &amp; equipment), the timed check delivers on its interval — same freshness as Option B's best case, achieved once centrally instead of per FSM.</li>
+    <li><b>Where a standard event is confirmed</b>, the FSMs get near-real-time updates. <b>Where no event exists</b> (stock is the likely case), the timed check delivers on its interval — the same freshness Option B could achieve at best, done once centrally instead of per FSM.</li>
     <li><b>Every data set lands on every subscribed FSM in that FSM's own delivery mode</b> (slides 4–7) — the "Published to" column is the starting subscription list, to be confirmed with system owners.</li>
     <li><b>Event names to be pinned per object</b> from the SAP Business Accelerator Hub as part of my Friday prep — the "Standard event" column above is the expected position; the timed check column is the guaranteed fallback for every row, so no data set is at risk either way.</li>
   </ul>
-  <div class="okline">Conclusion: 7 of 7 required data sets are publishable with this architecture — 5 in near real time via standard events, 2 via the timed check — using only APIs already proven in the pull design.</div>
+  <div class="okline">Conclusion: 7 of 7 required data sets are publishable with this architecture. The timed check on the already-proven APIs guarantees every row; standard events (to be confirmed per object on the Hub) upgrade up to 5 of them to near real time.</div>
 </section>
 
 <!-- ============ SLIDE 4 — JAMS ============ -->
@@ -198,7 +198,7 @@
     <div class="hop">
       <div class="n">6</div>
       <div class="proto">PUSH · HTTPS POST</div>
-      <div class="sub2"><code>POST /api/s4/{object}/upsert</code><br>auth: OAuth 2.0 client credentials<br>(or mTLS + basic if JAMS stack requires)</div>
+      <div class="sub2"><code>POST /api/s4/{object}/upsert</code><br>auth: OAuth 2.0 client credentials<br>(or certificate-based auth if the JAMS stack requires)</div>
       <div class="ln"></div>
     </div>
     <div class="sys"><span class="zone g">FIELD SYSTEM</span>
@@ -210,7 +210,7 @@
   <table>
     <tr><th>Item</th><th>Value</th></tr>
     <tr><td>Delivery mode</td><td><span class="badge push">PUSH · API</span> — JAMS never polls; data arrives when S/4 changes</td></tr>
-    <tr><td>CPI builds</td><td>C8 adapter iFlow + JAMS delivery queue <span class="badge new">NEW</span></td></tr>
+    <tr><td>CPI builds</td><td>C8 adapter flow + JAMS delivery queue <span class="badge new">NEW</span></td></tr>
     <tr><td>JAMS builds</td><td>One upsert web service per object (Trajce: equal effort to building pull — direction changes) <span class="badge new">NEW</span></td></tr>
     <tr><td>Error path</td><td>Error/timeout → CPI retries automatically → failed messages park on the JAMS error queue → JAMS support alerted · re-sent after recovery</td></tr>
     <tr><td>First load</td><td>Re-send a date range per object (<code>ChangedDateTime</code> from–to), same endpoint</td></tr>
@@ -236,14 +236,14 @@
     </div>
     <div class="sys"><span class="zone g">FIELD SYSTEM</span>
       <div class="name">ServiceNow (per instance: ITSM · Defence)</div>
-      <div class="comp">Import set staging table <small>OOTB platform feature</small></div>
+      <div class="comp">Import set staging table <small>built-in platform feature</small></div>
       <div class="comp">Transform map → target table<small>matches on S/4 key = built-in insert-or-update · SN admin config, not code</small></div>
     </div>
   </div>
   <table>
     <tr><th>Item</th><th>Value</th></tr>
-    <tr><td>Delivery mode</td><td><span class="badge push">PUSH · API</span> to each instance separately (ITSM and Defence are separate registry entries, separate queues, separate credentials)</td></tr>
-    <tr><td>CPI builds</td><td>C9 adapter iFlow + two delivery queues <span class="badge new">NEW</span></td></tr>
+    <tr><td>Delivery mode</td><td><span class="badge push">PUSH · API</span> to each instance separately (ITSM and Defence are separate subscription entries, separate queues, separate credentials)</td></tr>
+    <tr><td>CPI builds</td><td>C9 adapter flow + two delivery queues <span class="badge new">NEW</span></td></tr>
     <tr><td>ServiceNow builds</td><td>Nothing. Staging tables + transform maps + integration user = configuration <span class="badge cfg">CONFIG ONLY</span></td></tr>
     <tr><td>Defence data separation</td><td>Enforced twice: contract scope on the subscription list in CPI (primary) + separate credential and queue per instance. Fully auditable from CPI logs.</td></tr>
     <tr><td>Error path</td><td>Import Set API confirms each row; row errors go to the standard error logging; connection errors → automatic retry, then the error queue</td></tr>
@@ -276,7 +276,7 @@
   <table>
     <tr><th>Item</th><th>Value</th></tr>
     <tr><td>Delivery mode</td><td><span class="badge push">PUSH · API</span> — REST upsert for steady state, Bulk API 2.0 for initial load</td></tr>
-    <tr><td>CPI builds</td><td>C10 adapter iFlow + delivery queue <span class="badge new">NEW</span> (built when Sitetracker's need is confirmed)</td></tr>
+    <tr><td>CPI builds</td><td>C10 adapter flow + delivery queue <span class="badge new">NEW</span> (built when Sitetracker's need is confirmed)</td></tr>
     <tr><td>Sitetracker builds</td><td>Nothing. External ID fields + integration user + connected app = configuration <span class="badge cfg">CONFIG ONLY</span></td></tr>
     <tr><td>Open item</td><td>Confirm current-phase need, API access tier in our licence, and object owner (name TBC)</td></tr>
   </table>
@@ -330,7 +330,7 @@
   <div class="hl">
     <b class="t">⚠ Be precise on Friday: CPI CAN technically update a database — that is not the constraint.</b>
     SAP Integration Suite ships a <b>JDBC receiver adapter</b> that can run <code>INSERT</code> / <code>UPDATE</code> / <code>DELETE</code> and stored procedures against Oracle, MS SQL Server, IBM DB2, PostgreSQL, HANA and others — including <b>on-premise databases via SAP Cloud Connector</b>. So "CPI can't do it" is the wrong argument and will lose the room the moment someone opens the adapter list.
-    The correct argument: <b>capability ≠ recommendation.</b> SAP's own integration guidance (ISA-M and the clean-core integration white paper) is <b>API-first and event-first</b>; the JDBC adapter exists for legacy and edge cases — typically staging tables or databases you own outright — not for writing into a vendor application's tables. Using it against JAMS's database would be us choosing a pattern SAP documents as the exception, against every reason listed below.
+    The correct argument: <b>capability ≠ recommendation.</b> SAP's own published guidance (the Integration Solution Advisory Methodology and the Clean Core integration white paper) is <b>API-first and event-first</b>; the JDBC adapter exists for legacy and edge cases — typically staging tables or databases you own outright — not for writing into a vendor application's tables. Using it against JAMS's database would be us choosing a pattern SAP documents as the exception, against every reason listed below.
   </div>
   <table>
     <tr><th>FSM</th><th>Is direct DB write even possible?</th></tr>
@@ -355,9 +355,9 @@
   <h2>Per-FSM implementation — one row per system, direction explicit</h2>
   <table>
     <tr><th>FSM</th><th>Mode</th><th>Protocol / endpoint</th><th>Auth</th><th>FSM build</th><th>CPI build</th></tr>
-    <tr><td>JAMS</td><td><span class="badge push">PUSH · API</span></td><td>HTTPS POST <code>/api/s4/{object}/upsert</code> (new JAMS service)</td><td>OAuth 2.0 (or mTLS+basic)</td><td>One upsert endpoint per object</td><td>C8 adapter + queue</td></tr>
-    <tr><td>ServiceNow ITSM</td><td><span class="badge push">PUSH · API</span></td><td>HTTPS POST <code>/api/now/import/{staging_table}</code> (OOTB)</td><td>OAuth 2.0</td><td>None — config only</td><td>C9 adapter + queue</td></tr>
-    <tr><td>ServiceNow Defence</td><td><span class="badge push">PUSH · API</span></td><td>Same as ITSM, separate instance/queue/credential; registry scope = Defence contracts only</td><td>OAuth 2.0</td><td>None — config only</td><td>Shares C9 + own queue</td></tr>
+    <tr><td>JAMS</td><td><span class="badge push">PUSH · API</span></td><td>HTTPS POST <code>/api/s4/{object}/upsert</code> (new JAMS service)</td><td>OAuth 2.0 (or certificates)</td><td>One upsert endpoint per object</td><td>C8 adapter + queue</td></tr>
+    <tr><td>ServiceNow ITSM</td><td><span class="badge push">PUSH · API</span></td><td>HTTPS POST <code>/api/now/import/{staging_table}</code> (built-in)</td><td>OAuth 2.0</td><td>None — config only</td><td>C9 adapter + queue</td></tr>
+    <tr><td>ServiceNow Defence</td><td><span class="badge push">PUSH · API</span></td><td>Same as ITSM, separate instance/queue/credential; subscription scope = Defence contracts only</td><td>OAuth 2.0</td><td>None — config only</td><td>Shares C9 + own queue</td></tr>
     <tr><td>Sitetracker</td><td><span class="badge push">PUSH · API</span></td><td>HTTPS PATCH Salesforce upsert on external ID · Bulk 2.0 for loads</td><td>OAuth 2.0</td><td>None — config only</td><td>C10 adapter + queue</td></tr>
     <tr><td>FSM w/ import job</td><td><span class="badge push">PUSH · FILE</span></td><td>SFTP PUT <code>/inbound/{object}/{ts}.csv</code></td><td>SSH key</td><td>None — point existing import</td><td>C11 adapter + queue</td></tr>
     <tr><td>FSM w/ nothing</td><td><span class="badge pull">PULL · API</span></td><td>HTTPS GET Response Type 2 registered query (existing)</td><td>OAuth 2.0</td><td>Pull client + scheduler (the exception)</td><td>None — endpoint exists</td></tr>
@@ -367,6 +367,26 @@
     <li><b>Rule:</b> PUSH wherever the FSM has any standard inbound path (API or file). PULL only where an FSM has nothing and accepts owning its own orchestration.</li>
     <li><b>All PUSH deliveries</b> are insert-or-update on the S/4 record key, kept in order per record, retried automatically, parked on a per-FSM error queue if they keep failing, and re-sendable at any time.</li>
     <li><b>Owners for Friday:</b> Rajesh (AEM entitlement, event coverage per object, volumes) · Trajce (JAMS upsert endpoint) · Chamila (Import Set API under Defence posture; ITSM need) · Sitetracker owner TBC.</li>
+  </ul>
+</section>
+
+<!-- ============ SOURCES ============ -->
+<section class="slide">
+  <span class="sno">SOURCES — every external fact in this document, with where it comes from</span>
+  <h2>Sources</h2>
+  <table>
+    <tr><th>Fact used in this document</th><th>Source</th></tr>
+    <tr><td>S/4HANA Cloud Public Edition publishes 600+ standard business events via its built-in Enterprise Event Enablement channel; event names follow the pattern <code>sap.s4.beh.&lt;object&gt;…Changed</code></td><td><a href="https://help.sap.com/docs/abap-cloud/abap-integration-connectivity/enterprise-event-enablement">SAP Help — Enterprise Event Enablement</a> · <a href="https://developers.sap.com/tutorials/prepare-hub..html">SAP Tutorials — Exploring events on the Business Accelerator Hub</a> · <a href="https://cap.cloud.sap/docs/guides/messaging/s4">SAP capire — Receiving events from S/4HANA Cloud</a></td></tr>
+    <tr><td>Event-driven distribution to many subscribed consumers is SAP's published reference pattern</td><td><a href="https://help.sap.com/docs/sap-btp-guidance-framework/integration-architecture-guide/event-driven-architecture">SAP BTP Guidance Framework — Event-driven Architecture</a> · <a href="https://architecture.learning.sap.com/docs/ref-arch/fbdc46aaae">SAP Architecture Center — Designing Event-Driven Applications</a></td></tr>
+    <tr><td>ServiceNow accepts pushed data through its built-in Import Set API (staging table + transform map), configured rather than coded; ServiceNow guidance prefers it over custom scripted endpoints</td><td><a href="https://www.servicenow.com/community/developer-articles/import-set-api-goodbye-srapis/ta-p/2318624">ServiceNow Community — Import Set API</a> · <a href="https://www.servicenow.com/community/servicenow-ai-platform-blog/seamless-servicenow-integrations-part-2-inbound-integrations/ba-p/3222406">ServiceNow Community — Inbound Integrations</a></td></tr>
+    <tr><td>Sitetracker is built natively on the Salesforce platform and supports the standard Salesforce REST, SOAP and Bulk APIs for inbound data</td><td><a href="https://www.sitetracker.com/products-services/integrations/">Sitetracker — Integrations</a> · <a href="https://appexchange.salesforce.com/appxListingDetail?listingId=a0N3A00000DvOROUA3">Salesforce AppExchange — Sitetracker</a></td></tr>
+    <tr><td>CPI CAN write to databases: the Integration Suite JDBC receiver adapter runs INSERT/UPDATE/DELETE and stored procedures (Oracle, MS SQL Server, IBM DB2, PostgreSQL, HANA and others), including on-premise databases via SAP Cloud Connector</td><td><a href="https://userapps.support.sap.com/sap/support/knowledge/en/3318663">SAP KBA 3318663 — supported databases</a> · <a href="https://userapps.support.sap.com/sap/support/knowledge/en/2924589">SAP KBA 2924589 — on-premise connectivity</a> · <a href="https://userapps.support.sap.com/sap/support/knowledge/en/3073748">SAP KBA 3073748 — JDBC adapter FAQ</a></td></tr>
+    <tr><td>SAP's integration guidance is API-first and event-first (Integration Solution Advisory Methodology; Clean Core)</td><td><a href="https://community.sap.com/t5/enterprise-resource-planning-blog-posts-by-sap/why-sap-isa-m-still-matters-a-strategic-foundation-for-modern-integration/ba-p/14162231">SAP Community — Why ISA-M still matters</a> · <a href="https://community.sap.com/t5/technology-blog-posts-by-sap/introducing-the-clean-core-integration-white-paper/ba-p/14454507">SAP Community — Clean Core Integration white paper</a></td></tr>
+    <tr><td>Integration through a shared or directly-written database is a recognised anti-pattern ("Integration databases: don't do it. Not even with views. Not even with stored procedures." — Michael Nygard, <i>Release It!</i>)</td><td><a href="https://blog.iannelson.uk/enterprise-integration-anti-patterns-1-the-shared-database/">Enterprise Integration Anti-Patterns — The Shared Database</a> · <a href="https://www.ben-morris.com/a-shared-database-is-still-an-anti-pattern-no-matter-what-the-justification/">Ben Morris — A shared database is still an anti-pattern</a></td></tr>
+  </table>
+  <ul class="explain">
+    <li><b>Program facts</b> (existing pull design, call rules, canonical model, JAMS/Jobpac as-is, owner names) come from the Apollo design pack and the Design Council session — not external sources.</li>
+    <li><b>Marked as "expected / to confirm":</b> exact standard event names per object (Business Accelerator Hub), Advanced Event Mesh entitlement in our Integration Suite tier, filterable change-date fields per released API, and message-volume sizing. These are the pre-Friday checks and are flagged as such wherever they appear.</li>
   </ul>
 </section>
 
