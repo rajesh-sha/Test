@@ -2,8 +2,9 @@
 
 Companion to `INT-22_Contract_Reference_Mapping_20260805.xlsx`. One delta pull query per
 contract, targeting the direct SiteTracker-to-SAP-CPI pattern (no Redshift layer).
-`2026-08-01T00:00:00Z` is the CPI variable holding the last successful pull
-timestamp; pagination is handled by the Salesforce adapter (validated in POC).
+The date `2026-08-01T00:00:00Z` is an example only — in SAP CI the integration flow
+replaces it on every run with the date and time of the last successful run. Pagination
+is handled by the Salesforce adapter (validated in POC).
 
 ## Optus (Megaladon) — base query validated in POC Test 8
 
