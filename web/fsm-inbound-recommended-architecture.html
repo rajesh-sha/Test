@@ -67,6 +67,28 @@
 </header>
 <main>
 
+<div style="background:#fff; border:1px solid var(--line); padding:10px 26px; margin-bottom:18px; font-size:11px; color:#444; line-height:1.7;">
+  <b style="color:var(--navy);">CONTENTS:</b>
+  1 Summary (the one-slide version) ·
+  2 End-to-end path ·
+  3 Data coverage (all 7 data sets) ·
+  4 JAMS ·
+  5 ServiceNow ITSM/Defence ·
+  6 Sitetracker ·
+  7 FSM without an API ·
+  8 Direct database update — ruled out ·
+  9 Implementation summary table ·
+  10 Build plan + licensing ·
+  Sources
+  <br><b style="color:var(--navy);">TERMS USED (the only technical words in this document):</b>
+  <b>canonical model</b> = the program's single standard message format, already designed for Leg 1 ·
+  <b>correlation ID</b> = the tracking reference an FSM gets in its acknowledgement, used to match responses to requests ·
+  <b>insert-or-update ("upsert")</b> = create the record if new, update it if it exists — so receiving the same data twice is harmless ·
+  <b>OData</b> = the standard web API protocol S/4HANA's released APIs use ·
+  <b>EMIS</b> = the event broker included in our SAP Integration Suite licence ·
+  <b>C-numbers</b> (C1, C8…) = component IDs from the build list on slide 10
+</div>
+
 <!-- ============ SLIDE 1 — THE ONE CONCISE SLIDE ============ -->
 <section class="slide">
   <span class="sno">SLIDE 1 / 10 — SUMMARY (the one-slide version)</span>
@@ -189,7 +211,7 @@
 <!-- ============ SLIDE 4 — JAMS ============ -->
 <section class="slide">
   <span class="sno">SLIDE 4 / 10 — JAMS IMPLEMENTATION</span>
-  <h2>JAMS — <span class="badge push">PUSH · API</span> CPI posts upserts to one new JAMS web service</h2>
+  <h2>JAMS — <span class="badge push">PUSH · API</span> CPI posts insert-or-update records to one new JAMS web service</h2>
   <p class="lede">Direction: CPI → JAMS. JAMS builds one small new endpoint to receive data. Scheduling, change detection, filtering and retry all stay in CPI — nothing else changes in JAMS.</p>
   <div class="diag">
     <div class="sys"><span class="zone">SAP BTP · CPI</span>
@@ -291,7 +313,7 @@
   <div class="diag">
     <div class="sys"><span class="zone">SAP BTP · CPI</span>
       <div class="name">File adapter (C11)</div>
-      <div class="comp">Canonical → CSV / JSON file<small>one file per object per window · envelope fields as columns</small></div>
+      <div class="comp">Canonical → CSV / JSON file<small>one file per object per interval · tracking fields (IDs, dates) as columns</small></div>
     </div>
     <div class="hop">
       <div class="n">6</div>
