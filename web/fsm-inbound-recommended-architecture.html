@@ -137,6 +137,7 @@
     <li><b>Reuse:</b> the canonical model, S/4 APIs, message queues and error logging from the current design are all reused; the existing Response Type 2 pull endpoint stays as the backup option.</li>
     <li><b>Adding FSM #11</b> (incl. acquisitions): a few configuration rows + one adapter in CPI. The FSM itself is not modified.</li>
   </ul>
+  <div class="okline">Where Event Mesh fits — final, one sentence: Event Mesh has exactly one job, carrying the change notice from S/4 into CPI (step 1); CPI does everything else — filtering, converting, queuing and delivering to every FSM. No FSM ever connects to Event Mesh, and any data set can use the timed check instead.</div>
 </section>
 
 <!-- ============ SLIDE 2 — END-TO-END MESSAGE PATH ============ -->
