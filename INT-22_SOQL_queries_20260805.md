@@ -2,7 +2,7 @@
 
 Companion to `INT-22_Contract_Reference_Mapping_20260805.xlsx`. One delta pull query per
 contract, targeting the direct SiteTracker-to-SAP-CPI pattern (no Redshift layer).
-`${lastSuccessfulPullTimestamp}` is the CPI variable holding the last successful pull
+`2026-08-01T00:00:00Z` is the CPI variable holding the last successful pull
 timestamp; pagination is handled by the Salesforce adapter (validated in POC).
 
 ## Optus (Megaladon) — base query validated in POC Test 8
@@ -27,7 +27,7 @@ FROM sitetracker__Project__c
 WHERE Client__c = 'Optus'
   AND Client_Status__c IN ('Current', 'Complete', 'On Hold')
   AND Program__c != '3G Partial Decom'
-  AND LastModifiedDate >= ${lastSuccessfulPullTimestamp}
+  AND LastModifiedDate >= 2026-08-01T00:00:00Z
 ```
 
 To confirm: `State__c` API name (added beyond the Test 8 field list); WBS element fields
@@ -53,7 +53,7 @@ SELECT Id, Name,
 FROM sitetracker__Project__c
 WHERE Client__c = 'Telstra'
   AND Client_Status__c IN ('Current', 'Complete', 'On Hold')
-  AND LastModifiedDate >= ${lastSuccessfulPullTimestamp}
+  AND LastModifiedDate >= 2026-08-01T00:00:00Z
 ```
 
 To confirm: API names `Program_ID__c`, `Project_Office__c`, `Work_Type__c`,
@@ -83,7 +83,7 @@ SELECT Id, Name,
 FROM sitetracker__Project__c
 WHERE Client__c = 'nbn'
   AND Client_Status__c IN ('Current', 'Complete', 'On Hold')
-  AND LastModifiedDate >= ${lastSuccessfulPullTimestamp}
+  AND LastModifiedDate >= 2026-08-01T00:00:00Z
 ```
 
 To confirm: parent-to-child relationship name (assumed `sitetracker__Activities__r`), exact
@@ -107,7 +107,7 @@ SELECT Id, Name,
        CCR__c,
        CreatedDate, LastModifiedDate
 FROM sitetracker__Project__c
-WHERE CreatedDate >= ${lastSuccessfulPullTimestamp}
+WHERE CreatedDate >= 2026-08-01T00:00:00Z
 ```
 
 To confirm: `CCR__c` (Commercial Contract number) does not exist yet — field to be created
@@ -136,8 +136,8 @@ SELECT Id, Name,
        LastModifiedDate
 FROM sitetracker__Production_Plan_Line__c
 WHERE sitetracker__Job__r.sitetracker__Job_Status__c = 'Invoiced'
-  AND (LastModifiedDate >= ${lastSuccessfulPullTimestamp}
-       OR sitetracker__Job__r.LastModifiedDate >= ${lastSuccessfulPullTimestamp})
+  AND (LastModifiedDate >= 2026-08-01T00:00:00Z
+       OR sitetracker__Job__r.LastModifiedDate >= 2026-08-01T00:00:00Z)
 ```
 
 To confirm: `Total_Job_Amount__c` and `Business_Flow_Type__c` are added beyond the Test 3
