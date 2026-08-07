@@ -158,6 +158,12 @@ strings once verified. Exact strings keep each queue's intake auditable.
 
 ## 4. S/4HANA — outbound channel bindings (separate system)
 
+> **✅ COMPLETED in DEV, 7 Aug 2026.** All 18 new bindings below were added to
+> `EMIS_COM_0092` and verified: 21 total on the channel (18 new + 3 pre-existing:
+> BusinessPartner/Changed, WarehouseOrder/TaskCreated, ServiceEntrySheet/Changed),
+> all status Ok, API state Released, no event filters, channel saved and Active.
+> The table below is the as-built record — repeat it as written for TST/PRD.
+
 In the S/4 dev tenant (my435863, client FLA/100), Fiori app **Enterprise Event
 Enablement — Configure Channel Binding**, channel **`EMIS_COM_0092`** → add one outbound
 topic binding per row. This is configuration only, ~2 minutes each.
