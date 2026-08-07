@@ -112,10 +112,14 @@ ssm/s4h/dev/ce/sap/s4/beh/billingdocument/v1/BillingDocument/Changed/v1
 
 **`ssm/s4h/dev/supplier-invoice-events`** (four subscriptions — the entry-sheet step of
 the RCTI flow lands here too; the ServiceEntrySheet/Changed topic is the one already
-proven live in the Event Monitor)
+proven live in the Event Monitor. **Verified in the binding dialog: SupplierInvoice has
+no `Changed` event** — only Created and Canceled exist. Canceled is bound because an
+RCTI reversal must propagate; the full-record read returns the invoice with its reversal
+status and the receiver's insert-or-update stores that current state. In-place changes,
+if any, are covered by the timed check.)
 ```
 ssm/s4h/dev/ce/sap/s4/beh/supplierinvoice/v1/SupplierInvoice/Created/v1
-ssm/s4h/dev/ce/sap/s4/beh/supplierinvoice/v1/SupplierInvoice/Changed/v1
+ssm/s4h/dev/ce/sap/s4/beh/supplierinvoice/v1/SupplierInvoice/Canceled/v1
 ssm/s4h/dev/ce/sap/s4/beh/serviceentrysheet/v1/ServiceEntrySheet/Created/v1
 ssm/s4h/dev/ce/sap/s4/beh/serviceentrysheet/v1/ServiceEntrySheet/Changed/v1
 ```
@@ -147,7 +151,7 @@ topic binding per row. This is configuration only, ~2 minutes each.
 | `ServiceOrder` | Created, Changed | |
 | `EnterpriseProject` | Created, Changed, EntProjElmntCrted, EntProjElmntChgd | Element events included — WBS element edits do not fire the header Changed event |
 | `BillingDocument` | Created, Changed | Customer invoice |
-| `SupplierInvoice` | Created, Changed | `ServiceEntrySheet/Changed` already live covers the entry-sheet step |
+| `SupplierInvoice` | Created, Canceled | **No `Changed` event exists** (verified in dialog). Canceled propagates RCTI reversals; `ServiceEntrySheet/Changed` already live covers the entry-sheet step |
 | `PurchaseOrder` | Created, Changed | |
 | `MaterialDocument` | Created | **Verify in the dialog first** — if the object or event is missing/unsuitable, skip it, delete `stock-events`, and stock stays on the timed check |
 
