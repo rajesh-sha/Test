@@ -124,10 +124,20 @@ ssm/s4h/dev/ce/sap/s4/beh/serviceentrysheet/v1/ServiceEntrySheet/Created/v1
 ssm/s4h/dev/ce/sap/s4/beh/serviceentrysheet/v1/ServiceEntrySheet/Changed/v1
 ```
 
-**`ssm/s4h/dev/purchase-order-events`**
+**`ssm/s4h/dev/purchase-order-events`** (six subscriptions — verified against the
+binding dialog. `Approved/v1` is the business trigger for a PO completing its approval
+workflow. The item-level events are needed because item edits do not reliably fire the
+header `Changed` event — same completeness reasoning as the project element events; all
+carry the PO number, so processing is the identical full-PO read. Deliberately not
+bound: `ApprovalRejected`, `ItemBlocked`, `ItemUnblocked` — internal workflow states,
+covered by the full read and the timed check.)
 ```
 ssm/s4h/dev/ce/sap/s4/beh/purchaseorder/v1/PurchaseOrder/Created/v1
 ssm/s4h/dev/ce/sap/s4/beh/purchaseorder/v1/PurchaseOrder/Changed/v1
+ssm/s4h/dev/ce/sap/s4/beh/purchaseorder/v1/PurchaseOrder/Approved/v1
+ssm/s4h/dev/ce/sap/s4/beh/purchaseorder/v1/PurchaseOrder/ItemCreated/v1
+ssm/s4h/dev/ce/sap/s4/beh/purchaseorder/v1/PurchaseOrder/ItemChanged/v1
+ssm/s4h/dev/ce/sap/s4/beh/purchaseorder/v1/PurchaseOrder/ItemDeleted/v1
 ```
 
 **`ssm/s4h/dev/stock-events`** (only if created)
@@ -152,7 +162,7 @@ topic binding per row. This is configuration only, ~2 minutes each.
 | `EnterpriseProject` | Created, Changed, EntProjElmntCrted, EntProjElmntChgd | Element events included — WBS element edits do not fire the header Changed event |
 | `BillingDocument` | Created, Changed | Customer invoice |
 | `SupplierInvoice` | Created, Canceled | **No `Changed` event exists** (verified in dialog). Canceled propagates RCTI reversals; `ServiceEntrySheet/Changed` already live covers the entry-sheet step |
-| `PurchaseOrder` | Created, Changed | |
+| `PurchaseOrder` | Created, Changed, Approved, ItemCreated, ItemChanged, ItemDeleted | Approved = the approval-complete trigger; item events because item edits don't fire header Changed |
 | `MaterialDocument` | Created | **Verify in the dialog first** — if the object or event is missing/unsuitable, skip it, delete `stock-events`, and stock stays on the timed check |
 
 The dialog offers 183 object types; if a name above doesn't appear verbatim, search the
