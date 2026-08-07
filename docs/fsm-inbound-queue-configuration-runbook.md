@@ -31,6 +31,10 @@ channel bindings (separate system, Fiori).
    `ssm/s4h/{env}/ce/sap/s4/beh/{object}/v1/{Object}/{Event}/v1`. The S/4 binding dialog
    is the final authority on the `{object}` segment — step 5 verifies each one against
    the Event Monitor and tells you what to do on a mismatch.
+   **Verified 7 Aug 2026 in the binding dialog (dev tenant):** `ServiceOrder` and
+   `EnterpriseProject` topic names match this runbook exactly as written (closing part
+   of open item 1). Dialog tip: the SAP Object Type search is exact-match by default —
+   search with wildcards, e.g. `*Service*`, in CamelCase.
 
 ## 1. Dead-message queue — create this one first
 
@@ -88,10 +92,16 @@ ssm/s4h/dev/ce/sap/s4/beh/serviceorder/v1/ServiceOrder/Created/v1
 ssm/s4h/dev/ce/sap/s4/beh/serviceorder/v1/ServiceOrder/Changed/v1
 ```
 
-**`ssm/s4h/dev/enterprise-project-events`**
+**`ssm/s4h/dev/enterprise-project-events`** (four subscriptions — the element-level
+events are needed because editing a WBS element does not fire the project-header
+`Changed` event; without them an element edit would wait for the timed check. Element
+events carry the project ID, so downstream processing is identical: same full-project
+read. Delete events deliberately excluded — the design has no delete handling.)
 ```
 ssm/s4h/dev/ce/sap/s4/beh/enterpriseproject/v1/EnterpriseProject/Created/v1
 ssm/s4h/dev/ce/sap/s4/beh/enterpriseproject/v1/EnterpriseProject/Changed/v1
+ssm/s4h/dev/ce/sap/s4/beh/enterpriseproject/v1/EnterpriseProject/EntProjElmntCrted/v1
+ssm/s4h/dev/ce/sap/s4/beh/enterpriseproject/v1/EnterpriseProject/EntProjElmntChgd/v1
 ```
 
 **`ssm/s4h/dev/customer-invoice-events`**
@@ -135,7 +145,7 @@ topic binding per row. This is configuration only, ~2 minutes each.
 | Object type to select | Events to tick | Note |
 |---|---|---|
 | `ServiceOrder` | Created, Changed | |
-| `EnterpriseProject` | Created, Changed | |
+| `EnterpriseProject` | Created, Changed, EntProjElmntCrted, EntProjElmntChgd | Element events included — WBS element edits do not fire the header Changed event |
 | `BillingDocument` | Created, Changed | Customer invoice |
 | `SupplierInvoice` | Created, Changed | `ServiceEntrySheet/Changed` already live covers the entry-sheet step |
 | `PurchaseOrder` | Created, Changed | |
@@ -168,7 +178,7 @@ data set's queue — proves subscriptions don't overlap.
 |---|---|---|
 | `ssm/s4h/dev/dmq` | none | new |
 | `ssm/s4h/dev/service-order-events` | 2 | new |
-| `ssm/s4h/dev/enterprise-project-events` | 2 | new |
+| `ssm/s4h/dev/enterprise-project-events` | 4 | new |
 | `ssm/s4h/dev/customer-invoice-events` | 2 | new |
 | `ssm/s4h/dev/supplier-invoice-events` | 4 | new |
 | `ssm/s4h/dev/purchase-order-events` | 2 | new |
