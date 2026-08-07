@@ -289,6 +289,64 @@ The binding dialog's object-type list in the tenant is the final authority on na
 Any data set without a usable event simply stays on the timed check — no data set is at
 risk either way.
 
+### 13.1a Event intake — working configuration in the non-prod tenant, and the target design
+
+What already exists (verified in our own accounts and tenant):
+
+| Item | Evidence |
+|---|---|
+| Entitlement | "SAP Integration Suite, Event Mesh" service, `message-client` plan — assigned, unlimited quota |
+| Capability | "Manage Business Events" active in the non-prod Integration Suite |
+| Broker | Status **Ready** — 2 GB buffer, 1 MB maximum message, 200 connections, 600 producers, 600 consumers |
+| Message client | `emis-s4hdev-client`, namespace `ssm/s4h/dev` — the S/4 dev system's connection |
+| Working queue | `ssm/s4h/dev/s4h-dev-ses-events` (non-exclusive) — service entry sheet events flowing today |
+
+Target event-intake design (extends the existing naming convention; these queues carry
+S/4 change notices INTO CPI — they are separate from CPI's own delivery queues to the
+field systems):
+
+- One intake queue per data set and environment: `ssm/s4h/{env}/{data-set}-events`
+  (e.g. `ssm/s4h/dev/service-order-events`), each subscribed to that data set's topics.
+- Queue settings: access **non-exclusive** (allows parallel CPI consumers);
+  message size 1 MB (notices carry IDs only — far below the cap);
+  **maximum redelivery count 5, then a dead-message queue** `ssm/s4h/{env}/dmq`
+  (one per environment — the dialog default of "None" must not be used, or a repeatedly
+  failing notice is discarded silently);
+  time-to-live 604800 seconds (7 days — covers a long-weekend outage);
+  remaining values at the dialog defaults.
+- CPI's change-notice receiver (component B1) consumes each intake queue using the
+  message client's credentials. A notice that cannot be processed lands on the
+  dead-message queue and raises the same alert path as the delivery error queues (R-E3).
+
+**CPI consumer settings (component B1, one per intake queue).** A proof-of-concept flow
+(`EventMesh_POC`) already exists in the non-prod tenant; the production settings are:
+
+| Setting | Value | Why |
+|---|---|---|
+| Queue name | the data set's intake queue | one receiver flow per queue |
+| Concurrent processes | 1 | preserves the order notices arrive in; safe to raise later because the changed-at rule (R-B4.2) makes order errors harmless — start at 1, tune with volume |
+| Max prefetched messages | 5 (default) | no reason to change |
+| Consume expired messages | off | an expired notice is covered by the next timed check — never process stale notices |
+| Max retries | 5, then REJECTED | after 5 failed attempts the broker moves the notice on |
+| Dead-message queue on the intake queue | **mandatory** | REJECTED without a dead-message queue silently discards the notice — this is why the queue-creation dialog's default of "None" must never be used |
+
+**The full-payload read pattern (why the event never carries the data).** SAP's events
+deliver the record's ID, not the record — deliberately. The receiver is expected to read
+the full record back from the source. This design keeps that pattern and it is the
+correct one for four reasons:
+
+1. **Never stale:** the record is read at processing time, so what is distributed is the
+   current state — a late or out-of-order notice cannot deliver old data.
+2. **Secure:** business data never sits on the event broker; it moves only over the
+   authorised API call, under CPI's credentials, after the subscription check.
+3. **Within limits by design:** notices stay tiny (well under the 1 MB broker cap);
+   record size never constrains the event path.
+4. **One code path:** a notice and a timed-check hit produce the identical read-and-wrap
+   processing — so switching a data set between the two changes nothing downstream.
+
+Sequence per notice: intake queue → B1 receiver → read full record from the released S/4
+API (R-B1.2) → message builder (B4) → subscription check (B5) → delivery (B6/B7).
+
 ### 13.2 Starting subscription rows (to be confirmed with system owners)
 
 | Data set | JAMS | SN ITSM | SN Defence | Sitetracker |
