@@ -140,9 +140,15 @@ ssm/s4h/dev/ce/sap/s4/beh/purchaseorder/v1/PurchaseOrder/ItemChanged/v1
 ssm/s4h/dev/ce/sap/s4/beh/purchaseorder/v1/PurchaseOrder/ItemDeleted/v1
 ```
 
-**`ssm/s4h/dev/stock-events`** (only if created)
+**`ssm/s4h/dev/stock-events`** (two subscriptions — verified in the binding dialog:
+MaterialDocument offers Created and Canceled only, no Changed — correct, material
+documents are immutable; corrections are reversal documents. Canceled is bound because
+a cancelled movement reverses stock. Volume note: this is the highest-volume event on
+the channel — every goods movement fires one. If too chatty in DEV, switching stock to
+the timed check is configuration only (R-B2.4): remove the two bindings, keep the rest.)
 ```
 ssm/s4h/dev/ce/sap/s4/beh/materialdocument/v1/MaterialDocument/Created/v1
+ssm/s4h/dev/ce/sap/s4/beh/materialdocument/v1/MaterialDocument/Canceled/v1
 ```
 
 **Wildcard alternative (not recommended as the default):** a subscription like
@@ -163,7 +169,7 @@ topic binding per row. This is configuration only, ~2 minutes each.
 | `BillingDocument` | Created, Changed | Customer invoice |
 | `SupplierInvoice` | Created, Canceled | **No `Changed` event exists** (verified in dialog). Canceled propagates RCTI reversals; `ServiceEntrySheet/Changed` already live covers the entry-sheet step |
 | `PurchaseOrder` | Created, Changed, Approved, ItemCreated, ItemChanged, ItemDeleted | Approved = the approval-complete trigger; item events because item edits don't fire header Changed |
-| `MaterialDocument` | Created | **Verify in the dialog first** — if the object or event is missing/unsuitable, skip it, delete `stock-events`, and stock stays on the timed check |
+| `MaterialDocument` | Created, Canceled | Verified suitable — no Changed event exists (immutable object); Canceled reverses stock. Watch volume in DEV — highest-volume binding on the channel |
 
 The dialog offers 183 object types; if a name above doesn't appear verbatim, search the
 list — the dialog is the final authority (open item 1, Rajesh). Do not remove the
