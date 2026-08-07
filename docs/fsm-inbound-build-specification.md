@@ -273,17 +273,38 @@ Minimum test set (each must pass in TEST before any production deployment):
 
 ## 13. Reference lists
 
-### 13.1 Event bindings to add (on the existing active channel)
+### 13.1 Outbound event enablement (on the existing active channel)
 
-| Data set | Object type to select | Events |
-|---|---|---|
-| Service Orders | `ServiceOrder` | Created, Changed |
-| Enterprise Project | `EnterpriseProject` | Created, Changed |
-| Customer Invoice | `BillingDocument` | Created, Changed |
-| Supplier Invoice / RCTI | `SupplierInvoice` | Created, Changed |
-| Purchase Orders | `PurchaseOrder` | Created, Changed |
-| Available Stock | `MaterialDocument` (goods movements change stock) | Created — verify suitability; timed check if not |
-| Project Time & Equipment | No event assumed — timed check | — |
+**Already live in non-prod** — seen in the channel's Event Monitor, all with status
+Acknowledged (meaning the broker received them successfully):
+
+| Live topic | Events seen |
+|---|---|
+| `ssm/s4h/dev/ce/sap/s4/beh/businesspartner/v1/BusinessPartner/Changed/v1` | 1 |
+| `ssm/s4h/dev/ce/sap/s4/beh/serviceentrysheet/v1/ServiceEntrySheet/Changed/v1` | 5 |
+| `ssm/s4h/dev/ce/sap/s4/beh/WarehouseOrder/TaskCreated/v1` | 2 |
+
+This confirms the full production topic format:
+`ssm/s4h/{env}/ce/sap/s4/beh/{object}/v1/{Object}/{Event}/v1` — the intake queues in
+13.1a subscribe using exactly this pattern.
+
+**Outbound bindings to add**, one per data set, in the standard "Configure Channel
+Binding" app on the same channel:
+
+| Data set | Object type to select | Events | Note |
+|---|---|---|---|
+| Service Orders | `ServiceOrder` | Created, Changed | |
+| Enterprise Project | `EnterpriseProject` | Created, Changed | |
+| Customer Invoice | `BillingDocument` | Created, Changed | |
+| Supplier Invoice / RCTI | `SupplierInvoice` | Created, Changed | `ServiceEntrySheet` already live covers the entry-sheet step of this flow |
+| Purchase Orders | `PurchaseOrder` | Created, Changed | |
+| Available Stock | `MaterialDocument` (goods movements change stock) | Created | Verify in the dialog; timed check if unsuitable |
+| Project Time & Equipment | No event assumed | — | Timed check |
+| Job financial summary | No binding of its own | — | A derived data set: built from Enterprise Project + journal entry reads on the timed check — there is no single S/4 object to bind |
+
+Also live but not required by this design: `BusinessPartner.Changed` and
+`WarehouseOrder.TaskCreated` (other teams' proofs of concept). Leave them — bindings on
+the channel are independent of each other.
 
 The binding dialog's object-type list in the tenant is the final authority on names.
 Any data set without a usable event simply stays on the timed check — no data set is at
