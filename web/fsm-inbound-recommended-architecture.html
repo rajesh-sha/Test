@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FSM Inbound — Final Recommended Architecture</title>
+<style>
+  :root{
+    --navy:#1F3864; --line:#c9cfd8; --ink:#111; --mut:#555;
+    --push:#0f7a3d; --pull:#6B7280; --step:#1e56a0; --warn:#b91c1c;
+  }
+  *{box-sizing:border-box;}
+  body{font-family:Arial,"Helvetica Neue",sans-serif; background:#e9ecf1; margin:0; color:var(--ink);}
+  header{background:var(--navy); color:#fff; padding:14px 26px;}
+  header h1{font-size:17px; margin:0; font-weight:700;}
+  header .sub{font-size:11.5px; opacity:.85; margin-top:3px;}
+  main{max-width:1160px; margin:0 auto; padding:16px 22px 50px;}
+
+  .slide{background:#fff; border:1px solid var(--line); margin-bottom:20px; padding:20px 26px 22px; position:relative;}
+  .slide .sno{position:absolute; top:14px; right:18px; font-size:10px; color:#9aa2ad; font-weight:700; letter-spacing:.06em;}
+  .slide h2{font-size:16.5px; margin:0 0 4px; font-weight:700;}
+  .slide .lede{font-size:12.5px; color:var(--mut); margin:0 0 14px;}
+
+  .badge{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 10px; border-radius:3px; color:#fff; vertical-align:middle;}
+  .badge.push{background:var(--push);} .badge.pull{background:var(--pull);}
+
+  .diag{display:flex; align-items:stretch; flex-wrap:wrap; row-gap:20px; margin:8px 0 10px;}
+  .sys{border:1.5px solid var(--ink); background:#fff; min-width:150px; align-self:center; position:relative; padding:12px 12px 9px;}
+  .sys .zone{position:absolute; top:-8px; left:8px; background:var(--ink); color:#fff; font-size:9px; font-weight:700; padding:1px 7px;}
+  .sys .zone.g{background:#6B7280;}
+  .sys .name{font-size:13px; font-weight:700; text-align:center; margin-top:3px;}
+  .sys .det{font-size:10px; color:var(--mut); text-align:center; margin-top:3px; line-height:1.35;}
+  .sys .comp{border:1px solid var(--ink); font-size:11px; font-weight:600; text-align:center; padding:4px 8px; margin-top:5px; background:#fafbfc;}
+  .hop{display:flex; flex-direction:column; justify-content:center; align-items:center; padding:0 10px; min-width:110px; align-self:center;}
+  .hop .proto{font-size:10px; font-weight:700; text-align:center; line-height:1.3; margin-bottom:3px;}
+  .hop .ln{width:100%; height:1.5px; background:var(--ink); position:relative;}
+  .hop .ln::after{content:""; position:absolute; right:-1px; top:-3.5px; border-left:7px solid var(--ink); border-top:4px solid transparent; border-bottom:4px solid transparent;}
+  .stack{display:flex; flex-direction:column; gap:12px; align-self:center;}
+
+  ol.steps{margin:8px 0 0; padding-left:22px; font-size:13px; line-height:1.9;}
+  ol.steps b{color:var(--ink);}
+  table{border-collapse:collapse; width:100%; margin-top:10px; font-size:12px;}
+  th,td{border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top;}
+  th{background:#f0f3f7; color:var(--navy); font-size:10.5px;}
+  td code{font-family:Consolas,Menlo,monospace; font-size:10.5px; background:#f4f6f9; padding:1px 4px; border:1px solid #e3e7ee;}
+  .okline{font-size:12px; color:var(--push); font-weight:700; margin-top:12px;}
+  .warnline{font-size:12px; color:var(--warn); font-weight:700; margin-top:12px;}
+  ul.plain{margin:8px 0 0; padding-left:20px; font-size:12.5px; line-height:1.7;}
+  details{margin-top:10px; border:1px solid var(--line); background:#fafbfd; padding:8px 14px;}
+  details summary{cursor:pointer; font-size:11.5px; font-weight:700; color:#1e56a0;}
+  details[open] summary{margin-bottom:4px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Getting S/4HANA data to the field systems — final recommended design</h1>
+  <div class="sub">Five short sections. Everything deeper is in the appendix at the end. Design Council, Friday.</div>
+</header>
+<main>
+
+<!-- 1 THE DECISION -->
+<section class="slide">
+  <span class="sno">1 OF 5 — THE DECISION</span>
+  <h2>CPI does the work once. Every field system just receives its own data.</h2>
+  <p class="lede">Instead of ten field systems each building schedules, data-fetching and filtering, CPI detects every change once and delivers to each system in the way that system already accepts.</p>
+  <div class="diag">
+    <div class="sys">
+      <span class="zone">SAP CLOUD</span>
+      <div class="name">S/4HANA</div>
+      <div class="det">the single source of truth</div>
+    </div>
+    <div class="hop"><div class="proto">1 · change detected</div><div class="ln"></div></div>
+    <div class="sys">
+      <span class="zone">SAP CPI</span>
+      <div class="name">Distribution layer</div>
+      <div class="comp">Detect the change</div>
+      <div class="comp">Read the full record</div>
+      <div class="comp">Check who subscribes</div>
+      <div class="comp">Deliver, with retries</div>
+      <div class="det">holds no business data — ever</div>
+    </div>
+    <div class="hop"><div class="proto">2 · each system gets<br>only its own data</div><div class="ln"></div></div>
+    <div class="stack">
+      <div class="sys"><span class="zone g">FIELD SYSTEM</span><div class="name">JAMS <span class="badge push">RECEIVES</span></div><div class="det">web service call</div></div>
+      <div class="sys"><span class="zone g">FIELD SYSTEM</span><div class="name">ServiceNow ITSM / Defence <span class="badge push">RECEIVES</span></div><div class="det">built-in import interface</div></div>
+      <div class="sys"><span class="zone g">FIELD SYSTEM</span><div class="name">Sitetracker <span class="badge push">RECEIVES</span></div><div class="det">standard Salesforce interface</div></div>
+      <div class="sys"><span class="zone g">FIELD SYSTEM</span><div class="name">System with no interface <span class="badge push">FILE</span> <span class="badge pull">or FETCHES</span></div><div class="det">file drop, or the existing fetch endpoint</div></div>
+    </div>
+  </div>
+  <ul class="plain">
+    <li><b>Field systems change almost nothing.</b> ServiceNow and Sitetracker: admin configuration only. JAMS: six small receiving services — the only development outside CPI, equal effort to what it replaces.</li>
+    <li><b>Nothing new to buy.</b> Every part is covered by licences we already hold. No AI is used anywhere.</li>
+    <li><b>Adding a system later</b> (including an acquired company's): configuration rows plus one converter in CPI. The new system itself is not modified.</li>
+  </ul>
+</section>
+
+<!-- 2 HOW IT WORKS -->
+<section class="slide">
+  <span class="sno">2 OF 5 — HOW IT WORKS</span>
+  <h2>Seven steps — the same for every data set and every system</h2>
+  <ol class="steps">
+    <li><b>A record changes in S/4HANA.</b> Created by a field system's own message, typed in by a user, or posted by anything else — it makes no difference.</li>
+    <li><b>CPI finds out.</b> S/4 sends a change notice the moment it happens; where no notice exists, CPI asks on a timer "what changed since last time?". <i>(The change notice channel is already switched on and working in our system.)</i></li>
+    <li><b>CPI reads the full record fresh from S/4</b> — so what goes out is always the current state, never stale.</li>
+    <li><b>CPI wraps it in the one standard message</b>, including the tracking reference the sending system can match against what it sent.</li>
+    <li><b>CPI checks the subscription list:</b> which systems want this kind of data, for this contract. A system can never receive data outside its own contracts — this is how Defence separation is enforced, in one central place.</li>
+    <li><b>CPI delivers it the way each system accepts</b> — a web service call or a file. If a system is down, messages queue and retry automatically; one system being down never delays another; nothing is ever silently lost.</li>
+    <li><b>The system saves it itself:</b> create if new, update if existing, matched on the S/4 document number. Receiving the same message twice causes no harm.</li>
+  </ol>
+  <div class="okline">This also closes the loop: a work order JAMS sends to S/4 comes back to JAMS automatically with its S/4 document number and status — replacing today's database queries against the Jobpac warehouse.</div>
+</section>
+
+<!-- 3 WHAT EACH SYSTEM GETS -->
+<section class="slide">
+  <span class="sno">3 OF 5 — WHAT EACH SYSTEM GETS AND MUST DO</span>
+  <h2>One row per system — nothing else is asked of anyone</h2>
+  <table>
+    <tr><th>System</th><th>How it receives</th><th>What it must do</th></tr>
+    <tr><td><b>JAMS</b></td><td>CPI calls a JAMS web service for each changed record</td><td>Build <b>six small receiving services</b> (one per kind of data), each saving create-or-update. Exact addresses and field lists agreed with the JAMS team before build. <b>This is the only development outside CPI.</b></td></tr>
+    <tr><td><b>ServiceNow ITSM</b></td><td>CPI posts into ServiceNow's <b>built-in import interface</b></td><td>Admin configuration only — no development.</td></tr>
+    <tr><td><b>ServiceNow Defence</b></td><td>Same as ITSM — separate instance, separate login, separate queue</td><td>Admin configuration only. <b>Only Defence-contract data can ever reach it</b> — enforced centrally in CPI, fully auditable.</td></tr>
+    <tr><td><b>Sitetracker</b></td><td>CPI saves records through the <b>standard Salesforce interface</b> Sitetracker is built on</td><td>Admin configuration only. Build when its need is confirmed.</td></tr>
+    <tr><td><b>A system with an import job but no interface</b></td><td>CPI drops a file into that system's folder</td><td>Point its existing import at the folder. Nothing else.</td></tr>
+    <tr><td><b>A system with nothing</b></td><td>It fetches from the <b>already-designed fetch endpoint</b> on its own schedule</td><td>This is the documented exception, kept for exactly this case.</td></tr>
+  </table>
+  <div class="warnline">Ruled out everywhere: writing into any system's database directly, and any new in-between database. Reasons in the appendix.</div>
+</section>
+
+<!-- 4 WHAT IT TAKES -->
+<section class="slide">
+  <span class="sno">4 OF 5 — WHAT IT TAKES TO BUILD</span>
+  <h2>S/4: configuration only. CPI: the only development. Licences: nothing new.</h2>
+  <table>
+    <tr><th>Where</th><th>What</th><th>Proof / status</th></tr>
+    <tr><td><b>S/4HANA</b></td><td>Configuration in standard apps only — switch on the change notice per kind of data. No development (and none is even possible in our cloud edition).</td><td>The channel is <b>already active in our system</b> with one notice working today.</td></tr>
+    <tr><td><b>CPI</b></td><td>The distribution layer — detect, read, wrap, route, deliver, retry, re-send. Assembled from standard delivered parts; no custom platform components.</td><td>Fully specified for the build partner in the build specification document.</td></tr>
+    <tr><td><b>Field systems</b></td><td>Configuration, plus JAMS's six receiving services.</td><td>Section 3 above.</td></tr>
+    <tr><td><b>Licences</b></td><td>Everything used is inside licences we already hold. No AI anywhere.</td><td>Checked in our own accounts — evidence in the appendix. One open check: message volumes against our existing metering.</td></tr>
+  </table>
+  <div class="okline">Sequencing: the JAMS day-one scope works with the timer alone — the change-notice part improves speed later and blocks nothing.</div>
+</section>
+
+<!-- 5 SETTLED QUESTIONS -->
+<section class="slide">
+  <span class="sno">5 OF 5 — QUESTIONS ALREADY SETTLED</span>
+  <h2>Asked and answered — one line each, detail in the appendix</h2>
+  <ul class="plain">
+    <li><b>Can it publish everything the field systems need?</b> Yes — all seven kinds of data, using the same S/4 APIs already proven for the fetch design. Nothing new is needed from S/4.</li>
+    <li><b>Do records created by a field system come back to it?</b> Yes, automatically, with the S/4 document number — matched by the tracking reference it already holds. No loops.</li>
+    <li><b>Why not write into the field systems' databases?</b> Impossible for the cloud systems (they expose no database), and wrong for JAMS — it would bypass JAMS's own logic and break on upgrades. CPI technically can; SAP's own guidance says don't.</li>
+    <li><b>Why not let systems subscribe to SAP's event service directly?</b> Events carry only a record ID, can't filter by contract, and can't convert formats — every system would end up rebuilding the work. The event service has exactly one job here: telling CPI something changed.</li>
+    <li><b>What if something is down or fails?</b> Messages queue per system, retry automatically, alert a named owner if they keep failing, and can be re-sent — including whole date ranges for first loads and recovery.</li>
+  </ul>
+</section>
+
+<!-- APPENDIX -->
+<section class="slide">
+  <span class="sno">APPENDIX — DEPTH ON DEMAND</span>
+  <h2>Appendix — open only what you need</h2>
+
+  <details><summary>A1 — The seven kinds of data, and how each is detected and delivered</summary>
+  <table>
+    <tr><th>Data</th><th>Existing S/4 API (reused)</th><th>Detected by</th><th>Goes to</th></tr>
+    <tr><td>Service orders</td><td><code>/S4/serviceorders</code></td><td>Change notice; timer as backup</td><td>JAMS · SN ITSM · SN Defence · (Sitetracker TBC)</td></tr>
+    <tr><td>Projects + WBS</td><td><code>/enterpriseprojects</code></td><td>Change notice; timer as backup</td><td>JAMS · SN Defence</td></tr>
+    <tr><td>Customer invoices</td><td><code>/invoicebilling</code></td><td>Change notice; timer as backup</td><td>JAMS</td></tr>
+    <tr><td>Supplier invoices / RCTI</td><td><code>/RCTI</code></td><td>Change notice; timer as backup</td><td>JAMS</td></tr>
+    <tr><td>Project time &amp; equipment</td><td><code>/journalentry</code></td><td>Timer</td><td>JAMS · SN Defence</td></tr>
+    <tr><td>Available stock</td><td><code>/journalentry</code></td><td>Timer</td><td>JAMS · SN Defence</td></tr>
+    <tr><td>Purchase orders</td><td>purchase order API</td><td>Change notice; timer as backup</td><td>JAMS</td></tr>
+  </table>
+  <p style="font-size:11.5px;">The timer path guarantees every row regardless of notices, using the filter "changed since last run" on the same APIs the fetch design already proved (200 OK test). The "goes to" column is the starting subscription list — to confirm with system owners.</p>
+  </details>
+
+  <details><summary>A2 — Change notices to switch on in S/4 (configuration, ~2 minutes each)</summary>
+  <table>
+    <tr><th>Data</th><th>Object type to pick in the standard app</th><th>Status</th></tr>
+    <tr><td>Service orders</td><td><code>ServiceOrder</code></td><td>To switch on</td></tr>
+    <tr><td>Projects</td><td><code>EnterpriseProject</code></td><td>To switch on</td></tr>
+    <tr><td>Customer invoices</td><td><code>BillingDocument</code></td><td>To switch on</td></tr>
+    <tr><td>Supplier invoices</td><td><code>SupplierInvoice</code></td><td>To switch on</td></tr>
+    <tr><td>Purchase orders</td><td><code>PurchaseOrder</code></td><td>To switch on</td></tr>
+    <tr><td>Service entry sheets</td><td><code>ServiceEntrySheet</code></td><td><b>Already on and working</b></td></tr>
+    <tr><td>Stock</td><td><code>MaterialDocument</code> — verify; timer if unsuitable</td><td>To check</td></tr>
+  </table>
+  <p style="font-size:11.5px;">All on the already-active channel <code>EMIS_COM_0092</code>, in the standard "Configure Channel Binding" app, ticking Created and Changed. The app's own object-type list is the final authority on names.</p>
+  </details>
+
+  <details><summary>A3 — Why writing into a field system's database is ruled out</summary>
+  <ul class="plain">
+    <li>ServiceNow and Sitetracker are cloud products that expose no database at all — there is nothing to write to. So it could never be the standard pattern.</li>
+    <li>For JAMS it is technically possible and still wrong: it bypasses JAMS's own checks, workflows and audit history; the internal table layout changes with upgrades and is not a contract; vendors cannot support data their application didn't write.</li>
+    <li>CPI does have a database adapter — capability is not the constraint. SAP's own integration guidance is API-first, with database writing reserved for systems you own outright.</li>
+    <li>The JAMS receiving services put the same data in the same place through JAMS's own logic, at equal effort.</li>
+  </ul>
+  </details>
+
+  <details><summary>A4 — Why systems can't just subscribe to SAP's event service directly</summary>
+  <ul class="plain">
+    <li>SAP's change notices carry the record's ID only — by design. The receiver is expected to call back for the data. Direct subscription would force every field system to build fetch-and-convert logic — the exact burden this design removes.</li>
+    <li>The event service filters by topic name only; filtering by contract is documented by SAP as an anti-pattern. Defence separation could not be enforced.</li>
+    <li>It does not convert formats — ServiceNow's import interface and Salesforce's save interface need their own shapes, which is CPI's conversion job.</li>
+    <li>A middle variant (CPI publishes finished messages to event topics; the event service delivers by webhook) is viable later for systems that accept the standard message directly — it swaps only the delivery plumbing and needs no rework of the rest.</li>
+  </ul>
+  </details>
+
+  <details><summary>A5 — Licence evidence (checked in our own accounts)</summary>
+  <ul class="plain">
+    <li>The change-notice framework is part of S/4HANA Cloud — configured in standard apps; the channel is active in our tenant today.</li>
+    <li>The "SAP S/4HANA Cloud Extensibility" plans (<code>api-access</code>, <code>messaging</code>) sit in our global account with <b>Commercial Type: none</b> — included with the S/4 subscription. "Not assigned" just means an administrator hasn't assigned them to a subaccount yet.</li>
+    <li>The event broker (EMIS) is included in the Integration Suite editions at no extra cost — and its active channel proves it is on.</li>
+    <li>Advanced Event Mesh (the separately-priced high-volume product) is <b>not required</b>.</li>
+    <li>No AI service is used anywhere. The one commercial variable: message volume under our existing Integration Suite metering — sizing in progress.</li>
+  </ul>
+  </details>
+
+  <details><summary>A6 — Open items before build (with owners)</summary>
+  <ul class="plain">
+    <li>Exact change-notice names per data set — a lookup in the S/4 app (Rajesh).</li>
+    <li>Timer frequency per data set — driven by JAMS operational needs (Trajce).</li>
+    <li>JAMS service addresses, login method, six field lists — agreed before build (Trajce + CPI team).</li>
+    <li>ServiceNow import approach under Defence security rules; ITSM need (Chamila).</li>
+    <li>Sitetracker: needed this phase? Owner to be named.</li>
+    <li>Message-volume estimate (Rajesh).</li>
+  </ul>
+  </details>
+
+  <details><summary>A7 — Where the deep documents live</summary>
+  <ul class="plain">
+    <li><b>Build specification</b> (for the build partner, numbered requirements, tests, definition of done): <code>docs/fsm-inbound-build-specification.md</code></li>
+    <li><b>Full target architecture</b> (components, message design, security, onboarding runbook): <code>docs/fsm-integration-target-architecture.md</code></li>
+    <li><b>Research paper</b> (the four questions, options compared, sources): <code>docs/fsm-inbound-option-d-research.md</code></li>
+  </ul>
+  </details>
+
+  <details><summary>A8 — Sources for every external fact</summary>
+  <ul class="plain">
+    <li>S/4HANA Cloud change notices &amp; setup: <a href="https://help.sap.com/docs/abap-cloud/abap-integration-connectivity/enterprise-event-enablement">SAP Help — Enterprise Event Enablement</a> · <a href="https://community.sap.com/t5/technology-blog-posts-by-members/enable-events-from-s-4hana-cloud-to-event-mesh/ba-p/13559401">SAP Community — enable events step by step</a></li>
+    <li>Event delivery, key-only payloads, topic-name filtering: <a href="https://community.sap.com/t5/technology-blog-posts-by-members/sap-event-mesh-for-beginners-part-3-push-delivery-with-webhooks/ba-p/14434605">SAP Community — webhook push delivery</a> · <a href="https://help.pubsub.em.services.cloud.sap/Messaging/Topic-Architecture-Best-Practices.htm">SAP — topic best practices</a></li>
+    <li>Event broker included in Integration Suite: <a href="https://community.sap.com/t5/technology-blog-posts-by-sap/meet-your-new-friend-emis-event-mesh-in-sap-integration-suite/ba-p/13731129">SAP Community — EMIS</a></li>
+    <li>ServiceNow built-in import interface: <a href="https://www.servicenow.com/community/developer-articles/import-set-api-goodbye-srapis/ta-p/2318624">ServiceNow Community — Import Set API</a></li>
+    <li>Sitetracker on the Salesforce platform: <a href="https://www.sitetracker.com/products-services/integrations/">Sitetracker — integrations</a></li>
+    <li>CPI's database adapter (capability, not recommendation): <a href="https://userapps.support.sap.com/sap/support/knowledge/en/3073748">SAP KBA 3073748</a> · SAP guidance API-first: <a href="https://community.sap.com/t5/technology-blog-posts-by-sap/introducing-the-clean-core-integration-white-paper/ba-p/14454507">Clean Core integration white paper</a></li>
+    <li>Shared-database integration as an anti-pattern: <a href="https://blog.iannelson.uk/enterprise-integration-anti-patterns-1-the-shared-database/">Nygard, via enterprise integration anti-patterns</a></li>
+  </ul>
+  </details>
+</section>
+
+</main>
+</body>
+</html>
