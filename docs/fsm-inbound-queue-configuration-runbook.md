@@ -207,8 +207,8 @@ data set's queue — proves subscriptions don't overlap.
 | `ssm/s4h/dev/enterprise-project-events` | 4 | new |
 | `ssm/s4h/dev/customer-invoice-events` | 2 | new |
 | `ssm/s4h/dev/supplier-invoice-events` | 4 | new |
-| `ssm/s4h/dev/purchase-order-events` | 2 | new |
-| `ssm/s4h/dev/stock-events` | 1 | new (conditional) |
+| `ssm/s4h/dev/purchase-order-events` | 6 | new |
+| `ssm/s4h/dev/stock-events` | 2 | new (verified suitable — no longer conditional) |
 | `ssm/s4h/dev/Event_POC` | (as is) | untouched |
 | `ssm/s4h/dev/s4h-dev-ses-events` | (as is) | untouched until step 7 |
 
