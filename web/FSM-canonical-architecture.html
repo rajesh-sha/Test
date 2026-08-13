@@ -85,6 +85,14 @@
   .badge.system{background:var(--amber); color:var(--amberText);}
   .badge.q{background:var(--queue); color:var(--queueText);}
   .fnode.qnode{border-color:var(--queueText); border-style:dashed;}
+  .fnode.gnode{border-color:var(--greenText); border-width:2px;}
+  .fnode.gnode .t{color:var(--greenText);}
+  .fnode.rnode{border-color:var(--redText); border-style:dashed; border-width:2px; background:var(--red);}
+  .fnode.rnode .t{color:var(--redText);}
+  .fnode.anode{border-color:var(--amberText); background:var(--amber);}
+  .badge.g{background:var(--green); color:var(--greenText);}
+  .badge.r{background:var(--red); color:var(--redText);}
+  .iflow{font-family:Consolas, Menlo, monospace; font-size:11px; color:var(--navy2); font-weight:700;}
   .farrow{
     align-self:center; padding:0 6px; color:var(--navy2); font-weight:700; font-size:15px;
     flex:0 0 auto;
@@ -138,7 +146,7 @@
 <header>
   <div>
     <h1>FSM Canonical Architecture &mdash; Inbound &amp; Response</h1>
-    <div class="sub">Project Apollo &middot; SAP CPI &middot; Working translation of the build walkthrough, with Shankar&rsquo;s open points mapped into the design &middot; v0.1 &mdash; 13 Aug 2026</div>
+    <div class="sub">Project Apollo &middot; SAP CPI &middot; Working translation of the build walkthrough, with Shankar&rsquo;s open points mapped into the design and solutions for sequencing, error handling/DLQ and FSM onboarding &middot; v0.2 &mdash; 13 Aug 2026</div>
   </div>
 </header>
 
@@ -150,6 +158,9 @@
   <a href="#trace">5 &middot; Traceability</a>
   <a href="#shankar">6 &middot; Shankar&rsquo;s open points</a>
   <a href="#decisions">7 &middot; Call decisions &amp; risks</a>
+  <a href="#sequencing">8 &middot; Sequencing solution</a>
+  <a href="#errordlq">9 &middot; Error handling &amp; DLQ</a>
+  <a href="#onboarding">10 &middot; Onboarding Mars / PIMS</a>
 </nav>
 
 <main>
@@ -270,20 +281,22 @@
   </div>
 
   <div class="op">
-    <div class="ophead"><span class="opno">2</span><h4>Message ordering and sequencing considerations</h4><span class="chip open">Open</span></div>
+    <div class="ophead"><span class="opno">2</span><h4>Message ordering and sequencing considerations</h4><span class="chip partial">Solution proposed</span></div>
     <div class="grid">
       <div class="k">Where it sits</div><div>JMS queues between the legs (&sect;2) and the sequenced S/4 calls inside canonical execution (&sect;3).</div>
-      <div class="k">Position</div><div>One payload = one message type, queues are per message type, and execution sequences its own S/4 API calls &mdash; but nothing today guarantees cross-message order (e.g. create before change on the same work order) across queue redeliveries and retries.</div>
-      <div class="k">Open with Deloitte</div><div>State the ordering approach per canonical: FIFO / exactly-once-in-order per queue, a sequencing key on the business object, or a documented decision that ordering is not required and why.</div>
+      <div class="k">Position</div><div>One payload = one message type, queues are per message type, and execution sequences its own S/4 API calls &mdash; but nothing in the base design guarantees cross-message order (e.g. create before change on the same work order) across queue redeliveries and retries.</div>
+      <div class="k">Solution</div><div>Dinesh Balachandran&rsquo;s payload-selection design (12 Aug) &mdash; single-threaded latest-per-key selection before the canonical, non-overlapping batches. See <a href="#sequencing">&sect;8</a>.</div>
+      <div class="k">Open with Deloitte</div><div>Adopt the design; validate batch latency and selection cost in SIT; decide one shared canonical queue vs a queue per FSM.</div>
     </div>
   </div>
 
   <div class="op">
-    <div class="ophead"><span class="opno">3</span><h4>Technical and business error handling</h4><span class="chip open">Open &mdash; in progress</span></div>
+    <div class="ophead"><span class="opno">3</span><h4>Technical and business error handling</h4><span class="chip partial">Solution proposed</span></div>
     <div class="grid">
       <div class="k">Where it sits</div><div>Exception subprocess referenced from the router and every leg; canonical error-logging flow (&sect;3).</div>
       <div class="k">Position</div><div>A shared exception flow (ServiceNow ticket + email) is being built and will be called from all flows; process-direct failures already bubble up to the calling flow. Business errors from S/4 surface through the outcome callback and pull.</div>
-      <div class="k">Open with Deloitte</div><div>Finish and wire in the exception flow; define the retry policy per queue; separate <strong>technical</strong> (connectivity, mapping) from <strong>business</strong> (S/4 rejection) errors &mdash; who is notified, where each is reprocessed, and what the FSM sees.</div>
+      <div class="k">Solution</div><div>Smart JMS retry with exception-based routing: business errors return to the FSM via ack/pull (no retry); technical errors retry with backoff, then dead-letter with a ServiceNow ticket + email. See <a href="#errordlq">&sect;9</a>.</div>
+      <div class="k">Open with Deloitte</div><div>Confirm retry count + backoff per entity; wire the shared exception flow into the flows already built.</div>
     </div>
   </div>
 
@@ -310,16 +323,18 @@
     <div class="grid">
       <div class="k">Where it sits</div><div>All iFlows, endpoints and properties across both legs.</div>
       <div class="k">Position</div><div>Agreed on the call: system-specific flows are renamed for the system they serve (e.g. the ITSM pull, no longer generic &ldquo;FSM&rdquo;), and searchable properties are standardised uppercase with consistent spelling (a contract/contact typo already cost us a search). The Technical Development Standards and Naming Conventions v0.1 document is the reference.</div>
-      <div class="k">Open with Deloitte</div><div>Confirm <strong>all current iFlows follow the standards document</strong> and hold the convention from the beginning &mdash; renames get harder with every flow added.</div>
+      <div class="k">Evidence</div><div>The FSM package (21 artifacts) mixes separators and casing (<code>FSM PUSH iFLOW</code> vs <code>FSM_Canonical_Mapping_Router</code>), still holds <code>FSM_Canonical_Mapping_Router_copy</code>, <code>ITSM_TEST</code> and <code>FSM_TEMP_DIRECT_SO</code>, and <code>ContractsCreateUpdate</code> is missing its <code>FSM_</code> prefix.</div>
+      <div class="k">Open with Deloitte</div><div>Confirm <strong>all current iFlows follow the standards document</strong> and hold the convention from the beginning &mdash; renames get harder with every flow added. See the as-built names in <a href="#onboarding">&sect;10</a>.</div>
     </div>
   </div>
 
   <div class="op">
-    <div class="ophead"><span class="opno">7</span><h4>Dead Letter Queue (DLQ)</h4><span class="chip open">Open</span></div>
+    <div class="ophead"><span class="opno">7</span><h4>Dead Letter Queue (DLQ)</h4><span class="chip partial">Solution proposed</span></div>
     <div class="grid">
       <div class="k">Where it sits</div><div>After the JMS queues (&sect;2) &mdash; the landing place for messages that exhaust retries.</div>
-      <div class="k">Position</div><div>Not in the current design: a message that fails repeatedly today just sits failed in the monitor. Depends on point 4 &mdash; the <code>[QueueType]</code> segment of the proposed naming gives DLQs their structure.</div>
-      <div class="k">Open with Deloitte</div><div>Design the DLQ per business entity, the exception-based routing into it, and the <strong>reprocessing path</strong> (who triggers redelivery, how support finds the poisoned message via the business-data headers in &sect;5).</div>
+      <div class="k">Position</div><div>Not in the current build: a message that fails repeatedly today just sits failed in the monitor. Depends on point 4 &mdash; the <code>[QueueType]</code> segment of the proposed naming gives DLQs their structure.</div>
+      <div class="k">Solution</div><div>DLQ per business entity paired by the <code>[QueueType]</code> suffix (<code>&hellip;_MAIN</code> / <code>&hellip;_DLQ</code>), exception-based routing on retry exhaustion, replay keyed on the correlation / contract / job-number headers. See <a href="#errordlq">&sect;9</a>.</div>
+      <div class="k">Open with Deloitte</div><div>Confirm DLQ retention, who is authorised to replay, and the reprocessing runbook.</div>
     </div>
   </div>
 </section>
@@ -348,6 +363,113 @@
     <li><strong>Contract-ID-keyed access.</strong> Contract IDs are widely known internally; any system holding a valid OAuth key could query another system&rsquo;s contract. Per-system technical users would mean a proxy per system (CPI cannot make credentials dynamic &mdash; security risk). Position: authorisation of this kind belongs in S/4 / organisational security, not CPI &mdash; to be validated with the security team and the business sensitivity confirmed.</li>
     <li><strong>Flow-count per message.</strong> Five-plus instances per message is a support cost; Thauriq to consider whether any hop can be merged, and otherwise keep business logic out of the passthrough legs (&sect;5).</li>
     <li><strong>Non-API-capable FSMs (plan B).</strong> Baseline assumes HTTPS + OAuth capability at the source. For legacy systems that can only handle files or table queries, an extra CPI leg on top of the pull proxy (e.g. file drop from the registered query) is the fallback &mdash; scope and ownership (Service Stream vs Deloitte) to be agreed case by case.</li>
+  </ul>
+</section>
+
+<section id="sequencing">
+  <h2><span class="no">8</span>Message sequencing &mdash; proposed design</h2>
+  <p class="h2sub">Answers open point 2 &middot; proposal by Dinesh Balachandran (GBIS), 12 Aug 2026 &middot; the latest payload per key is selected before the canonical runs.</p>
+
+  <div class="card">
+    <div class="flowwrap">
+      <div class="flow">
+        <div class="fnode"><span class="t">FSM</span><span class="d">Payload carries a key (e.g. job number) + timestamp</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode"><span class="t">Querying iFlow</span><span class="d">Pull process / API endpoint &mdash; existing first leg</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode qnode"><span class="t">Selection data store</span><span class="d">Raw payloads land here per batch</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode gnode"><span class="badge g">Single-threaded</span><span class="t">Payload selection iFlow</span><span class="d">Sort key + timestamp desc; keep the latest per key, discard older</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode qnode"><span class="t">Canonical queue</span><span class="d">No duplicate keys &mdash; one latest payload per key</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode"><span class="t">Canonical iFlow</span><span class="d">Multi-threaded execution, safe &mdash; keys are unique</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode" style="background:var(--navy); border-color:var(--navy);"><span class="t" style="color:#fff;">S/4HANA Cloud</span><span class="d" style="color:var(--paper);">Sequenced API calls per canonical</span></div>
+      </div>
+    </div>
+    <p class="flownote"><strong>The fix in one line:</strong> if the same job arrives twice in a batch, only the newest payload reaches the canonical &mdash; last-write-wins replaces in-flight ordering.</p>
+  </div>
+
+  <h3>Pre-conditions for the design to hold</h3>
+  <ul>
+    <li>Payloads are <strong>point-in-time snapshots</strong> &mdash; the latest timestamp already contains every earlier update, so discarding older payloads loses nothing.</li>
+    <li>The payload selection iFlow runs <strong>single-threaded</strong> &mdash; exactly one process performs the de-duplication per batch.</li>
+    <li><strong>Batches never overlap</strong> &mdash; the next batch starts only when every transaction of the previous batch is terminal (success or failure, retries concluded): the canonical queue is logically empty for that FSM.</li>
+  </ul>
+
+  <h3>Discussion points (12 Aug thread)</h3>
+  <ul>
+    <li><strong>Throughput (Frank):</strong> waiting for the queue to drain before the next batch adds latency &mdash; quantify per-batch wait in SIT before committing.</li>
+    <li><strong>Selection cost (Dinesh):</strong> expected negligible &mdash; no external calls; read the data store, sort by key + timestamp descending, take the first record per key.</li>
+    <li><strong>Design choice:</strong> one shared canonical queue vs a queue per FSM &mdash; it changes what &ldquo;empty before the next batch&rdquo; means and how batches interleave across systems.</li>
+  </ul>
+</section>
+
+<section id="errordlq">
+  <h2><span class="no">9</span>Error handling &amp; DLQ &mdash; smart JMS retry design</h2>
+  <p class="h2sub">Answers open points 3 and 7 &middot; pattern per the SAP Community blog Shankar referenced (Smart JMS Retry with Exception-Based Routing) &middot; builds on the queue naming standard from point 4.</p>
+
+  <div class="card">
+    <div class="flowwrap">
+      <div class="flow">
+        <div class="fnode qnode"><span class="t">MAIN queue</span><span class="d"><code>[Env]_[Flow]_[Entity]_MAIN</code> &mdash; canonical payloads land here</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode"><span class="t">Canonical iFlow</span><span class="d">Processes the payload; sequenced S/4 API calls</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode anode"><span class="badge system">Classifier</span><span class="t">Error classifier</span><span class="d">Exception subprocess splits technical vs business on the error type</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode gnode"><span class="badge g">Technical only</span><span class="t">Smart retry</span><span class="d">JMS redelivery count checked; max N with backoff per entity</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode rnode"><span class="badge r">Parked</span><span class="t">DLQ</span><span class="d"><code>[Env]_[Flow]_[Entity]_DLQ</code> &mdash; poisoned message, all headers intact</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode gnode"><span class="t">Exception flow</span><span class="d">ServiceNow ticket + email carrying correlation ID, contract ID, FSM job number</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode" style="background:var(--navy); border-color:var(--navy);"><span class="t" style="color:#fff;">Reprocess</span><span class="d" style="color:var(--paper);">Support fixes cause, replays from DLQ back to MAIN &mdash; no payload lost</span></div>
+      </div>
+    </div>
+    <p class="flownote"><strong>Business errors never enter this path:</strong> an S/4 rejection (bad data, validation) is a final outcome &mdash; returned to the FSM via the acknowledgement / pull, no retry, no DLQ. Only technical failures (connectivity, timeout, mapping) retry and dead-letter.</p>
+  </div>
+
+  <h3>Design rules</h3>
+  <ul>
+    <li>Retry on the JMS redelivery count (<code>SAPJMSRetries</code>) with backoff &mdash; max attempts set <strong>per business entity</strong>, not one global number.</li>
+    <li>On exhaustion, exception-based routing moves the message to the paired DLQ &mdash; the <code>[QueueType]</code> suffix from the naming standard makes every MAIN/DLQ pair self-describing.</li>
+    <li>The DLQ message keeps correlation ID, contract ID and FSM job number headers &mdash; the ServiceNow ticket and the parked message always find each other.</li>
+    <li>One shared exception flow, called by every leg via process direct &mdash; one place to change ticketing and alerting.</li>
+  </ul>
+
+  <h3>To confirm with Deloitte</h3>
+  <ul>
+    <li>Retry count + backoff per entity; DLQ retention period; who is authorised to replay.</li>
+    <li>Wiring the shared exception flow into the flows already built.</li>
+  </ul>
+</section>
+
+<section id="onboarding">
+  <h2><span class="no">10</span>Onboarding a new FSM (Mars / PIMS) &mdash; reuse vs build</h2>
+  <p class="h2sub">The whole flow priced per component, with the real iFlow names from the FSM package (21 artifacts) &mdash; push and pull scenarios.</p>
+
+  <div class="twrap">
+  <table>
+    <tr><th>Component</th><th>CPI artifact (as built)</th><th>Mars / PIMS action</th></tr>
+    <tr><td>Push trigger (1A)</td><td><span class="iflow">FSM PUSH iFLOW</span></td><td><span class="chip inbuild">Reuse</span> Hand Mars the shared URL + OAuth key &mdash; zero development. Mars sends the <code>FSM_System</code> header; CPI holds no schedule, timer or polling logic.</td></tr>
+    <tr><td>Pull trigger (1B)</td><td><span class="iflow">&lt;SYS&gt; PULL Canonicals iFLOW</span> (e.g. ITSM)</td><td><span class="chip open">Build &mdash; pull only</span> Copy to <span class="iflow">MARS PULL Canonicals iFLOW</span>; one flow per system so pulls never interfere; all Mars schedules inside it (timers per scenario). Pull batches feed the payload-selection design (&sect;8).</td></tr>
+    <tr><td>System router (2)</td><td><span class="iflow">FSM_Canonical_Mapping_Router</span></td><td><span class="chip partial">Configure</span> One-time, two steps: add the Mars route condition + process direct target. Same entry serves push and pull.</td></tr>
+    <tr><td>Mapping flow (3)</td><td><span class="iflow">&lt;SYS&gt; Canonical Mapping iFlow</span> (JAMS / ITSM / DEF)</td><td><span class="chip open">Build</span> Copy to <span class="iflow">MARS Canonical Mapping iFlow</span> and adjust <strong>only the mapping</strong> (Mars payload &rarr; canonical). Lookup, routing, splitter and ack logic are inherited. <strong>One mapping flow serves push and pull &mdash; build it once.</strong></td></tr>
+    <tr><td>JMS queues</td><td>name = messageType (naming standard applies)</td><td><span class="chip inbuild">Reuse</span> No change.</td></tr>
+    <tr><td>Queue reader (4)</td><td>Passthrough consumer</td><td><span class="chip inbuild">Reuse</span> No change.</td></tr>
+    <tr><td>Canonical execution (5)</td><td><span class="iflow">FSM_ServiceOrderCreateUpdate</span> &middot; <span class="iflow">FSM_ProcurementCreateUpdate</span> &middot; <span class="iflow">FSM_ProjectsCreateUpdate</span> &middot; <span class="iflow">FSM_RCTICreateUpdate</span> &middot; <span class="iflow">FSM_StockConsumption</span> &middot; <span class="iflow">FSM Stock Confirmation iFLOW</span> &middot; <span class="iflow">FSM_MaterialUsage_Trigger</span></td><td><span class="chip inbuild">Reuse</span> FSM-agnostic by design &mdash; treats a Mars canonical exactly like a GEMS one. No change, no retest of shared logic.</td></tr>
+    <tr><td>Outbound pull proxy</td><td>Proxy flow (v2, contract-enforced)</td><td><span class="chip partial">Configure</span> Register the Mars contract ID in the contracts table; hand over URL + OAuth key. Endpoints already exist.</td></tr>
+  </table>
+  </div>
+
+  <p style="margin-top:12px;"><strong>Net new build for Mars or PIMS = one mapping flow</strong> (<span class="iflow">MARS Canonical Mapping iFlow</span>), plus one pull flow (<span class="iflow">MARS PULL Canonicals iFLOW</span>) only if the system is pull-based. Everything else is configuration or straight reuse &mdash; the argument for the shared-endpoint design in one line.</p>
+
+  <h3>As-built naming pattern (FSM package)</h3>
+  <ul>
+    <li>Push trigger: <span class="iflow">FSM PUSH iFLOW</span> &middot; Pull trigger: <span class="iflow">&lt;SYS&gt; PULL Canonicals iFLOW</span> &middot; Router: <span class="iflow">FSM_Canonical_Mapping_Router</span> &middot; Mapping: <span class="iflow">&lt;SYS&gt; Canonical Mapping iFlow</span> &middot; Canonical: <span class="iflow">FSM_&lt;Entity&gt;CreateUpdate</span></li>
+    <li><strong>Tidy-up for point 6:</strong> unify separators and casing (spaces vs underscores, iFLOW vs iFlow); remove <span class="iflow">FSM_Canonical_Mapping_Router_copy</span>, <span class="iflow">ITSM_TEST</span> and <span class="iflow">FSM_TEMP_DIRECT_SO</span> from the package; give <span class="iflow">ContractsCreateUpdate</span> its <span class="iflow">FSM_</span> prefix.</li>
   </ul>
 </section>
 
