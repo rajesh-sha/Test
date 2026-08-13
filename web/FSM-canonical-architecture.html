@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FSM Canonical Architecture</title>
+<style>
+  :root{
+    --navy:#1F3864; --navy2:#1F4E79; --paper:#f4f6f9; --card:#ffffff; --line:#d9dee6;
+    --ink:#1a1a1a; --muted:#5b6472;
+    --green:#dcfce7; --greenText:#15803d;
+    --amber:#fef9c3; --amberText:#a16207;
+    --red:#fee2e2;   --redText:#b91c1c;
+    --blue:#dbeafe;  --blueText:#1e56a0;
+    --queue:#ede9fe; --queueText:#6d28d9;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:Arial, "Helvetica Neue", sans-serif;
+    background:var(--paper); margin:0; color:var(--ink);
+    line-height:1.55; font-size:14px;
+  }
+  header{
+    background:var(--navy); color:#fff; padding:14px 24px;
+    position:sticky; top:0; z-index:20;
+    display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 16px;
+  }
+  header h1{font-size:17px; margin:0; font-weight:700; letter-spacing:.01em;}
+  header .sub{font-size:11px; opacity:.82;}
+  nav.toc{
+    background:#fff; border-bottom:1px solid var(--line);
+    padding:8px 24px; display:flex; gap:6px 14px; flex-wrap:wrap;
+    font-size:12px;
+  }
+  nav.toc a{color:var(--navy2); text-decoration:none; font-weight:600; white-space:nowrap;}
+  nav.toc a:hover, nav.toc a:focus{text-decoration:underline;}
+  main{max-width:1080px; margin:0 auto; padding:26px 24px 80px;}
+  section{margin-bottom:40px;}
+  h2{
+    font-size:15px; color:var(--navy); margin:0 0 4px;
+    text-transform:uppercase; letter-spacing:.05em;
+  }
+  h2 .no{
+    display:inline-block; background:var(--navy); color:#fff; border-radius:4px;
+    font-size:11px; padding:2px 7px; margin-right:8px; vertical-align:1px;
+  }
+  h3{font-size:13.5px; color:var(--navy2); margin:22px 0 6px;}
+  .h2sub{font-size:12px; color:var(--muted); margin:0 0 14px;}
+  p{max-width:72ch; margin:0 0 12px;}
+  ul{max-width:72ch; margin:0 0 12px; padding-left:22px;}
+  li{margin-bottom:6px;}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:8px;
+    padding:18px 20px; margin-bottom:16px;
+  }
+  .lead{
+    background:var(--card); border-left:4px solid var(--navy2); border-radius:0 8px 8px 0;
+    border-top:1px solid var(--line); border-right:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding:16px 20px; margin-bottom:28px; max-width:none;
+  }
+  .lead p{max-width:80ch;}
+  .lead p:last-child{margin-bottom:0;}
+  code{
+    background:#eef1f6; border:1px solid #e0e5ee; border-radius:4px;
+    padding:1px 5px; font-size:12.5px; font-family:Consolas, Menlo, monospace;
+  }
+  /* flow strip */
+  .flowwrap{overflow-x:auto; padding:4px 0 8px;}
+  .flow{
+    display:flex; align-items:stretch; gap:0; min-width:900px;
+  }
+  .fnode{
+    background:var(--card); border:1.5px solid var(--navy2); border-radius:7px;
+    padding:9px 11px; min-width:118px; flex:1;
+    display:flex; flex-direction:column; gap:3px; justify-content:center;
+  }
+  .fnode .t{font-weight:700; font-size:12px; color:var(--navy);}
+  .fnode .d{font-size:10.5px; color:var(--muted); line-height:1.35;}
+  .fnode .badge{
+    align-self:flex-start; font-size:9px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.04em; border-radius:3px; padding:1px 5px;
+  }
+  .badge.shared{background:var(--blue); color:var(--blueText);}
+  .badge.system{background:var(--amber); color:var(--amberText);}
+  .badge.q{background:var(--queue); color:var(--queueText);}
+  .fnode.qnode{border-color:var(--queueText); border-style:dashed;}
+  .fnode.gnode{border-color:var(--greenText); border-width:2px;}
+  .fnode.gnode .t{color:var(--greenText);}
+  .fnode.rnode{border-color:var(--redText); border-style:dashed; border-width:2px; background:var(--red);}
+  .fnode.rnode .t{color:var(--redText);}
+  .fnode.anode{border-color:var(--amberText); background:var(--amber);}
+  .badge.g{background:var(--green); color:var(--greenText);}
+  .badge.r{background:var(--red); color:var(--redText);}
+  .iflow{font-family:Consolas, Menlo, monospace; font-size:11px; color:var(--navy2); font-weight:700;}
+  .farrow{
+    align-self:center; padding:0 6px; color:var(--navy2); font-weight:700; font-size:15px;
+    flex:0 0 auto;
+  }
+  .flownote{font-size:11.5px; color:var(--muted); margin-top:8px; max-width:none;}
+  /* tables */
+  .twrap{overflow-x:auto;}
+  table{border-collapse:collapse; width:100%; background:var(--card); font-size:12.5px;}
+  th{
+    background:var(--navy2); color:#fff; text-align:left; padding:8px 10px;
+    font-size:11px; text-transform:uppercase; letter-spacing:.04em; white-space:nowrap;
+  }
+  td{border:1px solid var(--line); padding:8px 10px; vertical-align:top; background:var(--card);}
+  tr:nth-child(even) td{background:#fafbfd;}
+  td .small{font-size:11px; color:var(--muted);}
+  /* status chips */
+  .chip{
+    display:inline-block; font-size:10.5px; font-weight:700; border-radius:12px;
+    padding:2px 9px; white-space:nowrap;
+  }
+  .chip.open{background:var(--red); color:var(--redText);}
+  .chip.partial{background:var(--amber); color:var(--amberText);}
+  .chip.inbuild{background:var(--green); color:var(--greenText);}
+  .chip.agreed{background:var(--blue); color:var(--blueText);}
+  /* open points cards */
+  .op{
+    background:var(--card); border:1px solid var(--line); border-radius:8px;
+    padding:14px 18px; margin-bottom:12px;
+  }
+  .op .ophead{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:6px;}
+  .op .opno{
+    background:var(--navy); color:#fff; border-radius:50%; width:22px; height:22px;
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:11.5px; font-weight:700; flex:0 0 auto; align-self:center;
+  }
+  .op h4{margin:0; font-size:13.5px; color:var(--navy); flex:1 1 auto;}
+  .op .grid{
+    display:grid; grid-template-columns:110px 1fr; gap:4px 14px; font-size:12.5px;
+  }
+  .op .k{color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.04em; padding-top:2px;}
+  .op .grid div{min-width:0;}
+  @media (max-width:640px){ .op .grid{grid-template-columns:1fr;} .op .k{padding-top:8px;} }
+  footer{
+    border-top:1px solid var(--line); margin-top:30px; padding-top:14px;
+    font-size:11px; color:var(--muted); max-width:none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>FSM Canonical Architecture &mdash; Inbound &amp; Response</h1>
+    <div class="sub">Project Apollo &middot; SAP CPI &middot; Working translation of the build walkthrough, with Shankar&rsquo;s open points mapped into the design and solutions for sequencing, error handling/DLQ and FSM onboarding &middot; v0.2 &mdash; 13 Aug 2026</div>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#leg1">1 &middot; First leg</a>
+  <a href="#mapping">2 &middot; Mapping &amp; queues</a>
+  <a href="#leg2">3 &middot; Second leg</a>
+  <a href="#responses">4 &middot; Responses to FSM</a>
+  <a href="#trace">5 &middot; Traceability</a>
+  <a href="#shankar">6 &middot; Shankar&rsquo;s open points</a>
+  <a href="#decisions">7 &middot; Call decisions &amp; risks</a>
+  <a href="#sequencing">8 &middot; Sequencing solution</a>
+  <a href="#errordlq">9 &middot; Error handling &amp; DLQ</a>
+  <a href="#onboarding">10 &middot; Onboarding Mars / PIMS</a>
+</nav>
+
+<main>
+
+<div class="lead">
+  <p><strong>The architecture in one paragraph.</strong> Every field-service system (FSM) &mdash; GEMS, ITSM, Mars, Defence, Site Tracker, ODM &mdash; reaches S/4HANA through one shared CPI entry. A message arrives either by <strong>push</strong> (the FSM calls one universal HTTPS endpoint) or by <strong>pull</strong> (one CPI timer flow per FSM fetches on a schedule). Both hand the payload to a shared <strong>system router</strong>, which reads the <code>FSM_System</code> header and passes the message to that system&rsquo;s own <strong>mapping flow</strong> &mdash; the only system-specific build in the chain &mdash; where the payload is converted into the agreed <strong>canonical structure</strong>. Most message types are then dropped onto a <strong>JMS queue named after the message type</strong> and the FSM gets an immediate acknowledgement; a queue reader picks the message up and runs the <strong>FSM-agnostic canonical execution</strong> that calls S/4HANA. Material usage runs synchronously (no queue) so the stock answer goes straight back. Responses to the FSM come two ways: a <strong>status acknowledgement</strong> on the first leg (status + correlation ID, no document details, no PATCH back into the FSM), and a <strong>GET-only pull proxy</strong> the FSM calls on its own schedule, keyed by contract ID, to fetch S/4 results.</p>
+  <p style="margin-top:10px">Sources: CPI Inbound diagram &middot; FSM canonical request/response end-to-end diagram &middot; build walkthrough with Thauriq Jappie, 4 Aug 2026 &middot; Shankar Raju&rsquo;s open-points email, 10 Aug 2026.</p>
+</div>
+
+<section id="leg1">
+  <h2><span class="no">1</span>First leg &mdash; how a message gets in</h2>
+  <p class="h2sub">One entry for everybody; the only per-system build is the mapping flow at the end.</p>
+
+  <div class="card">
+    <div class="flowwrap">
+      <div class="flow">
+        <div class="fnode"><span class="badge shared">Shared</span><span class="t">1A &middot; Push trigger</span><span class="d">One universal HTTPS endpoint, all FSM, all scenarios. Accepts payload as-is (JSON or XML), no logic.</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode"><span class="badge shared">Shared</span><span class="t">2 &middot; System router</span><span class="d">Reads <code>FSM_System</code> header; routes to the system&rsquo;s mapping flow. Unknown system ends cleanly.</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode"><span class="badge system">System-specific</span><span class="t">3 &middot; FSM mapping flow</span><span class="d">Looks up contract &amp; pattern, routes by type + pattern to 1 of 6 mapping steps, builds the canonical payload.</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode qnode"><span class="badge q">Async</span><span class="t">JMS queue</span><span class="d">Queue name = message type (dynamic). Drop-off returns the async acknowledgement &mdash; receipt only.</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode"><span class="badge shared">Shared</span><span class="t">4 &middot; Queue reader</span><span class="d">Passthrough consumer; hands the canonical payload to execution.</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode"><span class="badge shared">Shared</span><span class="t">5 &middot; Canonical execution</span><span class="d">FSM-agnostic logic; sequenced S/4HANA API calls per canonical (service order, procurement, material usage, RCTI&hellip;).</span></div>
+      </div>
+    </div>
+    <p class="flownote">Material usage (stock consumption / stock confirmation) skips the queue: it is called sync via process direct so the stock answer returns to the caller in the same exchange. Canonicals can also call each other directly (e.g. procurement &rarr; material usage) without going back through a queue.</p>
+  </div>
+
+  <h3>Push (1A)</h3>
+  <ul>
+    <li>Built once, reused by every FSM. Onboarding a new system needs <strong>no change</strong> here &mdash; hand over the URL and credentials only.</li>
+    <li>Auth is layered: BTP process-integration-runtime instance issues client ID / secret with the <code>ESB messaging.send</code> role; OAuth 2.0 client-credentials (CPI performs the token exchange even if the caller sends basic auth). API Management can be added later to enforce the method.</li>
+  </ul>
+
+  <h3>Pull (1B)</h3>
+  <ul>
+    <li><strong>One pull flow per FSM system</strong> (ITSM first), holding all of that system&rsquo;s schedules in one place &mdash; e.g. work orders every 4 hours, payments weekly. Pull flows call the same system router as push.</li>
+    <li>Pull flows are named for the system they poll (renamed from generic &ldquo;FSM&rdquo; labels &mdash; agreed on the call).</li>
+  </ul>
+
+  <h3>Routing and the per-system switch</h3>
+  <ul>
+    <li>The router checks <code>FSM_System</code>: GEMS &rarr; GEMS mapping, ITSM &rarr; ITSM mapping; anything unconfigured falls to the default route and <strong>ends successfully without processing</strong> &mdash; nothing enters a queue.</li>
+    <li>Two control levers per system without a code change: an <strong>externalised configuration parameter</strong> that dead-ends a system&rsquo;s route (channel off), and revoking the system&rsquo;s service key (no authorisation to call at all).</li>
+    <li>Adding an FSM is a one-time, two-step router change: add the route condition and its process-direct target. Change risk to other systems is minimal because each system&rsquo;s logic lives in its own mapping flow.</li>
+  </ul>
+</section>
+
+<section id="mapping">
+  <h2><span class="no">2</span>Mapping flows and queues</h2>
+  <p class="h2sub">Systems conform to the canonical before it &mdash; the canonical never adapts to a system.</p>
+  <ul>
+    <li>Each FSM&rsquo;s mapping flow is the <strong>only system-specific component</strong>. It maps the source payload into the canonical structure so canonical execution can treat every message identically. New FSM = copy an existing mapping flow, adjust the mapping, onboard.</li>
+    <li>Inside the mapping flow: contract + pattern lookup from the shared datastore, then routing by message type + pattern into one of six mapping branches. A splitter runs before the JMS drop, so a multi-type payload is already catered for even though today one payload = one message type.</li>
+    <li>Three target types leaving the mapping flow: <strong>JMS drop</strong> (most types &mdash; queue name derived from message type), <strong>direct sync call</strong> (material usage: stock consumption, and stock confirmation for pattern 2.2), and the async acknowledgement back to the caller.</li>
+    <li>Queues today are named purely by message type (e.g. <code>PROJECT_WBS</code>, <code>RCTI</code>) &mdash; see open point 4 for the proposed standard.</li>
+  </ul>
+</section>
+
+<section id="leg2">
+  <h2><span class="no">3</span>Second leg &mdash; canonical execution</h2>
+  <p class="h2sub">FSM-agnostic; the same logic no matter which system sent the message.</p>
+  <ul>
+    <li>The JMS queue reader is a passthrough: it consumes from the queue and hands the canonical payload to the execution flow for that canonical (service order, procurement, material usage, RCTI, etc.).</li>
+    <li>Execution makes the <strong>sequenced S/4HANA API calls</strong> the canonical requires and logs errors to the canonical error-logging flow.</li>
+    <li>Canonicals can invoke each other by process direct (no queue hop), which is why execution must be callable independently of the queue.</li>
+    <li>Sync responses (material usage) return through the first leg to the caller; S/4 success/error outcomes otherwise surface via the acknowledgement callback and the pull services below.</li>
+  </ul>
+</section>
+
+<section id="responses">
+  <h2><span class="no">4</span>Responses back to the FSM</h2>
+  <p class="h2sub">Two pathways &mdash; a status callback on the first leg, and a pull endpoint the FSM calls when it wants the data.</p>
+
+  <h3>Response type 1 &mdash; acknowledgement and outcome callback</h3>
+  <ul>
+    <li>Carries <strong>status + correlation ID only</strong> &mdash; no document details. Document data waits for the pull.</li>
+    <li><strong>No PATCH back into the FSM.</strong> The custom ITSM patch (CPI updating ITSM&rsquo;s records after queueing) was dropped to stay on the standard design; ITSM receives the acknowledgement and does its own update, then fetches results via the pull services. Agreed with Will / ITSM.</li>
+    <li>Nothing is written into FSM records from CPI on either pathway.</li>
+  </ul>
+
+  <h3>Response type 2 &mdash; pull of S/4HANA data (CPI proxy)</h3>
+  <ul>
+    <li>One CPI proxy flow exposes what looks like separate endpoints per object: a wildcard path segment maps the friendly name (e.g. <code>/serviceorder</code>, <code>/journalentry</code>) to the real S/4 OData service or custom CDS view. Consumers see plain HTTPS; CPI speaks OData to S/4.</li>
+    <li>Available today: <strong>Service Orders, Enterprise Project List, Customer Invoice, Project Time &amp; Equipment Usage, Supplier Invoice / RCTI Payments, Available Stock Query</strong> (plus journal entry built ahead of need). Adding a service is a mapping entry, not a new flow.</li>
+    <li>Hardening enforced in the proxy: <strong>GET only</strong>; <strong>OAuth 2.0</strong> role-based auth; <strong>contract ID mandatory</strong>, validated against the contracts table persisted in CPI, and injected as a filter so a caller only receives its own contract&rsquo;s data. Consumers may add further filters (date, job number, field selection).</li>
+    <li>The pull is keyed by <strong>contract ID + FSM job number</strong> &mdash; one address, a registered query per system. One contract &asymp; one system; a system with several divisions holds a contract ID per division.</li>
+  </ul>
+</section>
+
+<section id="trace">
+  <h2><span class="no">5</span>Traceability and the support model</h2>
+  <p class="h2sub">A single pushed message is at least five iFlow instances in the monitor &mdash; support must be able to find all of them from business data.</p>
+  <ul>
+    <li>Minimum footprint per pushed message: push trigger &rarr; router &rarr; system mapping &rarr; queue reader &rarr; canonical execution = <strong>5 instances</strong>, more when canonicals chain. Three messages from three systems = 15+ entries; support cannot work from counts alone.</li>
+    <li><strong>Correlation ID</strong> links every instance of one message end to end and is returned to the sender in the response body.</li>
+    <li><strong>Business-data search:</strong> every flow is to stamp <code>contract ID</code> and <code>FSM job number</code> (plus correlation ID) as custom header properties, uppercase, consistent spelling &mdash; so support can search by the thing the ticket actually quotes (&ldquo;where is my job 12345&rdquo;), not by technical IDs. Thauriq to enforce across the team on every integration.</li>
+    <li>These are the same two fields the outbound pull relies on, so support learns <strong>one pair of fields for both directions</strong>.</li>
+    <li>Open design intent: where flows cannot be reduced, concentrate business logic away from the passthrough legs so support learns quickly that instances 1&ndash;2 are plumbing and the mapping + canonical instances are where failures live.</li>
+  </ul>
+</section>
+
+<section id="shankar">
+  <h2><span class="no">6</span>Shankar&rsquo;s open points &mdash; folded into the architecture</h2>
+  <p class="h2sub">The seven items from Shankar Raju&rsquo;s email of 10 Aug 2026, each placed where it belongs in the design, with the current position and what remains with Deloitte.</p>
+
+  <div class="op">
+    <div class="ophead"><span class="opno">1</span><h4>Response handling and standard response model</h4><span class="chip partial">Partially addressed</span></div>
+    <div class="grid">
+      <div class="k">Where it sits</div><div>End of first leg (acknowledgement) + canonical outcome callback + pull proxy (&sect;4).</div>
+      <div class="k">Position</div><div>Two response pathways are designed and building: status + correlation ID acknowledgement (no document details, no PATCH into the FSM) and the contract-keyed pull. Every response body is to carry <strong>correlation ID, contract ID and FSM job number</strong> as standard fields.</div>
+      <div class="k">Open with Deloitte</div><div>Publish the formal <strong>standard response model</strong> (structure, status codes, error payload) so every canonical returns the same shape &mdash; documented, not tribal.</div>
+    </div>
+  </div>
+
+  <div class="op">
+    <div class="ophead"><span class="opno">2</span><h4>Message ordering and sequencing considerations</h4><span class="chip partial">Solution proposed</span></div>
+    <div class="grid">
+      <div class="k">Where it sits</div><div>JMS queues between the legs (&sect;2) and the sequenced S/4 calls inside canonical execution (&sect;3).</div>
+      <div class="k">Position</div><div>One payload = one message type, queues are per message type, and execution sequences its own S/4 API calls &mdash; but nothing in the base design guarantees cross-message order (e.g. create before change on the same work order) across queue redeliveries and retries.</div>
+      <div class="k">Solution</div><div>Dinesh Balachandran&rsquo;s payload-selection design (12 Aug) &mdash; single-threaded latest-per-key selection before the canonical, non-overlapping batches. See <a href="#sequencing">&sect;8</a>.</div>
+      <div class="k">Open with Deloitte</div><div>Adopt the design; validate batch latency and selection cost in SIT; decide one shared canonical queue vs a queue per FSM.</div>
+    </div>
+  </div>
+
+  <div class="op">
+    <div class="ophead"><span class="opno">3</span><h4>Technical and business error handling</h4><span class="chip partial">Solution proposed</span></div>
+    <div class="grid">
+      <div class="k">Where it sits</div><div>Exception subprocess referenced from the router and every leg; canonical error-logging flow (&sect;3).</div>
+      <div class="k">Position</div><div>A shared exception flow (ServiceNow ticket + email) is being built and will be called from all flows; process-direct failures already bubble up to the calling flow. Business errors from S/4 surface through the outcome callback and pull.</div>
+      <div class="k">Solution</div><div>Smart JMS retry with exception-based routing: business errors return to the FSM via ack/pull (no retry); technical errors retry with backoff, then dead-letter with a ServiceNow ticket + email. See <a href="#errordlq">&sect;9</a>.</div>
+      <div class="k">Open with Deloitte</div><div>Confirm retry count + backoff per entity; wire the shared exception flow into the flows already built.</div>
+    </div>
+  </div>
+
+  <div class="op">
+    <div class="ophead"><span class="opno">4</span><h4>Standardisation of queue names</h4><span class="chip open">Open</span></div>
+    <div class="grid">
+      <div class="k">Where it sits</div><div>Dynamic JMS drop in every mapping flow (&sect;2).</div>
+      <div class="k">Position</div><div>Queue name = message type today (<code>PROJECT_WBS</code>, <code>RCTI</code>). Proposed standard: <code>[Environment]_[Flow]_[BusinessEntity]_[QueueType]</code>, which enables smart JMS retry and exception-based routing and gives DLQs a natural home.</div>
+      <div class="k">Open with Deloitte</div><div>Adopt the structured format <strong>from the start</strong> &mdash; queue renames after go-live are painful. Because the queue name is derived in one place (the dynamic property), the change is cheap now.</div>
+    </div>
+  </div>
+
+  <div class="op">
+    <div class="ophead"><span class="opno">5</span><h4>XSD schemas</h4><span class="chip open">Open</span></div>
+    <div class="grid">
+      <div class="k">Where it sits</div><div>The canonical contract at the boundary of every mapping flow (&sect;2) &mdash; systems must conform before entry.</div>
+      <div class="k">Position</div><div>Canonical structures exist and are enforced in the mapping flows, but the XSDs have been requested since 24 Jul (again 31 Jul and 4 Aug) and are still not shared, nor the CPI package that holds them.</div>
+      <div class="k">Open with Deloitte</div><div>Publish an <strong>XSD per canonical</strong> plus the owning package, so new FSM onboarding and our own validation don&rsquo;t reverse-engineer the structure from iFlows.</div>
+    </div>
+  </div>
+
+  <div class="op">
+    <div class="ophead"><span class="opno">6</span><h4>Naming standard</h4><span class="chip partial">Partially addressed</span></div>
+    <div class="grid">
+      <div class="k">Where it sits</div><div>All iFlows, endpoints and properties across both legs.</div>
+      <div class="k">Position</div><div>Agreed on the call: system-specific flows are renamed for the system they serve (e.g. the ITSM pull, no longer generic &ldquo;FSM&rdquo;), and searchable properties are standardised uppercase with consistent spelling (a contract/contact typo already cost us a search). The Technical Development Standards and Naming Conventions v0.1 document is the reference.</div>
+      <div class="k">Evidence</div><div>The FSM package (21 artifacts) mixes separators and casing (<code>FSM PUSH iFLOW</code> vs <code>FSM_Canonical_Mapping_Router</code>), still holds <code>FSM_Canonical_Mapping_Router_copy</code>, <code>ITSM_TEST</code> and <code>FSM_TEMP_DIRECT_SO</code>, and <code>ContractsCreateUpdate</code> is missing its <code>FSM_</code> prefix.</div>
+      <div class="k">Open with Deloitte</div><div>Confirm <strong>all current iFlows follow the standards document</strong> and hold the convention from the beginning &mdash; renames get harder with every flow added. See the as-built names in <a href="#onboarding">&sect;10</a>.</div>
+    </div>
+  </div>
+
+  <div class="op">
+    <div class="ophead"><span class="opno">7</span><h4>Dead Letter Queue (DLQ)</h4><span class="chip partial">Solution proposed</span></div>
+    <div class="grid">
+      <div class="k">Where it sits</div><div>After the JMS queues (&sect;2) &mdash; the landing place for messages that exhaust retries.</div>
+      <div class="k">Position</div><div>Not in the current build: a message that fails repeatedly today just sits failed in the monitor. Depends on point 4 &mdash; the <code>[QueueType]</code> segment of the proposed naming gives DLQs their structure.</div>
+      <div class="k">Solution</div><div>DLQ per business entity paired by the <code>[QueueType]</code> suffix (<code>&hellip;_MAIN</code> / <code>&hellip;_DLQ</code>), exception-based routing on retry exhaustion, replay keyed on the correlation / contract / job-number headers. See <a href="#errordlq">&sect;9</a>.</div>
+      <div class="k">Open with Deloitte</div><div>Confirm DLQ retention, who is authorised to replay, and the reprocessing runbook.</div>
+    </div>
+  </div>
+</section>
+
+<section id="decisions">
+  <h2><span class="no">7</span>Decisions from the 4 Aug walkthrough, and flagged risks</h2>
+  <p class="h2sub">What was settled with Thauriq, and what was raised and parked for a decision.</p>
+
+  <h3>Agreed</h3>
+  <div class="twrap">
+  <table>
+    <tr><th style="width:55%">Decision</th><th>Note</th></tr>
+    <tr><td>Keep <strong>one shared push endpoint</strong> with header-based routing, rather than an endpoint per FSM.</td><td>Routing is needed either way; per-FSM endpoints multiply maintained artefacts. <span class="chip agreed">Agreed</span></td></tr>
+    <tr><td><strong>Per-system kill switch</strong> without code change: configuration parameter dead-ends the route; service key revocation blocks the caller entirely.</td><td>Unknown/disabled systems end cleanly, consuming no queue resources. <span class="chip agreed">Agreed</span></td></tr>
+    <tr><td><strong>One pull flow per FSM</strong>, all schedules inside it; renamed per system.</td><td>Prevents systems interfering with each other&rsquo;s pulls. <span class="chip agreed">Agreed</span></td></tr>
+    <tr><td>Only the <strong>system mapping flow is system-specific</strong>; onboarding = copy flow + one router entry.</td><td>Segmentation added so development teams can&rsquo;t affect each other. <span class="chip agreed">Agreed</span></td></tr>
+    <tr><td><strong>No PATCH back into ITSM</strong>; acknowledgement only, results via pull.</td><td>Keeps every FSM on the standard design. <span class="chip agreed">Agreed</span></td></tr>
+    <tr><td><strong>Correlation ID + contract ID + FSM job number</strong> stamped on every flow and returned in every response.</td><td>Thauriq to enforce with the team on all integrations. <span class="chip inbuild">In build</span></td></tr>
+    <tr><td>Pull proxy hardening: GET-only, OAuth 2.0, contract ID enforced against the contracts table.</td><td>Four controls beyond raw S/4 exposure. <span class="chip inbuild">In build</span></td></tr>
+  </table>
+  </div>
+
+  <h3>Raised and parked</h3>
+  <ul>
+    <li><strong>Server-side filter limits on the pull proxy.</strong> Consumers can omit date filters and drag a year of data (business partner queries already time out). We know the system limits; the proxy should enforce a default window / mandatory filter rather than leave it to the caller. Thauriq acknowledged; proxy can enforce filters.</li>
+    <li><strong>Contract-ID-keyed access.</strong> Contract IDs are widely known internally; any system holding a valid OAuth key could query another system&rsquo;s contract. Per-system technical users would mean a proxy per system (CPI cannot make credentials dynamic &mdash; security risk). Position: authorisation of this kind belongs in S/4 / organisational security, not CPI &mdash; to be validated with the security team and the business sensitivity confirmed.</li>
+    <li><strong>Flow-count per message.</strong> Five-plus instances per message is a support cost; Thauriq to consider whether any hop can be merged, and otherwise keep business logic out of the passthrough legs (&sect;5).</li>
+    <li><strong>Non-API-capable FSMs (plan B).</strong> Baseline assumes HTTPS + OAuth capability at the source. For legacy systems that can only handle files or table queries, an extra CPI leg on top of the pull proxy (e.g. file drop from the registered query) is the fallback &mdash; scope and ownership (Service Stream vs Deloitte) to be agreed case by case.</li>
+  </ul>
+</section>
+
+<section id="sequencing">
+  <h2><span class="no">8</span>Message sequencing &mdash; proposed design</h2>
+  <p class="h2sub">Answers open point 2 &middot; proposal by Dinesh Balachandran (GBIS), 12 Aug 2026 &middot; the latest payload per key is selected before the canonical runs.</p>
+
+  <div class="card">
+    <div class="flowwrap">
+      <div class="flow">
+        <div class="fnode"><span class="t">FSM</span><span class="d">Payload carries a key (e.g. job number) + timestamp</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode"><span class="t">Querying iFlow</span><span class="d">Pull process / API endpoint &mdash; existing first leg</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode qnode"><span class="t">Selection data store</span><span class="d">Raw payloads land here per batch</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode gnode"><span class="badge g">Single-threaded</span><span class="t">Payload selection iFlow</span><span class="d">Sort key + timestamp desc; keep the latest per key, discard older</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode qnode"><span class="t">Canonical queue</span><span class="d">No duplicate keys &mdash; one latest payload per key</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode"><span class="t">Canonical iFlow</span><span class="d">Multi-threaded execution, safe &mdash; keys are unique</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode" style="background:var(--navy); border-color:var(--navy);"><span class="t" style="color:#fff;">S/4HANA Cloud</span><span class="d" style="color:var(--paper);">Sequenced API calls per canonical</span></div>
+      </div>
+    </div>
+    <p class="flownote"><strong>The fix in one line:</strong> if the same job arrives twice in a batch, only the newest payload reaches the canonical &mdash; last-write-wins replaces in-flight ordering.</p>
+  </div>
+
+  <h3>Pre-conditions for the design to hold</h3>
+  <ul>
+    <li>Payloads are <strong>point-in-time snapshots</strong> &mdash; the latest timestamp already contains every earlier update, so discarding older payloads loses nothing.</li>
+    <li>The payload selection iFlow runs <strong>single-threaded</strong> &mdash; exactly one process performs the de-duplication per batch.</li>
+    <li><strong>Batches never overlap</strong> &mdash; the next batch starts only when every transaction of the previous batch is terminal (success or failure, retries concluded): the canonical queue is logically empty for that FSM.</li>
+  </ul>
+
+  <h3>Discussion points (12 Aug thread)</h3>
+  <ul>
+    <li><strong>Throughput (Frank):</strong> waiting for the queue to drain before the next batch adds latency &mdash; quantify per-batch wait in SIT before committing.</li>
+    <li><strong>Selection cost (Dinesh):</strong> expected negligible &mdash; no external calls; read the data store, sort by key + timestamp descending, take the first record per key.</li>
+    <li><strong>Design choice:</strong> one shared canonical queue vs a queue per FSM &mdash; it changes what &ldquo;empty before the next batch&rdquo; means and how batches interleave across systems.</li>
+  </ul>
+</section>
+
+<section id="errordlq">
+  <h2><span class="no">9</span>Error handling &amp; DLQ &mdash; smart JMS retry design</h2>
+  <p class="h2sub">Answers open points 3 and 7 &middot; pattern per the SAP Community blog Shankar referenced (Smart JMS Retry with Exception-Based Routing) &middot; builds on the queue naming standard from point 4.</p>
+
+  <div class="card">
+    <div class="flowwrap">
+      <div class="flow">
+        <div class="fnode qnode"><span class="t">MAIN queue</span><span class="d"><code>[Env]_[Flow]_[Entity]_MAIN</code> &mdash; canonical payloads land here</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode"><span class="t">Canonical iFlow</span><span class="d">Processes the payload; sequenced S/4 API calls</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode anode"><span class="badge system">Classifier</span><span class="t">Error classifier</span><span class="d">Exception subprocess splits technical vs business on the error type</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode gnode"><span class="badge g">Technical only</span><span class="t">Smart retry</span><span class="d">JMS redelivery count checked; max N with backoff per entity</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode rnode"><span class="badge r">Parked</span><span class="t">DLQ</span><span class="d"><code>[Env]_[Flow]_[Entity]_DLQ</code> &mdash; poisoned message, all headers intact</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode gnode"><span class="t">Exception flow</span><span class="d">ServiceNow ticket + email carrying correlation ID, contract ID, FSM job number</span></div>
+        <div class="farrow">&rarr;</div>
+        <div class="fnode" style="background:var(--navy); border-color:var(--navy);"><span class="t" style="color:#fff;">Reprocess</span><span class="d" style="color:var(--paper);">Support fixes cause, replays from DLQ back to MAIN &mdash; no payload lost</span></div>
+      </div>
+    </div>
+    <p class="flownote"><strong>Business errors never enter this path:</strong> an S/4 rejection (bad data, validation) is a final outcome &mdash; returned to the FSM via the acknowledgement / pull, no retry, no DLQ. Only technical failures (connectivity, timeout, mapping) retry and dead-letter.</p>
+  </div>
+
+  <h3>Design rules</h3>
+  <ul>
+    <li>Retry on the JMS redelivery count (<code>SAPJMSRetries</code>) with backoff &mdash; max attempts set <strong>per business entity</strong>, not one global number.</li>
+    <li>On exhaustion, exception-based routing moves the message to the paired DLQ &mdash; the <code>[QueueType]</code> suffix from the naming standard makes every MAIN/DLQ pair self-describing.</li>
+    <li>The DLQ message keeps correlation ID, contract ID and FSM job number headers &mdash; the ServiceNow ticket and the parked message always find each other.</li>
+    <li>One shared exception flow, called by every leg via process direct &mdash; one place to change ticketing and alerting.</li>
+  </ul>
+
+  <h3>To confirm with Deloitte</h3>
+  <ul>
+    <li>Retry count + backoff per entity; DLQ retention period; who is authorised to replay.</li>
+    <li>Wiring the shared exception flow into the flows already built.</li>
+  </ul>
+</section>
+
+<section id="onboarding">
+  <h2><span class="no">10</span>Onboarding a new FSM (Mars / PIMS) &mdash; reuse vs build</h2>
+  <p class="h2sub">The whole flow priced per component, with the real iFlow names from the FSM package (21 artifacts) &mdash; push and pull scenarios.</p>
+
+  <div class="twrap">
+  <table>
+    <tr><th>Component</th><th>CPI artifact (as built)</th><th>Mars / PIMS action</th></tr>
+    <tr><td>Push trigger (1A)</td><td><span class="iflow">FSM PUSH iFLOW</span></td><td><span class="chip inbuild">Reuse</span> Hand Mars the shared URL + OAuth key &mdash; zero development. Mars sends the <code>FSM_System</code> header; CPI holds no schedule, timer or polling logic.</td></tr>
+    <tr><td>Pull trigger (1B)</td><td><span class="iflow">&lt;SYS&gt; PULL Canonicals iFLOW</span> (e.g. ITSM)</td><td><span class="chip open">Build &mdash; pull only</span> Copy to <span class="iflow">MARS PULL Canonicals iFLOW</span>; one flow per system so pulls never interfere; all Mars schedules inside it (timers per scenario). Pull batches feed the payload-selection design (&sect;8).</td></tr>
+    <tr><td>System router (2)</td><td><span class="iflow">FSM_Canonical_Mapping_Router</span></td><td><span class="chip partial">Configure</span> One-time, two steps: add the Mars route condition + process direct target. Same entry serves push and pull.</td></tr>
+    <tr><td>Mapping flow (3)</td><td><span class="iflow">&lt;SYS&gt; Canonical Mapping iFlow</span> (JAMS / ITSM / DEF)</td><td><span class="chip open">Build</span> Copy to <span class="iflow">MARS Canonical Mapping iFlow</span> and adjust <strong>only the mapping</strong> (Mars payload &rarr; canonical). Lookup, routing, splitter and ack logic are inherited. <strong>One mapping flow serves push and pull &mdash; build it once.</strong></td></tr>
+    <tr><td>JMS queues</td><td>name = messageType (naming standard applies)</td><td><span class="chip inbuild">Reuse</span> No change.</td></tr>
+    <tr><td>Queue reader (4)</td><td>Passthrough consumer</td><td><span class="chip inbuild">Reuse</span> No change.</td></tr>
+    <tr><td>Canonical execution (5)</td><td><span class="iflow">FSM_ServiceOrderCreateUpdate</span> &middot; <span class="iflow">FSM_ProcurementCreateUpdate</span> &middot; <span class="iflow">FSM_ProjectsCreateUpdate</span> &middot; <span class="iflow">FSM_RCTICreateUpdate</span> &middot; <span class="iflow">FSM_StockConsumption</span> &middot; <span class="iflow">FSM Stock Confirmation iFLOW</span> &middot; <span class="iflow">FSM_MaterialUsage_Trigger</span></td><td><span class="chip inbuild">Reuse</span> FSM-agnostic by design &mdash; treats a Mars canonical exactly like a GEMS one. No change, no retest of shared logic.</td></tr>
+    <tr><td>Outbound pull proxy</td><td>Proxy flow (v2, contract-enforced)</td><td><span class="chip partial">Configure</span> Register the Mars contract ID in the contracts table; hand over URL + OAuth key. Endpoints already exist.</td></tr>
+  </table>
+  </div>
+
+  <p style="margin-top:12px;"><strong>Net new build for Mars or PIMS = one mapping flow</strong> (<span class="iflow">MARS Canonical Mapping iFlow</span>), plus one pull flow (<span class="iflow">MARS PULL Canonicals iFLOW</span>) only if the system is pull-based. Everything else is configuration or straight reuse &mdash; the argument for the shared-endpoint design in one line.</p>
+
+  <h3>As-built naming pattern (FSM package)</h3>
+  <ul>
+    <li>Push trigger: <span class="iflow">FSM PUSH iFLOW</span> &middot; Pull trigger: <span class="iflow">&lt;SYS&gt; PULL Canonicals iFLOW</span> &middot; Router: <span class="iflow">FSM_Canonical_Mapping_Router</span> &middot; Mapping: <span class="iflow">&lt;SYS&gt; Canonical Mapping iFlow</span> &middot; Canonical: <span class="iflow">FSM_&lt;Entity&gt;CreateUpdate</span></li>
+    <li><strong>Tidy-up for point 6:</strong> unify separators and casing (spaces vs underscores, iFLOW vs iFlow); remove <span class="iflow">FSM_Canonical_Mapping_Router_copy</span>, <span class="iflow">ITSM_TEST</span> and <span class="iflow">FSM_TEMP_DIRECT_SO</span> from the package; give <span class="iflow">ContractsCreateUpdate</span> its <span class="iflow">FSM_</span> prefix.</li>
+  </ul>
+</section>
+
+<footer>
+  Working document &mdash; Rajesh Sha, SAP Integration &amp; Data Architect, Service Stream. Compiled from the CPI build walkthrough with Thauriq Jappie (4 Aug 2026), the inbound/response architecture diagrams, and Shankar Raju&rsquo;s open-points list (10 Aug 2026). For discussion with Deloitte; not a signed-off design.
+</footer>
+
+</main>
+</body>
+</html>
