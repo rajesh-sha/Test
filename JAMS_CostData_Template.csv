@@ -1,0 +1,4 @@
+JobID,WBSElement,ContractID,CostElement,GLAccount,CompanyCode,FiscalYear,AccountingDocument,LineItem,PostingDate,DocumentDate,Amount,Currency,Quantity,UnitOfMeasure,Description,ServiceOrder,ServiceOrderItem,Supplier,SupplierName,PurchasingDocument,PurchasingDocumentItem,Product,Plant,IsReversal,IsReversed,CostCenter,ProfitCenter
+JOB1,AU-000420326.01,CON-0092,Labour,22005000,AU01,2026,400000123,000001,2026-08-17,2026-08-17,10.0,AUD,1.0,HUR,Lab1 field technician,SVO-8001,10,,,,,,,FALSE,TRUE,2800001,28000000
+JOB1,AU-000420326.01,CON-0092,Labour,22005000,AU01,2026,400000456,000001,2026-08-18,2026-08-18,-10.0,AUD,-1.0,HUR,Lab1 field technician — reversal of 400000123,SVO-8001,10,,,,,,,TRUE,FALSE,2800001,28000000
+JOB1,AU-000420326.01,CON-0092,Proc,13601000,AU01,2026,400000789,000002,2026-08-17,2026-08-17,10.0,AUD,,,SES1 subcontractor works,SVO-8001,10,HAYEL41,HAYMANS ELECTRICAL,14205843,1,,,FALSE,FALSE,2800001,28000000
