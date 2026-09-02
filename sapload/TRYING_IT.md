@@ -1,126 +1,130 @@
-# sapload — try it in two minutes
+================================================================================
+  SAP LOAD WORKBENCH
+  Map an extract onto an SAP upload template, check every row, reconcile.
+================================================================================
 
-No installation. No dependencies. Python 3.9+ and nothing else.
+There are three ways to use this. Most people only need the first.
 
-## The way an end user runs it
 
-**Windows:** double-click `Start-Workbench.bat`
-**Mac:** double-click `start-workbench.command`
-**Any machine, from a terminal:** `python -m sapload.serve`
+--------------------------------------------------------------------------------
+  1.  THE EASY WAY  —  no installation at all
+--------------------------------------------------------------------------------
 
-Your browser opens on the workbench. Drag in the SAP template and your
-extract, read the proposed mapping, change anything that looks wrong,
-and download the filled template and the reconciliation pack.
+    Double-click        SAP-Load-Workbench.html
 
-Nothing leaves the machine. There is no login, no database and no
-connection to SAP — the files are held in memory for one session and
-discarded when you close it.
+It opens in your browser and works offline. Nothing to install, no Python,
+no server, no admin rights. To give it to a colleague, email them that one
+file — that is the whole tool.
 
-The steps below are the same job from a command line, for scheduling it or
-running it in a pipeline.
+    Step 1   Drag in the SAP upload template, then your extract.
+    Step 2   Read what the template wants.
+    Step 3   Check the mapping. Change anything wrong from the dropdown.
+    Step 4   Read the problems. These are rows SAP would have rejected.
+    Step 5   Download the filled template and the reconciliation pack.
 
-## 1. See what it makes of a template
+Then upload the filled template to SAP exactly as you do today, and keep the
+reconciliation pack. That pack is your evidence.
 
-    python -m sapload.cli inspect "examples/Supplier Invoice_EN.xlsx" -v
+Try it first on the two files in  samples/  — the extract has deliberate
+errors in it so you can see the checking work.
 
-Nothing is configured. It works out for itself where the header block ends,
-which row carries the technical field names, which fields are mandatory or
-key, how long each may be, and what values each will accept.
+Your corrections are remembered in that browser, so the second run of the
+same weekly extract needs no corrections at all.
 
-## 2. Run the whole thing
 
-    python -m sapload.cli build \
-        examples/fsm_subcontractor_claims.csv \
-        "examples/Supplier Invoice_EN.xlsx" \
-        upload.xlsx \
-        --map DocumentHeaderText=descr \
-        --memory mappings.json \
-        --recon recon.txt
+--------------------------------------------------------------------------------
+  2.  THE SAME THING, SCRIPTABLE  —  needs Python 3.9+
+--------------------------------------------------------------------------------
 
-Open `upload.xlsx` in Excel. SAP's header rows, dropdowns, column widths and
-Field List sheet are exactly as they were — click a Currency cell and the
-dropdown is still there.
+Use this to put the weekly run on a schedule, or in a pipeline.
 
-Then run it again *without* `--map`. It remembers.
+    python -m sapload.cli inspect "samples/Supplier Invoice_EN.xlsx"
 
-## 3. The guided walkthrough
+    python -m sapload.cli build samples/fsm_subcontractor_claims.csv \
+        "samples/Supplier Invoice_EN.xlsx" upload.xlsx \
+        --memory mappings.json --recon recon.txt --max-rows 999
 
-    python examples/demo_sapload.py
+There is also a local web version, which is the browser interface served from
+your own machine:
 
-## 4. The tests
+    python -m sapload.serve
 
-    python -m unittest tests.test_sapload -v      # 36 tests
-    python -m unittest tests.test_smartmapper     # 23 tests
+    or double-click  Start-Workbench.bat        (Windows)
+                     start-workbench.command    (Mac — right-click, Open, the
+                                                 first time, or macOS blocks it)
 
----
+If it will not start:
 
-# Trying it on a REAL SAP template
+    python check.py
 
-This is the part worth your time. Download a real template from your tenant —
-Migration Cockpit, or the Fiori upload app — and run:
+That names the cause in plain terms rather than a stack trace.
 
-    python -m sapload.cli inspect "your_template.xlsx" -v
 
-Read what it says at the bottom. If it reports a technical-name row and a
-marker row, the schema is complete and the tool is working properly. If it
-says it could not find them, the schema is thinner and it tells you so
-rather than pretending.
+--------------------------------------------------------------------------------
+  3.  CONNECTED TO S/4HANA  —  read-only unless you say otherwise
+--------------------------------------------------------------------------------
 
-Then point it at a real extract:
+READ  sapload/SECURITY.md  BEFORE USING THIS.
 
-    python -m sapload.cli build extract.csv "your_template.xlsx" out.xlsx --dry-run
+Neither of the first two ways touches SAP at all. This one does, and it
+changes what the tool is: connected, it becomes an interface, with the
+governance that brings.
 
-`--dry-run` maps and validates but writes nothing. Safe on any file.
+Credentials come from the environment. Never from a file here, never from
+the command line — a command line ends up in shell history and in ps.
 
-## What to look for
+    export SAPLOAD_BASE_URL=https://my123456-api.s4hana.cloud.sap
+    export SAPLOAD_USERNAME=YOUR_COMM_USER
+    export SAPLOAD_PASSWORD=...
 
-- **Coverage.** Below ~85% on first sight of a template usually means the
-  source column names need a vocabulary entry, not that the tool is broken.
-- **The review tier.** Anything at 50-85% is the tool saying "probably, but
-  look". That is the tail you should actually read.
-- **Validation errors.** These are the ones SAP would have rejected. If it
-  finds nothing on real data, be suspicious rather than pleased.
+    python -m sapload.cli connect ping
 
-## Fixing a mapping it got wrong
+Then the two things a read-only connection buys:
 
-    --map TargetField=source_column
+    # Live value help — catches a wrong cost centre or G/L account on your
+    # desk instead of halfway through an SAP upload
+    python -m sapload.cli connect value-help \
+        --template "samples/Supplier Invoice_EN.xlsx" --cache valuehelp.json
 
-Repeatable. With `--memory`, you only do it once per template.
+    # Read the posted documents back and agree them to what you sent
+    python -m sapload.cli connect reconcile \
+        --sent samples/fsm_subcontractor_claims.csv \
+        --reference claim_number --amount gross_amt --out posted.txt
 
-## Teaching it your vocabulary
+Posting directly to SAP is built, tested and OFF. It requires
+SAPLOAD_ALLOW_POST=1, set deliberately. Without it a write fails before a
+network connection is even opened.
 
-Edit `sapload/vocabulary.py` and add to `SAP_SYNONYM_GROUPS`:
+For anything touching finance, use OAuth SAML bearer rather than a shared
+communication user, so the named person's identity reaches SAP and the audit
+trail is per person. SECURITY.md explains how and why.
 
-    ["your term", "what SAP calls it", "what the legacy system calls it"],
 
-This is the cheapest accuracy improvement available. No model, no training,
-no network call.
+--------------------------------------------------------------------------------
+  WHAT IT IS FOR, AND WHAT IT IS NOT
+--------------------------------------------------------------------------------
 
-## Staying inside the upload app's limits
+For:      recurring, post-go-live loads through SAP's own spreadsheet upload
+          apps — the weekly and month-end runs somebody does by hand today.
 
-    --max-rows 999
+Not for:  initial migration at cutover. That belongs in the SAP S/4HANA
+          Migration Cockpit, which has full object coverage and SAP support.
 
-Writes `out_01.xlsx`, `out_02.xlsx`, ... The general journal app caps at 999
-entries per file; check the limit for your app.
 
----
+--------------------------------------------------------------------------------
+  TESTS
+--------------------------------------------------------------------------------
 
-# Two things to verify before this goes near production
+    python -m unittest tests.test_sapload      # 36  the engine
+    python -m unittest tests.test_smartmapper  # 23  the matcher
+    python -m unittest tests.test_connect      # 35  the S/4 connection
+    python examples/demo_sapload.py            #     guided walkthrough
 
-1. **Mid-file failure behaviour.** Upload a 10-row file with a deliberately
-   bad row 6 and see what happens to rows 1-5. Whether earlier rows stay
-   posted is not documented, and it determines whether you need idempotent
-   re-submission. This is the one operational unknown.
 
-2. **Template format.** SAP sometimes delivers Migration Cockpit templates as
-   Excel 2003 XML with an `.xlsx` extension. That is plain XML, not a zip.
-   The tool detects it and tells you to re-download as XLSX or CSV.
+--------------------------------------------------------------------------------
+  ONE THING TO VERIFY BEFORE PRODUCTION
+--------------------------------------------------------------------------------
 
----
-
-# Scope
-
-Built for recurring, post-go-live loads through SAP's own spreadsheet upload
-apps. Not a cutover tool — initial migration belongs in the Migration
-Cockpit. It never connects to SAP: a person uploads a file they have already
-seen validated, which keeps the human control point auditors expect.
+Upload a 10-row file with a deliberately bad row 6 and see what happens to
+rows 1 to 5. Whether the earlier rows stay posted is not documented anywhere,
+and at 800 claims a week it decides your re-submission procedure.
