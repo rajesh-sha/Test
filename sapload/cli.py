@@ -6,7 +6,7 @@ import argparse
 import sys
 from typing import Dict, List, Optional
 
-from .pipeline import load
+from .pipeline import load, read_source
 from .template import read_template
 
 
@@ -101,6 +101,66 @@ def _parse_overrides(pairs: Optional[List[str]]) -> Dict[str, str]:
     return out
 
 
+def _cmd_connect(args: argparse.Namespace) -> int:
+    """Talk to S/4. Read-only unless SAPLOAD_ALLOW_POST was set deliberately."""
+    from .config import ConfigError, from_env, missing_settings
+    from .sapclient import S4Client, SapError
+
+    try:
+        settings = from_env()
+    except ConfigError as exc:
+        print(f"\n  {exc}\n")
+        missing = missing_settings()
+        if missing:
+            print("  Not set: " + ", ".join(sorted(missing)))
+        print("\n  Set them in your shell, not in a file and not on this command "
+              "line —\n  a command line ends up in history and in process listings.\n")
+        return 2
+
+    print(f"\n  {settings.describe()}\n")
+    client = S4Client(settings)
+
+    if args.action == "ping":
+        ok, message = client.ping()
+        print(f"  {'OK  ' if ok else 'FAIL'}  {message}\n")
+        return 0 if ok else 1
+
+    if args.action == "value-help":
+        from .valuehelp import fetch_value_help
+        schema, _wb, _sheet = read_template(args.template)
+        try:
+            sets = fetch_value_help(client, schema, cache_path=args.cache)
+        except SapError as exc:
+            print(f"  {exc}\n")
+            return 1
+        if not sets:
+            print("  No template field matched a read API in the catalogue.\n")
+        for vs in sets.values():
+            print(f"  {vs.describe()}")
+        print()
+        return 0
+
+    if args.action == "reconcile":
+        from .readback import reconcile
+        _fields, rows = read_source(args.sent)
+        try:
+            report = reconcile(client, rows, reference_field=args.reference,
+                               amount_field=args.amount)
+        except SapError as exc:
+            print(f"  {exc}\n")
+            return 1
+        text = report.as_text()
+        if args.out:
+            with open(args.out, "w", encoding="utf-8") as fh:
+                fh.write(text)
+            print(f"  Written to {args.out}\n")
+        else:
+            print(text)
+        return 0 if report.ok else 1
+
+    return 2
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(
         prog="sapload",
@@ -135,7 +195,23 @@ def main(argv: Optional[List[str]] = None) -> int:
     p_build.add_argument("--dry-run", action="store_true")
     p_build.set_defaults(func=_cmd_build)
 
+    p_conn = sub.add_parser("connect", help="talk to S/4HANA Cloud (read-only by default)")
+    p_conn.add_argument("action", choices=["ping", "value-help", "reconcile"])
+    p_conn.add_argument("--template", help="template to fetch value help for")
+    p_conn.add_argument("--cache", help="where to cache fetched value help")
+    p_conn.add_argument("--sent", help="the extract that was loaded")
+    p_conn.add_argument("--reference", default="reference",
+                        help="column in that extract holding the SAP reference")
+    p_conn.add_argument("--amount", help="column holding the amount, to agree values")
+    p_conn.add_argument("--out", help="write the reconciliation here")
+    p_conn.set_defaults(func=_cmd_connect)
+
     args = parser.parse_args(argv)
+    if args.command == "connect":
+        if args.action == "value-help" and not args.template:
+            parser.error("connect value-help needs --template")
+        if args.action == "reconcile" and not args.sent:
+            parser.error("connect reconcile needs --sent")
     return args.func(args)
 
 
