@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SAP Load Workbench</title>
+<style>
+  :root {
+    --ground:#F4F6F4; --surface:#FFFFFF; --surface-2:#EAEEEB; --sunk:#E3E8E4;
+    --ink:#16211F; --ink-2:#3D4B48; --ink-3:#6B7975;
+    --rule:#D3DAD6; --rule-2:#BCC5C0;
+    --accent:#0E5C60; --accent-soft:#DBE8E8;
+    --warn:#8A5109; --warn-soft:#F5E8D5; --stop:#8C2F2F; --stop-soft:#F3E0E0;
+    --go:#2A6234; --go-soft:#DEEAE0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:#111615; --surface:#1A2120; --surface-2:#222A28; --sunk:#161D1C;
+      --ink:#E9EEEB; --ink-2:#B3BEBA; --ink-3:#84928E;
+      --rule:#2C3735; --rule-2:#3B4845;
+      --accent:#63BABE; --accent-soft:#14312F;
+      --warn:#DBA463; --warn-soft:#322614; --stop:#DD8A8A; --stop-soft:#331C1C;
+      --go:#82C08E; --go-soft:#1A2D1E;
+    }
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--ground); color:var(--ink);
+    font:15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono, code { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .wrap { max-width:1180px; margin:0 auto; padding:0 24px 80px; }
+
+  header {
+    border-bottom:2px solid var(--ink); padding:32px 0 16px; margin-bottom:28px;
+    display:flex; justify-content:space-between; align-items:flex-end; gap:24px;
+    flex-wrap:wrap;
+  }
+  h1 { margin:0 0 4px; font-size:26px; letter-spacing:-.02em; }
+  .sub { color:var(--ink-3); font-size:13.5px; margin:0; }
+  .memory {
+    font-family:ui-monospace,monospace; font-size:11.5px; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--ink-3);
+  }
+
+  section { margin-bottom:30px; }
+  .step {
+    display:flex; align-items:baseline; gap:10px; margin:0 0 12px;
+    padding-bottom:8px; border-bottom:1px solid var(--rule);
+  }
+  .step-no {
+    font-family:ui-monospace,monospace; font-size:11px; letter-spacing:.1em;
+    color:var(--ink-3);
+  }
+  .step h2 { margin:0; font-size:17px; letter-spacing:-.01em; }
+  .step .hint { margin-left:auto; color:var(--ink-3); font-size:12.5px; }
+
+  .drops { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; }
+  .drop {
+    border:1.5px dashed var(--rule-2); border-radius:4px; background:var(--surface);
+    padding:22px; text-align:center; cursor:pointer; transition:border-color .12s, background .12s;
+  }
+  .drop:hover, .drop.over { border-color:var(--accent); background:var(--accent-soft); }
+  .drop.filled { border-style:solid; border-color:var(--go); background:var(--go-soft); }
+  .drop h3 { margin:0 0 4px; font-size:14.5px; }
+  .drop p { margin:0; color:var(--ink-3); font-size:12.5px; }
+  .drop .file { margin-top:8px; font-family:ui-monospace,monospace; font-size:12.5px; color:var(--go); word-break:break-all; }
+  .drop input { display:none; }
+
+  .bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px; }
+  button {
+    font:inherit; font-size:14px; font-weight:600; padding:9px 18px; border-radius:3px;
+    border:1px solid var(--accent); background:var(--accent); color:var(--ground);
+    cursor:pointer;
+  }
+  :root[data-dark] button { color:#0d1413; }
+  button.ghost { background:transparent; color:var(--accent); }
+  button:disabled { opacity:.4; cursor:not-allowed; }
+  button:focus-visible, select:focus-visible, .drop:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px;
+           background:var(--rule); border:1px solid var(--rule); margin-bottom:16px; }
+  .card { background:var(--surface); padding:13px 15px; }
+  .card .v { font-family:ui-monospace,monospace; font-size:23px; font-variant-numeric:tabular-nums; line-height:1.1; }
+  .card .k { font-size:11.5px; color:var(--ink-3); margin-top:3px; letter-spacing:.03em; }
+  .card.good .v { color:var(--go); } .card.bad .v { color:var(--stop); } .card.warn .v { color:var(--warn); }
+
+  .panel { background:var(--surface); border:1px solid var(--rule); border-radius:3px; }
+  .scroll { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-size:13.5px; }
+  th, td { text-align:left; padding:8px 12px; border-bottom:1px solid var(--rule); vertical-align:middle; }
+  thead th {
+    position:sticky; top:0; background:var(--surface-2); z-index:1;
+    font-family:ui-monospace,monospace; font-size:11px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--ink-3); font-weight:500; white-space:nowrap;
+  }
+  tbody tr:last-child td { border-bottom:none; }
+  td.num { font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
+  .tall { max-height:460px; overflow-y:auto; }
+
+  .chip {
+    display:inline-block; font-family:ui-monospace,monospace; font-size:10.5px;
+    letter-spacing:.08em; text-transform:uppercase; padding:2px 7px; border-radius:2px; font-weight:500;
+  }
+  .chip.auto { background:var(--go-soft); color:var(--go); }
+  .chip.review { background:var(--warn-soft); color:var(--warn); }
+  .chip.low, .chip.unmatched { background:var(--stop-soft); color:var(--stop); }
+  .req { color:var(--stop); font-weight:700; }
+  select {
+    font:inherit; font-size:13px; padding:4px 7px; border:1px solid var(--rule-2);
+    border-radius:3px; background:var(--surface); color:var(--ink); max-width:230px;
+  }
+  select.changed { border-color:var(--accent); background:var(--accent-soft); }
+
+  .note {
+    border-left:3px solid var(--warn); background:var(--warn-soft); color:var(--warn);
+    padding:10px 14px; border-radius:2px; font-size:13.5px; margin-bottom:10px;
+  }
+  .note.err { border-left-color:var(--stop); background:var(--stop-soft); color:var(--stop); }
+  .note.ok { border-left-color:var(--go); background:var(--go-soft); color:var(--go); }
+
+  .issue { font-family:ui-monospace,monospace; font-size:12.5px; padding:5px 12px; border-bottom:1px solid var(--rule); }
+  .issue:last-child { border-bottom:none; }
+  .issue .n { color:var(--stop); font-weight:600; }
+
+  .opts { display:flex; gap:18px; align-items:center; flex-wrap:wrap; font-size:13.5px; color:var(--ink-2); margin-bottom:12px; }
+  .opts label { display:flex; gap:7px; align-items:center; cursor:pointer; }
+  .opts input[type=number] { width:78px; font:inherit; font-size:13px; padding:4px 7px;
+    border:1px solid var(--rule-2); border-radius:3px; background:var(--surface); color:var(--ink); }
+
+  a.dl {
+    display:flex; justify-content:space-between; align-items:center; gap:14px;
+    padding:12px 15px; border-bottom:1px solid var(--rule); color:var(--ink);
+    text-decoration:none; font-size:14px;
+  }
+  a.dl:last-child { border-bottom:none; }
+  a.dl:hover { background:var(--accent-soft); }
+  a.dl .name { font-family:ui-monospace,monospace; word-break:break-all; }
+  a.dl .go { color:var(--accent); font-weight:600; white-space:nowrap; font-size:13px; }
+
+  pre.recon {
+    margin:0; padding:16px; font-family:ui-monospace,monospace; font-size:12px;
+    line-height:1.45; white-space:pre; overflow-x:auto; max-height:400px; overflow-y:auto;
+    background:var(--sunk); color:var(--ink-2);
+  }
+  .hidden { display:none !important; }
+  .spin { color:var(--ink-3); font-size:13.5px; }
+  details summary { cursor:pointer; padding:10px 14px; font-size:13.5px; color:var(--ink-2); }
+  details[open] summary { border-bottom:1px solid var(--rule); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <h1>SAP Load Workbench</h1>
+    <p class="sub">Map an extract onto an SAP upload template, check every row, and produce the reconciliation.</p>
+  </div>
+  <div class="memory" id="memory">files stay on this machine</div>
+</header>
+
+<section>
+  <div class="step"><span class="step-no">01</span><h2>Add the two files</h2>
+    <span class="hint">Nothing is sent anywhere</span></div>
+  <div class="drops">
+    <div class="drop" id="dropTemplate" tabindex="0" role="button">
+      <h3>SAP upload template</h3>
+      <p>The .xlsx SAP gave you &mdash; drop it here or click</p>
+      <div class="file hidden" id="nameTemplate"></div>
+      <input type="file" id="fileTemplate" accept=".xlsx,.xlsm">
+    </div>
+    <div class="drop" id="dropSource" tabindex="0" role="button">
+      <h3>Your extract</h3>
+      <p>.csv or .xlsx from the source system</p>
+      <div class="file hidden" id="nameSource"></div>
+      <input type="file" id="fileSource" accept=".csv,.xlsx,.xlsm">
+    </div>
+  </div>
+  <div class="bar">
+    <button id="btnAnalyse" disabled>Read the template and map</button>
+    <span class="spin hidden" id="busy">Working&hellip;</span>
+  </div>
+  <div id="topError"></div>
+</section>
+
+<section id="secSchema" class="hidden">
+  <div class="step"><span class="step-no">02</span><h2>What the template wants</h2>
+    <span class="hint" id="schemaLayout"></span></div>
+  <div id="schemaNotes"></div>
+  <div class="cards" id="schemaCards"></div>
+  <details class="panel">
+    <summary>Show all fields the template defines</summary>
+    <div class="scroll tall">
+      <table><thead><tr>
+        <th></th><th>Field</th><th>Label on the sheet</th><th>Type</th>
+        <th class="num">Max</th><th>Allowed values</th>
+      </tr></thead><tbody id="schemaBody"></tbody></table>
+    </div>
+  </details>
+</section>
+
+<section id="secMapping" class="hidden">
+  <div class="step"><span class="step-no">03</span><h2>Check the mapping</h2>
+    <span class="hint">Change anything that looks wrong &mdash; it is remembered</span></div>
+  <div class="cards" id="mapCards"></div>
+  <div class="panel scroll tall">
+    <table><thead><tr>
+      <th></th><th>Template field</th><th>Comes from</th><th>Confidence</th>
+      <th>Why</th>
+    </tr></thead><tbody id="mapBody"></tbody></table>
+  </div>
+  <div class="bar">
+    <button class="ghost" id="btnRemap">Re-check with my changes</button>
+    <span class="spin hidden" id="busy2">Working&hellip;</span>
+  </div>
+</section>
+
+<section id="secValidation" class="hidden">
+  <div class="step"><span class="step-no">04</span><h2>Problems SAP would reject</h2>
+    <span class="hint" id="valSummary"></span></div>
+  <div id="valBanner"></div>
+  <div class="panel" id="valPanel"></div>
+  <details class="panel" style="margin-top:12px">
+    <summary>Preview the first rows as they will appear in the template</summary>
+    <div class="scroll"><table><thead><tr id="prevHead"></tr></thead><tbody id="prevBody"></tbody></table></div>
+  </details>
+</section>
+
+<section id="secBuild" class="hidden">
+  <div class="step"><span class="step-no">05</span><h2>Produce the upload file</h2></div>
+  <div class="opts">
+    <label><input type="checkbox" id="optClean"> Leave out rows with errors</label>
+    <label>Split every <input type="number" id="optMax" min="1" step="1" placeholder="all"> rows</label>
+  </div>
+  <div class="bar">
+    <button id="btnBuild">Build the upload file</button>
+    <span class="spin hidden" id="busy3">Working&hellip;</span>
+  </div>
+  <div id="buildOut" style="margin-top:14px"></div>
+</section>
+
+</div>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const state = { template:false, source:false, overrides:{}, sourceFields:[], last:null };
+
+// ---------- file intake ----------
+function wireDrop(dropId, inputId, nameId, kind) {
+  const drop = $(dropId), input = $(inputId), name = $(nameId);
+  const open = () => input.click();
+  drop.addEventListener("click", open);
+  drop.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+  });
+  ["dragenter","dragover"].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); drop.classList.add("over");
+  }));
+  ["dragleave","drop"].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); drop.classList.remove("over");
+  }));
+  drop.addEventListener("drop", e => {
+    if (e.dataTransfer.files.length) send(e.dataTransfer.files[0]);
+  });
+  input.addEventListener("change", () => {
+    if (input.files.length) send(input.files[0]);
+  });
+
+  async function send(file) {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const b64 = String(reader.result).split(",")[1] || "";
+      const res = await api("/api/upload", { kind, name: file.name, data: b64 });
+      if (res.error) { showError(res.error); return; }
+      clearError();
+      drop.classList.add("filled");
+      name.textContent = file.name;
+      name.classList.remove("hidden");
+      state[kind] = true;
+      $("btnAnalyse").disabled = !(state.template && state.source);
+    };
+    reader.readAsDataURL(file);
+  }
+}
+wireDrop("dropTemplate", "fileTemplate", "nameTemplate", "template");
+wireDrop("dropSource", "fileSource", "nameSource", "source");
+
+// ---------- server ----------
+async function api(path, body) {
+  try {
+    const r = await fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body || {}),
+    });
+    return await r.json();
+  } catch (err) {
+    return { error: "Lost contact with the workbench. Is it still running?" };
+  }
+}
+function showError(msg) {
+  $("topError").innerHTML = `<div class="note err">${esc(msg)}</div>`;
+}
+function clearError() { $("topError").innerHTML = ""; }
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g,
+    c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+}
+function busy(id, on) { $(id).classList.toggle("hidden", !on); }
+
+// ---------- analyse ----------
+$("btnAnalyse").addEventListener("click", () => run("busy"));
+$("btnRemap").addEventListener("click", () => run("busy2"));
+
+async function run(spinner) {
+  busy(spinner, true);
+  const data = await api("/api/analyse", { overrides: state.overrides });
+  busy(spinner, false);
+  if (data.error) { showError(data.error); return; }
+  clearError();
+  state.last = data;
+  state.sourceFields = data.sourceFields;
+  renderSchema(data);
+  renderMapping(data);
+  renderValidation(data);
+  $("secBuild").classList.remove("hidden");
+  $("buildOut").innerHTML = "";
+  $("secSchema").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function card(value, label, tone) {
+  return `<div class="card ${tone || ""}"><div class="v">${esc(value)}</div>
+          <div class="k">${esc(label)}</div></div>`;
+}
+
+function renderSchema(d) {
+  const s = d.schema;
+  $("secSchema").classList.remove("hidden");
+  $("schemaLayout").textContent =
+    `${s.sheet} · labels row ${s.labelRow ?? "?"} · names row ${s.technicalRow ?? "?"}`
+    + ` · data from row ${s.headerRows + 1}`;
+  const required = s.fields.filter(f => f.required).length;
+  const helped = s.fields.filter(f => f.allowed && f.allowed.length).length;
+  $("schemaCards").innerHTML =
+    card(s.fields.length, "fields in the template") +
+    card(required, "SAP requires", required ? "warn" : "") +
+    card(helped, "with a dropdown", helped ? "good" : "") +
+    card(d.rowCount.toLocaleString(), "rows in your extract");
+  $("schemaNotes").innerHTML = (s.notes || [])
+    .map(n => `<div class="note">${esc(n)}</div>`).join("");
+  $("schemaBody").innerHTML = s.fields.map(f => `<tr>
+      <td>${f.required ? '<span class="req" title="required">*</span>' : ""}</td>
+      <td class="mono">${esc(f.name)}</td>
+      <td>${esc(f.label || "")}</td>
+      <td>${esc(f.type)}${f.key ? " · key" : ""}</td>
+      <td class="num">${f.maxLength ?? ""}</td>
+      <td class="mono" style="font-size:12px">${
+        f.allowed && f.allowed.length ? esc(f.allowed.join(", ")) : "&mdash;"}</td>
+    </tr>`).join("");
+}
+
+function renderMapping(d) {
+  const m = d.mapping;
+  $("secMapping").classList.remove("hidden");
+  const tally = { auto:0, review:0, low:0, unmatched:0 };
+  m.rows.forEach(r => tally[r.status]++);
+  $("mapCards").innerHTML =
+    card(Math.round(m.coverage * 100) + "%", "template fields matched",
+         m.coverage === 1 ? "good" : "warn") +
+    card(tally.auto, "confident", "good") +
+    card(tally.review, "worth a glance", tally.review ? "warn" : "") +
+    card(tally.unmatched + tally.low, "need you",
+         (tally.unmatched + tally.low) ? "bad" : "good");
+
+  $("mapBody").innerHTML = m.rows.map((r, i) => {
+    const options = ['<option value="">— not mapped —</option>']
+      .concat(state.sourceFields.map(f =>
+        `<option value="${esc(f)}"${f === r.source ? " selected" : ""}>${esc(f)}</option>`))
+      .join("");
+    const pct = r.source ? Math.round(r.confidence * 100) + "%" : "&mdash;";
+    const why = r.source
+      ? esc((r.reasons || []).join("; ") ||
+            (r.transform !== "identity" ? "applies " + r.transform : ""))
+      : esc((r.reasons || []).join("; "));
+    return `<tr>
+      <td>${r.required ? '<span class="req">*</span>' : ""}</td>
+      <td class="mono">${esc(r.target)}</td>
+      <td><select data-target="${esc(r.target)}" data-i="${i}">${options}</select></td>
+      <td><span class="chip ${r.status}">${esc(r.status)}</span>
+          <span class="num" style="margin-left:6px">${pct}</span></td>
+      <td style="color:var(--ink-3); font-size:12.5px">${why}</td>
+    </tr>`;
+  }).join("");
+
+  $("mapBody").querySelectorAll("select").forEach(sel => {
+    sel.addEventListener("change", () => {
+      state.overrides[sel.dataset.target] = sel.value;
+      sel.classList.add("changed");
+    });
+  });
+}
+
+function renderValidation(d) {
+  const v = d.validation;
+  $("secValidation").classList.remove("hidden");
+  $("valSummary").textContent = v.summary;
+  $("valBanner").innerHTML = v.ok
+    ? `<div class="note ok">Every row passes the checks the template describes.</div>`
+    : `<div class="note err">${v.badRows.toLocaleString()} of
+       ${v.rowCount.toLocaleString()} rows would be rejected. Fix them at
+       source, or leave them out at step 5.</div>`;
+  $("valPanel").innerHTML = v.top.length
+    ? v.top.map(line => {
+        const m = line.match(/^\[\s*(\d+)x\]\s*(.*)$/);
+        return m ? `<div class="issue"><span class="n">${esc(m[1])}&times;</span>
+                    &nbsp;${esc(m[2])}</div>`
+                 : `<div class="issue">${esc(line)}</div>`;
+      }).join("")
+    : `<div class="issue" style="color:var(--ink-3)">Nothing to fix.</div>`;
+
+  $("prevHead").innerHTML = d.preview.fields
+    .map(f => `<th>${esc(f)}</th>`).join("");
+  $("prevBody").innerHTML = d.preview.rows
+    .map(r => `<tr>${r.map(c => `<td class="mono" style="font-size:12px">${esc(c)}</td>`).join("")}</tr>`)
+    .join("");
+}
+
+// ---------- build ----------
+$("btnBuild").addEventListener("click", async () => {
+  busy("busy3", true);
+  const data = await api("/api/build", {
+    overrides: state.overrides,
+    onlyClean: $("optClean").checked,
+    maxRows: $("optMax").value || null,
+  });
+  busy("busy3", false);
+  if (data.error) { showError(data.error); return; }
+  clearError();
+
+  const links = data.files.map(f => {
+    const url = dataUrl(f.b64,
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    return `<a class="dl" href="${url}" download="${esc(f.name)}">
+              <span class="name">${esc(f.name)}</span>
+              <span class="go">${Number(f.rows).toLocaleString()} rows &middot; Download</span>
+            </a>`;
+  }).join("");
+  const reconUrl = dataUrl(btoa(unescape(encodeURIComponent(data.recon))), "text/plain");
+
+  const held = data.rowsHeldBack
+    ? `<div class="note">${data.rowsHeldBack.toLocaleString()} row(s) with errors
+       were left out. They are listed in the reconciliation pack.</div>` : "";
+
+  $("buildOut").innerHTML = held + `<div class="panel">${links}
+      <a class="dl" href="${reconUrl}" download="${esc(data.reconName)}">
+        <span class="name">${esc(data.reconName)}</span>
+        <span class="go">Reconciliation &middot; Download</span>
+      </a></div>
+    <details class="panel" style="margin-top:12px" open>
+      <summary>The reconciliation pack</summary>
+      <pre class="recon">${esc(data.recon)}</pre>
+    </details>`;
+  refreshMemory();
+});
+
+function dataUrl(b64, mime) { return `data:${mime};base64,${b64}`; }
+
+async function refreshMemory() {
+  try {
+    const r = await fetch("/api/state");
+    const s = await r.json();
+    $("memory").textContent = s.remembered
+      ? `${s.remembered} mapping${s.remembered === 1 ? "" : "s"} remembered · files stay on this machine`
+      : "files stay on this machine";
+  } catch (e) { /* the badge is not worth an error */ }
+}
+refreshMemory();
+</script>
+</body>
+</html>

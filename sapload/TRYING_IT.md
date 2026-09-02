@@ -2,6 +2,23 @@
 
 No installation. No dependencies. Python 3.9+ and nothing else.
 
+## The way an end user runs it
+
+**Windows:** double-click `Start-Workbench.bat`
+**Mac:** double-click `start-workbench.command`
+**Any machine, from a terminal:** `python -m sapload.serve`
+
+Your browser opens on the workbench. Drag in the SAP template and your
+extract, read the proposed mapping, change anything that looks wrong,
+and download the filled template and the reconciliation pack.
+
+Nothing leaves the machine. There is no login, no database and no
+connection to SAP — the files are held in memory for one session and
+discarded when you close it.
+
+The steps below are the same job from a command line, for scheduling it or
+running it in a pipeline.
+
 ## 1. See what it makes of a template
 
     python -m sapload.cli inspect "examples/Supplier Invoice_EN.xlsx" -v
