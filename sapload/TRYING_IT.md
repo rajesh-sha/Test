@@ -44,16 +44,7 @@ Use this to put the weekly run on a schedule, or in a pipeline.
         "samples/Supplier Invoice_EN.xlsx" upload.xlsx \
         --memory mappings.json --recon recon.txt --max-rows 999
 
-There is also a local web version, which is the browser interface served from
-your own machine:
-
-    python -m sapload.serve
-
-    or double-click  Start-Workbench.bat        (Windows)
-                     start-workbench.command    (Mac — right-click, Open, the
-                                                 first time, or macOS blocks it)
-
-If it will not start:
+If something will not run:
 
     python check.py
 
@@ -112,12 +103,37 @@ Not for:  initial migration at cutover. That belongs in the SAP S/4HANA
 
 
 --------------------------------------------------------------------------------
+  TEACHING IT YOUR VOCABULARY
+--------------------------------------------------------------------------------
+
+Everything the matcher knows about SAP field names is in ONE file:
+
+    sapload/knowledge.json
+
+Add your own terms to "synonyms" — each inner list is a set of words that
+mean the same thing:
+
+    ["your term", "what SAP calls it", "what the legacy system calls it"]
+
+That is the whole change. No code, in either language. Then:
+
+    python build.py
+
+to fold it into SAP-Load-Workbench.html. The Python side picks it up with no
+build at all.
+
+This is deliberately the only place that changes as a client's vocabulary
+changes, so the two runtimes cannot drift apart. A test enforces it.
+
+
+--------------------------------------------------------------------------------
   TESTS
 --------------------------------------------------------------------------------
 
     python -m unittest tests.test_sapload      # 36  the engine
     python -m unittest tests.test_smartmapper  # 23  the matcher
     python -m unittest tests.test_connect      # 35  the S/4 connection
+    python -m unittest tests.test_build        #  9  the two runtimes agree
     python examples/demo_sapload.py            #     guided walkthrough
 
 

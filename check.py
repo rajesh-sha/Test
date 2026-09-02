@@ -4,7 +4,6 @@ Prints what is wrong in plain terms rather than a stack trace.
 """
 
 import os
-import socket
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -33,33 +32,28 @@ def main() -> int:
                 f"opened the zip without extracting it, extract it properly first."
             )
 
-    if os.path.isfile(os.path.join(HERE, "sapload", "ui.html")):
-        print(f"{OK} found the page the workbench serves")
+    if os.path.isfile(os.path.join(HERE, "sapload", "knowledge.json")):
+        print(f"{OK} found the shared vocabulary file")
     else:
-        print(f"{BAD} sapload/ui.html is missing")
+        print(f"{BAD} sapload/knowledge.json is missing")
         problems.append("The extraction is incomplete — unzip it again.")
 
     sys.path.insert(0, HERE)
     try:
         from sapload import read_template          # noqa: F401
-        from sapload.serve import main as _serve   # noqa: F401
-        print(f"{OK} the code imports cleanly")
+        from sapload.vocabulary import synonym_groups
+        print(f"{OK} the code imports cleanly "
+              f"({len(synonym_groups())} vocabulary groups loaded)")
     except Exception as exc:                       # pragma: no cover
         print(f"{BAD} import failed: {exc}")
         problems.append("Something is missing from the folder — unzip it again.")
 
-    port = int(os.environ.get("PORT", 8765))
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
-        probe.settimeout(0.4)
-        if probe.connect_ex(("127.0.0.1", port)) == 0:
-            print(f"{BAD} something is already using port {port}")
-            problems.append(
-                f"Either the workbench is already open at http://127.0.0.1:{port} "
-                f"— look at your browser tabs — or start it on a different port: "
-                f"python -m sapload.serve --port 8080"
-            )
-        else:
-            print(f"{OK} port {port} is free")
+    workbench = os.path.join(HERE, "SAP-Load-Workbench.html")
+    if os.path.isfile(workbench):
+        print(f"{OK} found SAP-Load-Workbench.html — double-click it to start")
+    else:
+        print(f"{BAD} SAP-Load-Workbench.html is missing")
+        problems.append("Unzip the pack again, or run: python build.py")
 
     sample = os.path.join(HERE, "examples", "Supplier Invoice_EN.xlsx")
     if os.path.isfile(sample):
@@ -80,9 +74,9 @@ def main() -> int:
             print(f"    {i}. {item}\n")
         return 1
 
-    print("\n  Everything checks out. Start it with:\n")
-    print("      python -m sapload.serve\n")
-    print("  Then open http://127.0.0.1:8765 if the browser does not.\n")
+    print("\n  Everything checks out.\n")
+    print("      Double-click  SAP-Load-Workbench.html    to use it")
+    print("      python -m sapload.cli --help             to script it\n")
     return 0
 
 

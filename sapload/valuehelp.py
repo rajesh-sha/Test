@@ -23,26 +23,18 @@ from .sapclient import S4Client, SapError
 # field-name pattern -> (service path, key property, optional text property)
 # Matched against the template's technical name, then its label.  Ordered:
 # the first pattern that matches wins, so the specific ones come first.
-CATALOGUE = [
-    (r"^companycode$|company code",
-     "/sap/opu/odata/sap/API_COMPANYCODE_SRV/A_CompanyCode", "CompanyCode", "CompanyCodeName"),
-    (r"^glaccount$|^account$|g.?l account|general ledger",
-     "/sap/opu/odata/sap/API_GLACCOUNTINCHARTOFACCOUNTS_SRV/A_GLAccountInChartOfAccounts",
-     "GLAccount", "GLAccountName"),
-    (r"^costcenter$|cost cent",
-     "/sap/opu/odata/sap/API_COSTCENTER_SRV/A_CostCenter", "CostCenter", "CostCenterName"),
-    (r"^profitcenter$|profit cent",
-     "/sap/opu/odata/sap/API_PROFITCENTER_SRV/A_ProfitCenter", "ProfitCenter", "ProfitCenterName"),
-    (r"^plant$", "/sap/opu/odata/sap/API_PLANT_SRV/A_Plant", "Plant", "PlantName"),
-    (r"^supplier$|^vendor", "/sap/opu/odata/sap/API_BUSINESS_PARTNER/A_Supplier",
-     "Supplier", "SupplierName"),
-    (r"^customer$|^payer", "/sap/opu/odata/sap/API_BUSINESS_PARTNER/A_Customer",
-     "Customer", "CustomerName"),
-    (r"currency", "/sap/opu/odata/sap/API_CURRENCY_SRV/A_Currency", "Currency", None),
-    (r"^material$|material number|^product$",
-     "/sap/opu/odata/sap/API_PRODUCT_SRV/A_Product", "Product", None),
-]
+def _catalogue():
+    """(pattern, service, key, text) tuples, from the shared knowledge file.
 
+    Ordered: the first pattern that matches a field wins, so the specific
+    entries come before the general ones. Edit knowledge.json to add a service.
+    """
+    from .vocabulary import knowledge
+    return [(e["match"], e["service"], e["key"], e.get("text"))
+            for e in knowledge().get("value_help", [])]
+
+
+CATALOGUE = _catalogue()
 CACHE_TTL = 12 * 3600      # reference data changes slowly; a day is too long
 
 

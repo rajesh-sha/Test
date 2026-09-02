@@ -1,0 +1,357 @@
+{
+  "_comment": "The only file that changes as a client's vocabulary changes. Both the Python toolkit and the browser build read it, so there is one place to edit and nothing to keep in step by hand. Adding terms here needs no code change in either runtime.",
+  "version": 1,
+  "synonyms": [
+    [
+      "supplier",
+      "vendor",
+      "creditor",
+      "sub contractor",
+      "subcontractor",
+      "vendor id",
+      "supplier number",
+      "lifnr"
+    ],
+    [
+      "customer",
+      "debtor",
+      "payer",
+      "sold to party",
+      "bill to party",
+      "kunnr"
+    ],
+    [
+      "business partner",
+      "bp",
+      "partner",
+      "partner number"
+    ],
+    [
+      "company code",
+      "company",
+      "bukrs",
+      "entity",
+      "legal entity",
+      "co code"
+    ],
+    [
+      "cost center",
+      "cost centre",
+      "kostl",
+      "cctr"
+    ],
+    [
+      "profit center",
+      "profit centre",
+      "prctr"
+    ],
+    [
+      "plant",
+      "werks",
+      "site"
+    ],
+    [
+      "business area",
+      "segment"
+    ],
+    [
+      "sales organization",
+      "sales org",
+      "vkorg"
+    ],
+    [
+      "purchasing organization",
+      "purchasing org",
+      "ekorg"
+    ],
+    [
+      "wbs element",
+      "wbs",
+      "work breakdown structure",
+      "posid",
+      "project element"
+    ],
+    [
+      "project",
+      "project definition",
+      "pspid"
+    ],
+    [
+      "network",
+      "network order",
+      "network activity"
+    ],
+    [
+      "gl account",
+      "g l account",
+      "general ledger account",
+      "gl acct",
+      "gl",
+      "account number",
+      "hkont",
+      "saknr",
+      "ledger account"
+    ],
+    [
+      "account assignment",
+      "acct assignment",
+      "assignment category"
+    ],
+    [
+      "gross amount",
+      "gross",
+      "amount including tax",
+      "invoice gross amount",
+      "total amount",
+      "claim amount",
+      "claim value"
+    ],
+    [
+      "net amount",
+      "net",
+      "amount excluding tax"
+    ],
+    [
+      "tax amount",
+      "gst amount",
+      "vat amount"
+    ],
+    [
+      "tax code",
+      "gst code",
+      "vat code",
+      "mwskz",
+      "tax indicator"
+    ],
+    [
+      "currency",
+      "currency code",
+      "waers",
+      "ccy",
+      "curr",
+      "document currency"
+    ],
+    [
+      "quantity",
+      "qty",
+      "consumed quantity",
+      "menge",
+      "units"
+    ],
+    [
+      "unit of measure",
+      "uom",
+      "meins",
+      "unit"
+    ],
+    [
+      "exchange rate",
+      "fx rate",
+      "conversion rate"
+    ],
+    [
+      "document number",
+      "doc number",
+      "belnr",
+      "document id"
+    ],
+    [
+      "document type",
+      "doc type",
+      "blart"
+    ],
+    [
+      "document date",
+      "invoice date",
+      "bldat",
+      "doc date",
+      "claim date",
+      "invoice dt",
+      "inv dt",
+      "doc dt",
+      "document dt"
+    ],
+    [
+      "posting date",
+      "budat",
+      "post date",
+      "gl date",
+      "accounting date",
+      "post dt",
+      "posting dt",
+      "gl dt"
+    ],
+    [
+      "baseline date",
+      "due date",
+      "net due date",
+      "payment due"
+    ],
+    [
+      "fiscal year",
+      "year",
+      "gjahr"
+    ],
+    [
+      "period",
+      "posting period",
+      "fiscal period",
+      "monat"
+    ],
+    [
+      "reference",
+      "reference document",
+      "external reference",
+      "xblnr",
+      "invoice number",
+      "invoice reference",
+      "claim number",
+      "claim id",
+      "rcti number",
+      "supplier invoice id"
+    ],
+    [
+      "assignment",
+      "assignment reference",
+      "zuonr",
+      "allocation",
+      "work order",
+      "work order number",
+      "wo number",
+      "job number"
+    ],
+    [
+      "header text",
+      "document header text",
+      "bktxt",
+      "narration"
+    ],
+    [
+      "line item text",
+      "item text",
+      "sgtxt",
+      "description",
+      "descr"
+    ],
+    [
+      "purchase order",
+      "po",
+      "po number",
+      "ebeln"
+    ],
+    [
+      "purchase requisition",
+      "pr",
+      "requisition",
+      "banfn"
+    ],
+    [
+      "sales order",
+      "so",
+      "sales order number",
+      "vbeln"
+    ],
+    [
+      "service order",
+      "srvo",
+      "service order number"
+    ],
+    [
+      "billing document",
+      "invoice document",
+      "billing doc"
+    ],
+    [
+      "material",
+      "product",
+      "material number",
+      "matnr",
+      "item code",
+      "sku"
+    ],
+    [
+      "storage location",
+      "sloc",
+      "lgort"
+    ],
+    [
+      "movement type",
+      "mvt type",
+      "bwart"
+    ],
+    [
+      "approval status",
+      "approval state",
+      "workflow status"
+    ],
+    [
+      "created on",
+      "created date",
+      "opened at",
+      "raised on"
+    ]
+  ],
+  "value_help": [
+    {
+      "match": "^companycode$|company code",
+      "service": "/sap/opu/odata/sap/API_COMPANYCODE_SRV/A_CompanyCode",
+      "key": "CompanyCode",
+      "text": "CompanyCodeName"
+    },
+    {
+      "match": "^glaccount$|^account$|g.?l account|general ledger",
+      "service": "/sap/opu/odata/sap/API_GLACCOUNTINCHARTOFACCOUNTS_SRV/A_GLAccountInChartOfAccounts",
+      "key": "GLAccount",
+      "text": "GLAccountName"
+    },
+    {
+      "match": "^costcenter$|cost cent",
+      "service": "/sap/opu/odata/sap/API_COSTCENTER_SRV/A_CostCenter",
+      "key": "CostCenter",
+      "text": "CostCenterName"
+    },
+    {
+      "match": "^profitcenter$|profit cent",
+      "service": "/sap/opu/odata/sap/API_PROFITCENTER_SRV/A_ProfitCenter",
+      "key": "ProfitCenter",
+      "text": "ProfitCenterName"
+    },
+    {
+      "match": "^plant$",
+      "service": "/sap/opu/odata/sap/API_PLANT_SRV/A_Plant",
+      "key": "Plant",
+      "text": "PlantName"
+    },
+    {
+      "match": "^supplier$|^vendor",
+      "service": "/sap/opu/odata/sap/API_BUSINESS_PARTNER/A_Supplier",
+      "key": "Supplier",
+      "text": "SupplierName"
+    },
+    {
+      "match": "^customer$|^payer",
+      "service": "/sap/opu/odata/sap/API_BUSINESS_PARTNER/A_Customer",
+      "key": "Customer",
+      "text": "CustomerName"
+    },
+    {
+      "match": "currency",
+      "service": "/sap/opu/odata/sap/API_CURRENCY_SRV/A_Currency",
+      "key": "Currency",
+      "text": null
+    },
+    {
+      "match": "^material$|material number|^product$",
+      "service": "/sap/opu/odata/sap/API_PRODUCT_SRV/A_Product",
+      "key": "Product",
+      "text": null
+    }
+  ],
+  "thresholds": {
+    "match_minimum": 0.35,
+    "review_from": 0.5,
+    "confident_from": 0.85,
+    "learn_from": 0.85,
+    "synonym_floor": 0.6
+  }
+}
