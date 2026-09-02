@@ -42,6 +42,7 @@ def _cmd_build(args: argparse.Namespace) -> int:
         memory_path=args.memory,
         sheet_name=args.sheet,
         only_clean=args.only_clean,
+        max_rows=args.max_rows,
         threshold=args.threshold,
         learn_threshold=args.learn_threshold,
         overrides=_parse_overrides(args.map),
@@ -72,8 +73,10 @@ def _cmd_build(args: argparse.Namespace) -> int:
         print()
         print(result.recon.as_text())
 
-    if result.output_path:
-        print(f"\nUpload   : {result.output_path}  ({result.rows_written:,} rows)")
+    if result.output_paths:
+        print(f"\nUpload   : {result.rows_written:,} rows")
+        for path in result.output_paths:
+            print(f"           {path}")
     elif args.dry_run:
         print("\nDry run — no file written.")
 
@@ -122,6 +125,9 @@ def main(argv: Optional[List[str]] = None) -> int:
                          help="pin a mapping the matcher got wrong (repeatable)")
     p_build.add_argument("--only-clean", action="store_true",
                          help="hold back rows that failed validation")
+    p_build.add_argument("--max-rows", type=int, metavar="N",
+                         help="split the output every N rows, to stay inside the "
+                              "upload app's per-file limit (F2548 caps at 999)")
     p_build.add_argument("--threshold", type=float, default=0.35)
     p_build.add_argument("--learn-threshold", type=float, default=0.85,
                          help="only remember matches at or above this confidence "

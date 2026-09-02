@@ -12,6 +12,7 @@ here is a five-minute fix before anyone uploads anything.
 
 from __future__ import annotations
 
+import difflib
 import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Sequence
@@ -115,10 +116,16 @@ def validate(schema: TargetSchema, rows: Sequence[Dict[str, object]]) -> Validat
                                     text[:40]))
 
             if field.allowed and text not in field.allowed:
-                shown = ", ".join(field.allowed[:5])
-                issues.append(Issue(idx, field.name, "error",
-                                    f"not one of the template's allowed values "
-                                    f"({shown}{'…' if len(field.allowed) > 5 else ''})",
-                                    text[:40]))
+                # Offer the correction rather than just the rejection: a bad
+                # code is nearly always a near-miss of a good one, and naming
+                # it turns a defect list into a fix list.
+                near = difflib.get_close_matches(text, field.allowed, n=1, cutoff=0.5)
+                if near:
+                    detail = f"not an allowed value — did you mean {near[0]!r}?"
+                else:
+                    shown = ", ".join(field.allowed[:5])
+                    detail = (f"not one of the template's allowed values "
+                              f"({shown}{'…' if len(field.allowed) > 5 else ''})")
+                issues.append(Issue(idx, field.name, "error", detail, text[:40]))
 
     return ValidationReport(issues=issues, row_count=len(rows))

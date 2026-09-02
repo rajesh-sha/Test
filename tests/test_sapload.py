@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from examples.make_sap_template import write_extract, write_template  # noqa: E402
 from sapload import Workbook, load, read_template, validate  # noqa: E402
+from sapload.pipeline import _inadmissible  # noqa: E402
 from sapload.xlsx import col_to_index, index_to_col  # noqa: E402
 
 
@@ -111,9 +112,13 @@ class TestValidation(TemplateFixture):
         self.assertIn("required", report.errors[0].message)
 
     def test_value_outside_the_dropdown_is_an_error(self):
-        report = validate(self.schema, [self._one(DocumentCurrency="AU$")])
+        report = validate(self.schema, [self._one(DocumentCurrency="ZZZ")])
         self.assertFalse(report.ok)
-        self.assertIn("allowed values", report.errors[0].message)
+        self.assertIn("allowed value", report.errors[0].message)
+
+    def test_a_near_miss_gets_a_suggestion(self):
+        report = validate(self.schema, [self._one(DocumentCurrency="AU$")])
+        self.assertIn("did you mean 'AUD'", report.errors[0].message)
 
     def test_over_length_is_an_error(self):
         report = validate(self.schema, [self._one(DocumentHeaderText="x" * 40)])
@@ -191,6 +196,70 @@ class TestPipeline(TemplateFixture):
         schema, _wb, _sheet = read_template(out)
         self.assertEqual(schema.header_rows, 5)
         self.assertEqual(len(schema.fields), 12)
+
+
+class TestAdmissibility(TemplateFixture):
+    """Structurally impossible matches must be rejected however well they score."""
+
+    def setUp(self):
+        self.schema, _wb, _sheet = read_template(self.template)
+        self.rows = [{"amount_text": "not a number", "code": "ZZZ",
+                      "long_text": "x" * 80}] * 10
+
+    def test_text_column_cannot_fill_a_numeric_field(self):
+        field = self.schema.by_name("InvoiceGrossAmount")
+        self.assertIn("takes a number", _inadmissible(field, "amount_text", self.rows))
+
+    def test_column_outside_the_dropdown_is_rejected(self):
+        field = self.schema.by_name("DocumentCurrency")
+        self.assertIn("template's list", _inadmissible(field, "code", self.rows))
+
+    def test_column_that_never_fits_the_length_is_rejected(self):
+        field = self.schema.by_name("DocumentCurrency")
+        self.assertIsNotNone(_inadmissible(field, "long_text", self.rows))
+
+    def test_a_column_that_fits_is_admitted(self):
+        field = self.schema.by_name("DocumentCurrency")
+        rows = [{"ccy": "AUD"}] * 5
+        self.assertIsNone(_inadmissible(field, "ccy", rows))
+
+    def test_an_empty_column_is_not_judged(self):
+        field = self.schema.by_name("InvoiceGrossAmount")
+        self.assertIsNone(_inadmissible(field, "missing", [{"other": "x"}]))
+
+
+class TestOutputChunking(TemplateFixture):
+    """The upload apps cap rows per file; splitting beats discovering that late."""
+
+    def test_splits_at_the_limit(self):
+        out = os.path.join(self.tmp, "chunk.xlsx")
+        result = load(self.source, self.template, output_path=out, max_rows=15,
+                      overrides={"DocumentHeaderText": "descr"})
+        self.assertEqual(len(result.output_paths), 3)
+        self.assertEqual(result.rows_written, 40)
+        self.assertTrue(result.output_paths[0].endswith("_01.xlsx"))
+        for path in result.output_paths:
+            self.assertTrue(os.path.exists(path))
+        first = Workbook(result.output_paths[0]).sheet("Supplier Invoice")
+        self.assertEqual(len(first.rows), 20)          # 5 header + 15 data
+        last = Workbook(result.output_paths[-1]).sheet("Supplier Invoice")
+        self.assertEqual(len(last.rows), 15)           # 5 header + 10 data
+
+    def test_no_split_when_it_fits(self):
+        out = os.path.join(self.tmp, "single.xlsx")
+        result = load(self.source, self.template, output_path=out, max_rows=500)
+        self.assertEqual(result.output_paths, [out])
+
+
+class TestFormatGuard(TemplateFixture):
+    def test_spreadsheetml_2003_fails_with_an_explanation(self):
+        path = os.path.join(self.tmp, "legacy.xlsx")
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write('<?xml version="1.0"?><Workbook '
+                     'xmlns="urn:schemas-microsoft-com:office:spreadsheet"/>')
+        with self.assertRaises(ValueError) as ctx:
+            read_template(path)
+        self.assertIn("Excel 2003 XML", str(ctx.exception))
 
 
 class TestLearningGate(TemplateFixture):

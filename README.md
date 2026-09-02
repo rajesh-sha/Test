@@ -208,11 +208,13 @@ communication arrangement and no credentials to read.
 |---|---|
 | **Derive** | Header-block detection, technical/label/marker/length rows, types from the data, value help from the dropdowns |
 | **Map** | `smartmapper` plus an SAP finance vocabulary, matching against **both** the technical name and the human label and keeping the better |
-| **Validate** | Rules derived from the template, never hand-written — add a column and it is checked on the next run |
+| **Gate** | Structurally impossible matches are dropped before confidence decides — a text column cannot fill a numeric field however well it is named |
+| **Validate** | Rules derived from the template, never hand-written — add a column and it is checked on the next run. Bad codes get a suggestion, not just a rejection |
 | **Fill** | Rewrites only the sheet's data; SAP's styling, dropdowns, column widths and help sheets survive byte-for-byte |
+| **Split** | `--max-rows` keeps each file inside the upload app's ceiling (F2548 caps at 999 journal entries) |
 | **Reconcile** | Counts in/out, control totals per numeric field, coverage, unmapped fields, and a sign-off block |
 
-## Two deliberate design decisions
+## Three deliberate design decisions
 
 **Matching against the label as well as the technical name.** A source column
 called `gl_acct` is far closer to the label "G/L Account" than to `GLAccount`.
@@ -225,7 +227,20 @@ score spuriously.
 always remembered; everything else must clear `--learn-threshold` (0.85 by
 default). Auto-learning an unreviewed 60% guess is how a tool like this quietly
 entrenches a wrong mapping — the guess becomes a prior, the prior raises the
-score, and by run three nobody questions it.
+score, and by run three nobody questions it. This was not hypothetical: an early
+run poisoned its own memory and silently reinstated a bad match.
+
+**Filtering the hypothesis space beats scoring it harder.** Before confidence
+decides anything, candidates that the *data* rules out are dropped — a column of
+free text cannot fill a numeric field, and a column whose values never appear in
+the template's dropdown is not that field. This is the largest measured accuracy
+lever in the schema-matching literature, and it involves no model at all.
+
+**Writing is a surgical edit, not a round-trip.** The original zip is copied
+entry-for-entry and only the target sheet's `<sheetData>` is replaced.
+Round-tripping through a spreadsheet library silently destroys the very things
+the parser depends on — ExcelJS drops data validation on read-write, openpyxl
+loses images — and in an SAP template the dropdowns *are* the value help.
 
 ## Extending it
 
@@ -241,10 +256,26 @@ the SAP S/4HANA Migration Cockpit, which has full object coverage and SAP
 support. It never connects to SAP: a person uploads a file they have already
 seen validated, which keeps the human control point auditors expect.
 
+## Known limits
+
+- Migration Cockpit templates are fully self-describing (hidden rows carry
+  structure, technical name, type and length; `*` marks mandatory, `k` key).
+  The Fiori app templates carry technical column names but **not** types,
+  lengths or mandatory markers — against those, the derived schema is thinner
+  and the notes say so.
+- SAP sometimes delivers a template as Excel 2003 XML (SpreadsheetML) with an
+  `.xlsx` extension. That is plain XML, not a zip; the tool detects it and says
+  what to do rather than failing obscurely.
+- Per-file row ceilings differ per app and are not published in the template, so
+  `--max-rows` is yours to set.
+- **Untested:** what the upload app does with a mid-file failure — whether rows
+  before the bad one stay posted. Confirm with a deliberate 10-row file
+  containing a known bad row before relying on re-submission behaviour.
+
 ## Tests
 
 ```bash
-python -m unittest tests.test_sapload -v    # 27 tests
+python -m unittest tests.test_sapload -v    # 36 tests
 python -m unittest tests.test_smartmapper   # 23 tests
 ```
 

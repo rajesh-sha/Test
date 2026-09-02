@@ -14,6 +14,7 @@ uploading a file they have already seen validated.
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Sequence, Tuple
 
@@ -29,6 +30,8 @@ from .template import read_template
 from .validate import ValidationReport, validate
 from .xlsx import Workbook
 
+_NUMERIC = re.compile(r"^-?[\d,]*\.?\d+$")
+
 
 @dataclass
 class LoadResult:
@@ -36,8 +39,12 @@ class LoadResult:
     plan: MappingPlan
     validation: ValidationReport
     recon: ReconPack
-    output_path: Optional[str]
+    output_paths: List[str]
     rows_written: int
+
+    @property
+    def output_path(self) -> Optional[str]:
+        return self.output_paths[0] if self.output_paths else None
 
 
 def read_source(path: str) -> Tuple[List[str], List[dict]]:
@@ -67,6 +74,7 @@ def load(
     memory_path: Optional[str] = None,
     sheet_name: Optional[str] = None,
     only_clean: bool = False,
+    max_rows: Optional[int] = None,
     threshold: float = 0.35,
     learn_threshold: float = 0.85,
     overrides: Optional[Dict[str, str]] = None,
@@ -104,13 +112,26 @@ def load(
         )
 
     written = 0
+    output_paths: List[str] = []
     if output_path:
         cells = [schema.row_to_cells(r) for r in rows_to_write]
-        wb.write_filled(
-            out_path=output_path, sheet=sheet, data_rows=cells,
-            keep_rows=schema.header_rows, numeric_cols=schema.numeric_columns,
-        )
-        written = len(cells)
+        # The upload apps have hard per-file ceilings — F2548 takes at most 999
+        # journal entries, and the supplier invoice app is reportedly lower.
+        # Splitting here is far cheaper than discovering the limit at row 800.
+        for index, batch in enumerate(_chunk(cells, max_rows), start=1):
+            path = output_path if len(cells) <= (max_rows or len(cells) or 1) \
+                else _numbered(output_path, index)
+            wb.write_filled(
+                out_path=path, sheet=sheet, data_rows=batch,
+                keep_rows=schema.header_rows, numeric_cols=schema.numeric_columns,
+            )
+            output_paths.append(path)
+            written += len(batch)
+        if len(output_paths) > 1:
+            notes.append(
+                f"Split into {len(output_paths)} files of at most {max_rows:,} "
+                f"rows to stay inside the upload app's per-file limit."
+            )
 
     recon = build_recon(
         source_name=os.path.basename(source_path),
@@ -147,9 +168,52 @@ def load(
 
     return LoadResult(
         schema=schema, plan=plan, validation=report, recon=recon,
-        output_path=output_path if written else None,
-        rows_written=written or len(rows_to_write),
+        output_paths=output_paths, rows_written=written or len(rows_to_write),
     )
+
+
+def _inadmissible(field, source: str, rows: Sequence[dict]) -> Optional[str]:
+    """Return why this source column cannot fill this field, or None if it can.
+
+    Judged on the data, not the name.  A column of free text cannot fill a
+    numeric field however closely it is named, and a column whose values never
+    appear in the template's dropdown is not that field.
+    """
+    values = [str(r.get(source, "")).strip() for r in rows]
+    values = [v for v in values if v]
+    if not values:
+        return None
+
+    sample = values[:200]
+    if field.dtype == "number":
+        numeric = sum(1 for v in sample if _NUMERIC.match(v.replace(",", "")))
+        if numeric / len(sample) < 0.5:
+            return f"{source!r} holds text, but this field takes a number"
+
+    if field.allowed:
+        permitted = {a.casefold() for a in field.allowed}
+        hits = sum(1 for v in sample if v.casefold() in permitted)
+        if hits == 0:
+            return (f"no value in {source!r} appears in the template's list "
+                    f"for this field")
+
+    if field.max_length:
+        over = sum(1 for v in sample if len(v) > field.max_length)
+        if over / len(sample) > 0.9:
+            return (f"nearly every value in {source!r} exceeds this field's "
+                    f"{field.max_length}-character limit")
+    return None
+
+
+def _chunk(rows: List, size: Optional[int]) -> List[List]:
+    if not size or size <= 0 or len(rows) <= size:
+        return [rows]
+    return [rows[i:i + size] for i in range(0, len(rows), size)]
+
+
+def _numbered(path: str, index: int) -> str:
+    stem, ext = os.path.splitext(path)
+    return f"{stem}_{index:02d}{ext}"
 
 
 def _apply_overrides(
@@ -218,6 +282,20 @@ def map_with_aliases(
         if winner is None:
             winner = plans[0].mappings[idx]
         best.append((winner.confidence, idx, winner, alias))
+
+    # Drop matches the data cannot support, before letting confidence decide.
+    # A high-scoring name match onto a column whose values could never be
+    # accepted is worse than no match: it looks right in the review and fails
+    # in SAP.  Filtering the hypothesis space first is a bigger accuracy lever
+    # than any amount of extra scoring.
+    for _c, idx, winner, _alias in best:
+        if winner.source is None:
+            continue
+        reason = _inadmissible(schema.fields[idx], winner.source, source_rows)
+        if reason:
+            winner.source = None
+            winner.confidence = 0.0
+            winner.reasons = [reason]
 
     # Two fields may now want the same source column; the more confident wins.
     taken: Dict[str, int] = {}

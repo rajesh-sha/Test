@@ -35,6 +35,29 @@ _NUMERIC_RE = re.compile(r"^-?\d+(\.\d+)?$")
 # --------------------------------------------------------------------------- #
 # Column reference helpers  (A -> 0, AB -> 27)
 # --------------------------------------------------------------------------- #
+def _reject_spreadsheetml(path: str) -> None:
+    """Fail clearly on an Excel 2003 XML template rather than obscurely.
+
+    Some SAP Migration Cockpit downloads are SpreadsheetML 2003 — plain XML,
+    not a zip — even when the browser has named them ``.xlsx``.  Opening one as
+    a zip produces a baffling error, so say what actually happened.
+    """
+    try:
+        with open(path, "rb") as fh:
+            head = fh.read(4)
+    except OSError:
+        return
+    if head[:2] == b"PK":
+        return
+    raise ValueError(
+        f"{path} is not an OOXML workbook. SAP sometimes delivers templates as "
+        f"Excel 2003 XML (SpreadsheetML), which is plain XML rather than a zip, "
+        f"and browsers often save it with an .xlsx extension anyway. Re-download "
+        f"the template choosing the XLSX or CSV format, or open it in Excel and "
+        f"save as .xlsx."
+    )
+
+
 def col_to_index(ref: str) -> int:
     """``"AB12"`` or ``"AB"`` -> zero-based column index."""
     n = 0
@@ -114,6 +137,7 @@ class Workbook:
 
     # -- loading ----------------------------------------------------------- #
     def _load(self) -> None:
+        _reject_spreadsheetml(self.path)
         with zipfile.ZipFile(self.path) as zf:
             self._raw = {n: zf.read(n) for n in zf.namelist()}
 
