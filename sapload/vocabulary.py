@@ -55,8 +55,10 @@ SAP_SYNONYM_GROUPS: List[List[str]] = [
     # --- documents ------------------------------------------------------- #
     ["document number", "doc number", "belnr", "document id"],
     ["document type", "doc type", "blart"],
-    ["document date", "invoice date", "bldat", "doc date", "claim date"],
-    ["posting date", "budat", "post date", "gl date", "accounting date"],
+    ["document date", "invoice date", "bldat", "doc date", "claim date",
+     "invoice dt", "inv dt", "doc dt", "document dt"],
+    ["posting date", "budat", "post date", "gl date", "accounting date",
+     "post dt", "posting dt", "gl dt"],
     ["baseline date", "due date", "net due date", "payment due"],
     ["fiscal year", "year", "gjahr"],
     ["period", "posting period", "fiscal period", "monat"],

@@ -1,0 +1,1379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SAP Load Workbench</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%230E5C60'/%3E%3Cpath d='M8 10h16M8 16h16M8 22h10' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --ground:#F4F6F4; --surface:#FFFFFF; --surface-2:#EAEEEB; --sunk:#E3E8E4;
+    --ink:#16211F; --ink-2:#3D4B48; --ink-3:#6B7975;
+    --rule:#D3DAD6; --rule-2:#BCC5C0;
+    --accent:#0E5C60; --accent-soft:#DBE8E8;
+    --warn:#8A5109; --warn-soft:#F5E8D5; --stop:#8C2F2F; --stop-soft:#F3E0E0;
+    --go:#2A6234; --go-soft:#DEEAE0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:#111615; --surface:#1A2120; --surface-2:#222A28; --sunk:#161D1C;
+      --ink:#E9EEEB; --ink-2:#B3BEBA; --ink-3:#84928E;
+      --rule:#2C3735; --rule-2:#3B4845;
+      --accent:#63BABE; --accent-soft:#14312F;
+      --warn:#DBA463; --warn-soft:#322614; --stop:#DD8A8A; --stop-soft:#331C1C;
+      --go:#82C08E; --go-soft:#1A2D1E;
+    }
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--ground); color:var(--ink);
+    font:15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono, code { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .wrap { max-width:1180px; margin:0 auto; padding:0 24px 80px; }
+
+  header {
+    border-bottom:2px solid var(--ink); padding:32px 0 16px; margin-bottom:28px;
+    display:flex; justify-content:space-between; align-items:flex-end; gap:24px;
+    flex-wrap:wrap;
+  }
+  h1 { margin:0 0 4px; font-size:26px; letter-spacing:-.02em; }
+  .sub { color:var(--ink-3); font-size:13.5px; margin:0; }
+  .memory {
+    font-family:ui-monospace,monospace; font-size:11.5px; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--ink-3);
+  }
+
+  section { margin-bottom:30px; }
+  .step {
+    display:flex; align-items:baseline; gap:10px; margin:0 0 12px;
+    padding-bottom:8px; border-bottom:1px solid var(--rule);
+  }
+  .step-no {
+    font-family:ui-monospace,monospace; font-size:11px; letter-spacing:.1em;
+    color:var(--ink-3);
+  }
+  .step h2 { margin:0; font-size:17px; letter-spacing:-.01em; }
+  .step .hint { margin-left:auto; color:var(--ink-3); font-size:12.5px; }
+
+  .drops { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; }
+  .drop {
+    border:1.5px dashed var(--rule-2); border-radius:4px; background:var(--surface);
+    padding:22px; text-align:center; cursor:pointer; transition:border-color .12s, background .12s;
+  }
+  .drop:hover, .drop.over { border-color:var(--accent); background:var(--accent-soft); }
+  .drop.filled { border-style:solid; border-color:var(--go); background:var(--go-soft); }
+  .drop h3 { margin:0 0 4px; font-size:14.5px; }
+  .drop p { margin:0; color:var(--ink-3); font-size:12.5px; }
+  .drop .file { margin-top:8px; font-family:ui-monospace,monospace; font-size:12.5px; color:var(--go); word-break:break-all; }
+  .drop input { display:none; }
+
+  .bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px; }
+  button {
+    font:inherit; font-size:14px; font-weight:600; padding:9px 18px; border-radius:3px;
+    border:1px solid var(--accent); background:var(--accent); color:var(--ground);
+    cursor:pointer;
+  }
+  :root[data-dark] button { color:#0d1413; }
+  button.ghost { background:transparent; color:var(--accent); }
+  button:disabled { opacity:.4; cursor:not-allowed; }
+  button:focus-visible, select:focus-visible, .drop:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px;
+           background:var(--rule); border:1px solid var(--rule); margin-bottom:16px; }
+  .card { background:var(--surface); padding:13px 15px; }
+  .card .v { font-family:ui-monospace,monospace; font-size:23px; font-variant-numeric:tabular-nums; line-height:1.1; }
+  .card .k { font-size:11.5px; color:var(--ink-3); margin-top:3px; letter-spacing:.03em; }
+  .card.good .v { color:var(--go); } .card.bad .v { color:var(--stop); } .card.warn .v { color:var(--warn); }
+
+  .panel { background:var(--surface); border:1px solid var(--rule); border-radius:3px; }
+  .scroll { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-size:13.5px; }
+  th, td { text-align:left; padding:8px 12px; border-bottom:1px solid var(--rule); vertical-align:middle; }
+  thead th {
+    position:sticky; top:0; background:var(--surface-2); z-index:1;
+    font-family:ui-monospace,monospace; font-size:11px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--ink-3); font-weight:500; white-space:nowrap;
+  }
+  tbody tr:last-child td { border-bottom:none; }
+  td.num { font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
+  .tall { max-height:460px; overflow-y:auto; }
+
+  .chip {
+    display:inline-block; font-family:ui-monospace,monospace; font-size:10.5px;
+    letter-spacing:.08em; text-transform:uppercase; padding:2px 7px; border-radius:2px; font-weight:500;
+  }
+  .chip.auto { background:var(--go-soft); color:var(--go); }
+  .chip.review { background:var(--warn-soft); color:var(--warn); }
+  .chip.low, .chip.unmatched { background:var(--stop-soft); color:var(--stop); }
+  .req { color:var(--stop); font-weight:700; }
+  select {
+    font:inherit; font-size:13px; padding:4px 7px; border:1px solid var(--rule-2);
+    border-radius:3px; background:var(--surface); color:var(--ink); max-width:230px;
+  }
+  select.changed { border-color:var(--accent); background:var(--accent-soft); }
+
+  .note {
+    border-left:3px solid var(--warn); background:var(--warn-soft); color:var(--warn);
+    padding:10px 14px; border-radius:2px; font-size:13.5px; margin-bottom:10px;
+  }
+  .note.err { border-left-color:var(--stop); background:var(--stop-soft); color:var(--stop); }
+  .note.ok { border-left-color:var(--go); background:var(--go-soft); color:var(--go); }
+
+  .issue { font-family:ui-monospace,monospace; font-size:12.5px; padding:5px 12px; border-bottom:1px solid var(--rule); }
+  .issue:last-child { border-bottom:none; }
+  .issue .n { color:var(--stop); font-weight:600; }
+
+  .opts { display:flex; gap:18px; align-items:center; flex-wrap:wrap; font-size:13.5px; color:var(--ink-2); margin-bottom:12px; }
+  .opts label { display:flex; gap:7px; align-items:center; cursor:pointer; }
+  .opts input[type=number] { width:78px; font:inherit; font-size:13px; padding:4px 7px;
+    border:1px solid var(--rule-2); border-radius:3px; background:var(--surface); color:var(--ink); }
+
+  a.dl {
+    display:flex; justify-content:space-between; align-items:center; gap:14px;
+    padding:12px 15px; border-bottom:1px solid var(--rule); color:var(--ink);
+    text-decoration:none; font-size:14px;
+  }
+  a.dl:last-child { border-bottom:none; }
+  a.dl:hover { background:var(--accent-soft); }
+  a.dl .name { font-family:ui-monospace,monospace; word-break:break-all; }
+  a.dl .go { color:var(--accent); font-weight:600; white-space:nowrap; font-size:13px; }
+
+  pre.recon {
+    margin:0; padding:16px; font-family:ui-monospace,monospace; font-size:12px;
+    line-height:1.45; white-space:pre; overflow-x:auto; max-height:400px; overflow-y:auto;
+    background:var(--sunk); color:var(--ink-2);
+  }
+  .hidden { display:none !important; }
+  .spin { color:var(--ink-3); font-size:13.5px; }
+  details summary { cursor:pointer; padding:10px 14px; font-size:13.5px; color:var(--ink-2); }
+  details[open] summary { border-bottom:1px solid var(--rule); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <h1>SAP Load Workbench</h1>
+    <p class="sub">Map an extract onto an SAP upload template, check every row, and produce the reconciliation.</p>
+  </div>
+  <div class="memory" id="memory">nothing leaves this computer</div>
+</header>
+
+<section>
+  <div class="step"><span class="step-no">01</span><h2>Add the two files</h2>
+    <span class="hint">Nothing is sent anywhere</span></div>
+  <div class="drops">
+    <div class="drop" id="dropTemplate" tabindex="0" role="button">
+      <h3>SAP upload template</h3>
+      <p>The .xlsx SAP gave you &mdash; drop it here or click</p>
+      <div class="file hidden" id="nameTemplate"></div>
+      <input type="file" id="fileTemplate" accept=".xlsx,.xlsm">
+    </div>
+    <div class="drop" id="dropSource" tabindex="0" role="button">
+      <h3>Your extract</h3>
+      <p>.csv or .xlsx from the source system</p>
+      <div class="file hidden" id="nameSource"></div>
+      <input type="file" id="fileSource" accept=".csv,.xlsx,.xlsm">
+    </div>
+  </div>
+  <div class="bar">
+    <button id="btnAnalyse" disabled>Read the template and map</button>
+    <span class="spin hidden" id="busy">Working&hellip;</span>
+  </div>
+  <div id="topError"></div>
+</section>
+
+<section id="secSchema" class="hidden">
+  <div class="step"><span class="step-no">02</span><h2>What the template wants</h2>
+    <span class="hint" id="schemaLayout"></span></div>
+  <div id="schemaNotes"></div>
+  <div class="cards" id="schemaCards"></div>
+  <details class="panel">
+    <summary>Show all fields the template defines</summary>
+    <div class="scroll tall">
+      <table><thead><tr>
+        <th></th><th>Field</th><th>Label on the sheet</th><th>Type</th>
+        <th class="num">Max</th><th>Allowed values</th>
+      </tr></thead><tbody id="schemaBody"></tbody></table>
+    </div>
+  </details>
+</section>
+
+<section id="secMapping" class="hidden">
+  <div class="step"><span class="step-no">03</span><h2>Check the mapping</h2>
+    <span class="hint">Change anything that looks wrong &mdash; it is remembered</span></div>
+  <div class="cards" id="mapCards"></div>
+  <div class="panel scroll tall">
+    <table><thead><tr>
+      <th></th><th>Template field</th><th>Comes from</th><th>Confidence</th>
+      <th>Why</th>
+    </tr></thead><tbody id="mapBody"></tbody></table>
+  </div>
+  <div class="bar">
+    <button class="ghost" id="btnRemap">Re-check with my changes</button>
+    <span class="spin hidden" id="busy2">Working&hellip;</span>
+  </div>
+</section>
+
+<section id="secValidation" class="hidden">
+  <div class="step"><span class="step-no">04</span><h2>Problems SAP would reject</h2>
+    <span class="hint" id="valSummary"></span></div>
+  <div id="valBanner"></div>
+  <div class="panel" id="valPanel"></div>
+  <details class="panel" style="margin-top:12px">
+    <summary>Preview the first rows as they will appear in the template</summary>
+    <div class="scroll"><table><thead><tr id="prevHead"></tr></thead><tbody id="prevBody"></tbody></table></div>
+  </details>
+</section>
+
+<section id="secBuild" class="hidden">
+  <div class="step"><span class="step-no">05</span><h2>Produce the upload file</h2></div>
+  <div class="opts">
+    <label><input type="checkbox" id="optClean"> Leave out rows with errors</label>
+    <label>Split every <input type="number" id="optMax" min="1" step="1" placeholder="all"> rows</label>
+  </div>
+  <div class="bar">
+    <button id="btnBuild">Build the upload file</button>
+    <span class="spin hidden" id="busy3">Working&hellip;</span>
+  </div>
+  <div id="buildOut" style="margin-top:14px"></div>
+</section>
+
+</div>
+<script>
+"use strict";
+/* ==========================================================================
+   ZIP — read and write, using the browser's own DecompressionStream.
+   An .xlsx is a zip of XML. No library needed: browsers inflate for us, and
+   we write entries stored (uncompressed), which is valid zip and lets Excel
+   and SAP open the result unchanged.
+   ========================================================================== */
+const CRC = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return (buf) => {
+    let c = 0xFFFFFFFF;
+    for (let i = 0; i < buf.length; i++) c = t[(c ^ buf[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  };
+})();
+
+async function inflateRaw(bytes) {
+  const ds = new DecompressionStream("deflate-raw");
+  const stream = new Blob([bytes]).stream().pipeThrough(ds);
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+async function readZip(arrayBuffer) {
+  const buf = new Uint8Array(arrayBuffer);
+  const dv = new DataView(arrayBuffer);
+  // End of central directory: scan back for the signature.
+  let eocd = -1;
+  for (let i = buf.length - 22; i >= 0 && i > buf.length - 66000; i--) {
+    if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new AppError("That file is not a valid .xlsx workbook.");
+
+  const count = dv.getUint16(eocd + 10, true);
+  let ptr = dv.getUint32(eocd + 16, true);
+  const entries = new Map();
+  const order = [];
+
+  for (let n = 0; n < count; n++) {
+    if (dv.getUint32(ptr, true) !== 0x02014b50) break;
+    const method = dv.getUint16(ptr + 10, true);
+    const csize = dv.getUint32(ptr + 20, true);
+    const usize = dv.getUint32(ptr + 24, true);
+    const nameLen = dv.getUint16(ptr + 28, true);
+    const extraLen = dv.getUint16(ptr + 30, true);
+    const commentLen = dv.getUint16(ptr + 32, true);
+    const localOff = dv.getUint32(ptr + 42, true);
+    const name = new TextDecoder().decode(buf.subarray(ptr + 46, ptr + 46 + nameLen));
+
+    const lNameLen = dv.getUint16(localOff + 26, true);
+    const lExtraLen = dv.getUint16(localOff + 28, true);
+    const dataOff = localOff + 30 + lNameLen + lExtraLen;
+    entries.set(name, { method, raw: buf.subarray(dataOff, dataOff + csize), usize });
+    order.push(name);
+    ptr += 46 + nameLen + extraLen + commentLen;
+  }
+
+  const files = new Map();
+  for (const name of order) {
+    const e = entries.get(name);
+    files.set(name, e.method === 0 ? e.raw : await inflateRaw(e.raw));
+  }
+  return { files, order };
+}
+
+function writeZip(order, files) {
+  const enc = new TextEncoder();
+  const locals = [];
+  const central = [];
+  let offset = 0;
+
+  for (const name of order) {
+    const data = files.get(name);
+    const nameBytes = enc.encode(name);
+    const crc = CRC(data);
+
+    const local = new Uint8Array(30 + nameBytes.length + data.length);
+    const ldv = new DataView(local.buffer);
+    ldv.setUint32(0, 0x04034b50, true);
+    ldv.setUint16(4, 20, true);          // version needed
+    ldv.setUint16(6, 0, true);           // flags
+    ldv.setUint16(8, 0, true);           // stored
+    ldv.setUint16(10, 0, true); ldv.setUint16(12, 0x2821, true);   // time/date
+    ldv.setUint32(14, crc, true);
+    ldv.setUint32(18, data.length, true);
+    ldv.setUint32(22, data.length, true);
+    ldv.setUint16(26, nameBytes.length, true);
+    ldv.setUint16(28, 0, true);
+    local.set(nameBytes, 30);
+    local.set(data, 30 + nameBytes.length);
+    locals.push(local);
+
+    const cen = new Uint8Array(46 + nameBytes.length);
+    const cdv = new DataView(cen.buffer);
+    cdv.setUint32(0, 0x02014b50, true);
+    cdv.setUint16(4, 20, true); cdv.setUint16(6, 20, true);
+    cdv.setUint16(8, 0, true); cdv.setUint16(10, 0, true);
+    cdv.setUint16(12, 0, true); cdv.setUint16(14, 0x2821, true);
+    cdv.setUint32(16, crc, true);
+    cdv.setUint32(20, data.length, true);
+    cdv.setUint32(24, data.length, true);
+    cdv.setUint16(28, nameBytes.length, true);
+    cdv.setUint32(42, offset, true);
+    cen.set(nameBytes, 46);
+    central.push(cen);
+    offset += local.length;
+  }
+
+  const cenSize = central.reduce((a, c) => a + c.length, 0);
+  const end = new Uint8Array(22);
+  const edv = new DataView(end.buffer);
+  edv.setUint32(0, 0x06054b50, true);
+  edv.setUint16(8, order.length, true);
+  edv.setUint16(10, order.length, true);
+  edv.setUint32(12, cenSize, true);
+  edv.setUint32(16, offset, true);
+
+  return new Blob([...locals, ...central, end],
+    { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+}
+
+/* ==========================================================================
+   XLSX — parse the parts we need, and refill one sheet without touching
+   anything else. Only <sheetData> is replaced, so SAP's styling, dropdowns,
+   column widths and help sheets survive exactly as they were.
+   ========================================================================== */
+const XML = (s) => new DOMParser().parseFromString(s, "application/xml");
+const dec = (b) => new TextDecoder().decode(b);
+const esc = (s) => String(s == null ? "" : s)
+  .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+function colToIndex(ref) {
+  let n = 0;
+  for (const ch of ref) {
+    if (!/[A-Za-z]/.test(ch)) break;
+    n = n * 26 + (ch.toUpperCase().charCodeAt(0) - 64);
+  }
+  return n - 1;
+}
+function indexToCol(i) {
+  let out = "", n = i + 1;
+  while (n > 0) { const r = (n - 1) % 26; out = String.fromCharCode(65 + r) + out; n = Math.floor((n - 1) / 26); }
+  return out;
+}
+
+const RE_SHEETDATA = /<sheetData\b[^>]*\/>|<sheetData\b[^>]*>[\s\S]*?<\/sheetData>/;
+const RE_ROW = /<row\b[^>]*\/>|<row\b[^>]*>[\s\S]*?<\/row>/g;
+const RE_CELL = /<c\b[^>]*\/>|<c\b[^>]*>[\s\S]*?<\/c>/g;
+
+function attrs(tag) {
+  const head = tag.split(">")[0];
+  const out = {};
+  for (const m of head.matchAll(/(\w+)="([^"]*)"/g)) out[m[1]] = m[2];
+  return out;
+}
+function unesc(s) {
+  return s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"')
+          .replace(/&apos;/g, "'").replace(/&amp;/g, "&");
+}
+
+async function openWorkbook(arrayBuffer) {
+  const { files, order } = await readZip(arrayBuffer);
+
+  let shared = [];
+  if (files.has("xl/sharedStrings.xml")) {
+    const doc = XML(dec(files.get("xl/sharedStrings.xml")));
+    shared = [...doc.getElementsByTagName("si")].map(si =>
+      [...si.getElementsByTagName("t")].map(t => t.textContent || "").join(""));
+  }
+
+  const rels = new Map();
+  if (files.has("xl/_rels/workbook.xml.rels")) {
+    const doc = XML(dec(files.get("xl/_rels/workbook.xml.rels")));
+    for (const r of doc.getElementsByTagName("Relationship")) {
+      rels.set(r.getAttribute("Id"), r.getAttribute("Target"));
+    }
+  }
+
+  const sheets = [];
+  if (files.has("xl/workbook.xml")) {
+    const doc = XML(dec(files.get("xl/workbook.xml")));
+    for (const sh of doc.getElementsByTagName("sheet")) {
+      const rid = sh.getAttribute("r:id") ||
+        sh.getAttributeNS("http://schemas.openxmlformats.org/officeDocument/2006/relationships", "id");
+      const target = rels.get(rid);
+      if (!target) continue;
+      const path = target.startsWith("xl/") ? target : "xl/" + target.replace(/^\//, "");
+      if (!files.has(path)) continue;
+      sheets.push({ name: sh.getAttribute("name") || "", path,
+                    ...parseSheet(dec(files.get(path)), shared) });
+    }
+  }
+  if (!sheets.length) throw new AppError("That workbook has no readable sheets.");
+  return { files, order, sheets };
+}
+
+function parseSheet(xml, shared) {
+  const body = xml.match(RE_SHEETDATA);
+  const rows = [], rowXml = [], styles = new Map();
+  if (body) {
+    const rowTags = body[0].match(RE_ROW) || [];
+    rowTags.forEach((rowTag, r) => {
+      rowXml.push(rowTag);
+      const values = [], rowStyles = new Map();
+      for (const cellTag of rowTag.match(RE_CELL) || []) {
+        const a = attrs(cellTag);
+        const col = colToIndex(a.r || "");
+        if (col < 0) continue;
+        while (values.length <= col) values.push("");
+        values[col] = cellText(cellTag, a, shared);
+        if (a.s) rowStyles.set(col, a.s);
+      }
+      rows.push(values);
+      if (rowStyles.size) styles.set(r, rowStyles);
+    });
+  }
+  return { rows, rowXml, styles, validations: parseValidations(xml), xml };
+}
+
+function cellText(tag, a, shared) {
+  if (a.t === "inlineStr") {
+    const m = tag.match(/<t[^>]*>([\s\S]*?)<\/t>/);
+    return m ? unesc(m[1]) : "";
+  }
+  const m = tag.match(/<v>([\s\S]*?)<\/v>/);
+  if (!m) return "";
+  const text = unesc(m[1]);
+  if (a.t === "s") { const i = parseInt(text, 10); return shared[i] ?? ""; }
+  return text;
+}
+
+function parseValidations(xml) {
+  const out = [];
+  const blocks = xml.match(/<dataValidation\b[^>]*>[\s\S]*?<\/dataValidation>|<dataValidation\b[^>]*\/>/g) || [];
+  for (const block of blocks) {
+    const a = attrs(block);
+    if (a.type !== "list" || !a.sqref) continue;
+    let first = null, last = null;
+    for (const token of a.sqref.replace(/:/g, " ").split(/\s+/)) {
+      const i = colToIndex(token);
+      if (i < 0) continue;
+      first = first === null ? i : Math.min(first, i);
+      last = last === null ? i : Math.max(last, i);
+    }
+    if (first === null) continue;
+    const f = block.match(/<formula1[^>]*>([\s\S]*?)<\/formula1>/);
+    let values = [];
+    if (f) {
+      const literal = unesc(f[1]).trim();
+      if (literal.startsWith('"') && literal.endsWith('"')) {
+        values = literal.slice(1, -1).split(",").map(v => v.trim()).filter(Boolean);
+      }
+    }
+    if (values.length) out.push({ first, last, values });
+  }
+  return out;
+}
+
+function allowedFor(sheet, col) {
+  for (const v of sheet.validations) if (col >= v.first && col <= v.last) return v.values;
+  return null;
+}
+
+function fillWorkbook(wb, sheet, schema, dataRows) {
+  const numeric = new Set(schema.fields.filter(f => f.type === "number").map(f => f.column));
+  const styleRow = sheet.styles.get(schema.headerRows) || new Map();
+  const parts = ["<sheetData>"];
+  for (let i = 0; i < schema.headerRows; i++) parts.push(sheet.rowXml[i] || "");
+  dataRows.forEach((cells, n) => {
+    const rowNo = schema.headerRows + n + 1;
+    const out = [];
+    cells.forEach((value, col) => {
+      if (value === null || value === undefined || value === "") return;
+      const s = styleRow.get(col) ? ` s="${styleRow.get(col)}"` : "";
+      const text = String(value);
+      if (numeric.has(col) && /^-?\d+(\.\d+)?$/.test(text.trim())) {
+        out.push(`<c r="${indexToCol(col)}${rowNo}"${s}><v>${text.trim()}</v></c>`);
+      } else {
+        out.push(`<c r="${indexToCol(col)}${rowNo}"${s} t="inlineStr"><is>` +
+                 `<t xml:space="preserve">${esc(text)}</t></is></c>`);
+      }
+    });
+    parts.push(`<row r="${rowNo}">${out.join("")}</row>`);
+  });
+  parts.push("</sheetData>");
+
+  const patched = sheet.xml.replace(RE_SHEETDATA, parts.join(""));
+  const files = new Map(wb.files);
+  files.set(sheet.path, new TextEncoder().encode(patched));
+  return writeZip(wb.order, files);
+}
+
+/* ==========================================================================
+   TEMPLATE — work out what the SAP template wants, unaided.
+   Nothing is configured per object: the header block, the technical-name row,
+   the mandatory markers, the field lengths and the dropdowns are all found by
+   looking at the file.
+   ========================================================================== */
+const RE_MARKER = /^[*+kK]{1,3}$/;
+const RE_IDENT = /^[A-Za-z][A-Za-z0-9_]{2,}$/;
+const RE_INT = /^\d{1,4}$/;
+const RE_DATEISH = /date|dat$|_dt$|posting|document date/i;
+const RE_NUMISH = /amount|amt|qty|quantity|value|price|rate|percent|total/i;
+const RE_NONDATA = /field\s*list|introduction|instructions|help|read\s*me|notes|legend|documentation|cover|about/i;
+const MAX_SCAN = 8;
+
+function rowStats(values) {
+  const filled = values.map(v => (v || "").trim()).filter(Boolean);
+  if (!filled.length) return { fill: 0, marker: 0, ident: 0, integer: 0, avgLen: 0 };
+  const n = filled.length;
+  return {
+    fill: n / Math.max(values.length, 1),
+    marker: filled.filter(v => RE_MARKER.test(v)).length / n,
+    ident: filled.filter(v => RE_IDENT.test(v) && !v.includes(" ")).length / n,
+    integer: filled.filter(v => RE_INT.test(v)).length / n,
+    avgLen: filled.reduce((a, v) => a + v.length, 0) / n,
+  };
+}
+
+function bestRow(stats, key, threshold, exclude, preferLast) {
+  const skip = new Set((exclude || []).filter(x => x !== null && x !== undefined));
+  let best = null, bestVal = threshold;
+  const idx = [...stats.keys()];
+  if (preferLast) idx.reverse();
+  for (const r of idx) {
+    if (skip.has(r) || stats[r].fill < 0.3) continue;
+    if (stats[r][key] > bestVal || (preferLast && stats[r][key] >= bestVal && best === null)) {
+      best = r; bestVal = stats[r][key];
+    }
+  }
+  return best;
+}
+
+function pickDataSheet(wb) {
+  const usable = wb.sheets.filter(s => !RE_NONDATA.test(s.name));
+  const list = usable.length ? usable : wb.sheets;
+  return list.reduce((a, b) => {
+    const w = (s) => Math.max(0, ...s.rows.slice(0, MAX_SCAN).map(r => r.length));
+    return w(b) > w(a) ? b : a;
+  });
+}
+
+function inferType(name, samples) {
+  const real = samples.map(s => (s || "").trim()).filter(Boolean);
+  if (real.length) {
+    const num = real.filter(s => /^-?[\d,]+(\.\d+)?$/.test(s)).length;
+    const dat = real.filter(s => /^\d{4}-\d{2}-\d{2}|^\d{2}[./]\d{2}[./]\d{4}/.test(s)).length;
+    if (dat / real.length > 0.7) return "date";
+    if (num / real.length > 0.7) return "number";
+  }
+  if (RE_DATEISH.test(name)) return "date";
+  if (RE_NUMISH.test(name)) return "number";
+  return "text";
+}
+
+function deriveSchema(wb, sheet) {
+  const scan = Math.min(MAX_SCAN, sheet.rows.length);
+  const stats = [];
+  for (let r = 0; r < scan; r++) stats.push(rowStats(sheet.rows[r]));
+
+  const markerRow = bestRow(stats, "marker", 0.30, [], false);
+  const lengthRow = bestRow(stats, "integer", 0.60, [markerRow], false);
+  const technicalRow = bestRow(stats, "ident", 0.55, [markerRow, lengthRow], true);
+
+  let labelRow = null, bestLen = 0;
+  stats.forEach((st, r) => {
+    if ([markerRow, lengthRow, technicalRow].includes(r) || st.fill < 0.3) return;
+    if (st.avgLen > bestLen) { bestLen = st.avgLen; labelRow = r; }
+  });
+
+  const known = [labelRow, technicalRow, markerRow, lengthRow].filter(r => r !== null);
+  let headerRows = known.length ? Math.max(...known) + 1 : 1;
+  while (headerRows < sheet.rows.length &&
+         !sheet.rows[headerRows].some(v => (v || "").trim())) headerRows++;
+
+  const at = (row, col) => row === null ? "" : ((sheet.rows[row] || [])[col] || "").trim();
+  const width = Math.max(0, ...sheet.rows.slice(0, headerRows).map(r => r.length));
+  const fields = [];
+  for (let col = 0; col < width; col++) {
+    const label = at(labelRow, col);
+    const technical = at(technicalRow, col);
+    const marker = at(markerRow, col);
+    const len = at(lengthRow, col);
+    const name = (technical || label).trim();
+    if (!name) continue;
+    const samples = sheet.rows.slice(headerRows).map(r => r[col] || "");
+    fields.push({
+      name, column: col, label, technical,
+      mandatory: marker.includes("*") || marker.includes("+"),
+      key: /k/i.test(marker),
+      type: inferType(name, samples),
+      maxLength: RE_INT.test(len) ? parseInt(len, 10) : null,
+      allowed: allowedFor(sheet, col),
+      get required() { return this.mandatory || this.key; },
+    });
+  }
+
+  const notes = [];
+  if (technicalRow === null) notes.push(
+    "No technical-name row was found, so the mapping is onto the visible labels. " +
+    "Check the filled file before uploading.");
+  if (markerRow === null) notes.push(
+    "No mandatory/key marker row was found, so required-field checks are limited " +
+    "to what the data itself reveals.");
+  if (!fields.some(f => f.allowed)) notes.push(
+    "The template carries no dropdowns, so no value help could be read from it.");
+
+  return { sheetName: sheet.name, fields, headerRows, labelRow, technicalRow, markerRow, notes };
+}
+
+/* ==========================================================================
+   MATCHER — the ensemble, plus SAP vocabulary.
+   ========================================================================== */
+const SYNONYMS = [
+  ["supplier","vendor","creditor","sub contractor","subcontractor","vendor id","supplier number","lifnr"],
+  ["customer","debtor","payer","sold to party","bill to party","kunnr","client"],
+  ["business partner","bp","partner","partner number"],
+  ["company code","company","bukrs","entity","legal entity","co code"],
+  ["cost center","cost centre","kostl","cctr"],
+  ["profit center","profit centre","prctr"],
+  ["plant","werks","site"],
+  ["wbs element","wbs","work breakdown structure","posid"],
+  ["project","project definition","pspid"],
+  ["gl account","g l account","general ledger account","gl acct","gl","account number","hkont","saknr","ledger account"],
+  ["gross amount","gross","invoice gross amount","total amount","claim amount","claim value"],
+  ["net amount","net","amount excluding tax"],
+  ["tax code","gst code","vat code","mwskz","tax indicator"],
+  ["currency","currency code","waers","ccy","curr","document currency"],
+  ["quantity","qty","consumed quantity","menge","units"],
+  ["unit of measure","uom","meins","unit"],
+  ["document number","doc number","belnr","document id"],
+  ["document type","doc type","blart"],
+  ["document date","invoice date","bldat","doc date","claim date",
+   "invoice dt","inv dt","doc dt","document dt"],
+  ["posting date","budat","post date","gl date","accounting date",
+   "post dt","posting dt","gl dt"],
+  ["baseline date","due date","net due date","payment due"],
+  ["fiscal year","year","gjahr"],
+  ["period","posting period","fiscal period","monat"],
+  ["reference","reference document","external reference","xblnr","invoice number",
+   "invoice reference","claim number","claim id","rcti number","supplier invoice id"],
+  ["assignment","assignment reference","zuonr","allocation","work order","work order number","wo number","job number"],
+  ["header text","document header text","bktxt","narration"],
+  ["line item text","item text","sgtxt","description","descr","details","comment","remarks"],
+  ["purchase order","po","po number","ebeln"],
+  ["purchase requisition","pr","requisition","banfn"],
+  ["sales order","so","sales order number","vbeln"],
+  ["service order","srvo","service order number"],
+  ["material","product","material number","matnr","item code","sku"],
+  ["storage location","sloc","lgort"],
+  ["movement type","mvt type","bwart"],
+  ["amount","amt","total","sum","value"],
+  ["name","full name","fullname"],
+  ["email","e mail","mail","email address"],
+  ["phone","telephone","tel","mobile"],
+  ["status","stage"],
+  ["created","created at","creation date","date created","opened at"],
+  ["bank account","bank acct","iban","account no"],
+];
+const CONCEPT = new Map();
+SYNONYMS.forEach((group, id) => group.forEach(term => CONCEPT.set(term, id)));
+
+function normalize(name) {
+  return String(name)
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+    .replace(/[_\-./]+/g, " ")
+    .replace(/[^A-Za-z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim().toLowerCase();
+}
+const tokens = (name) => normalize(name).split(" ").filter(Boolean);
+
+function conceptsIn(norm) {
+  const found = new Set();
+  if (CONCEPT.has(norm)) found.add(CONCEPT.get(norm));
+  const tk = norm.split(" ").filter(Boolean);
+  for (let size = Math.min(4, tk.length); size >= 1; size--) {
+    for (let i = 0; i + size <= tk.length; i++) {
+      const phrase = tk.slice(i, i + size).join(" ");
+      if (CONCEPT.has(phrase)) found.add(CONCEPT.get(phrase));
+    }
+  }
+  return found;
+}
+
+function levenshtein(a, b) {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i];
+    for (let j = 1; j <= b.length; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+    prev = cur;
+  }
+  return prev[b.length];
+}
+const editRatio = (a, b) => !a.length && !b.length ? 1
+  : 1 - levenshtein(a, b) / Math.max(a.length, b.length);
+
+function jaroWinkler(a, b) {
+  if (a === b) return 1;
+  if (!a.length || !b.length) return 0;
+  const window = Math.max(0, Math.floor(Math.max(a.length, b.length) / 2) - 1);
+  const aF = new Array(a.length).fill(false), bF = new Array(b.length).fill(false);
+  let matches = 0;
+  for (let i = 0; i < a.length; i++) {
+    for (let j = Math.max(0, i - window); j < Math.min(b.length, i + window + 1); j++) {
+      if (bF[j] || a[i] !== b[j]) continue;
+      aF[i] = bF[j] = true; matches++; break;
+    }
+  }
+  if (!matches) return 0;
+  let k = 0, trans = 0;
+  for (let i = 0; i < a.length; i++) {
+    if (!aF[i]) continue;
+    while (!bF[k]) k++;
+    if (a[i] !== b[k]) trans++;
+    k++;
+  }
+  trans /= 2;
+  const j = (matches / a.length + matches / b.length + (matches - trans) / matches) / 3;
+  let prefix = 0;
+  while (prefix < 4 && prefix < a.length && prefix < b.length && a[prefix] === b[prefix]) prefix++;
+  return j + prefix * 0.1 * (1 - j);
+}
+
+function jaccard(a, b) {
+  const A = new Set(a), B = new Set(b);
+  if (!A.size || !B.size) return 0;
+  let inter = 0;
+  for (const x of A) if (B.has(x)) inter++;
+  return inter / (A.size + B.size - inter);
+}
+
+function profile(values) {
+  const real = values.map(v => String(v ?? "").trim()).filter(Boolean).slice(0, 200);
+  if (!real.length) return { kind: "empty", n: 0 };
+  const num = real.filter(v => /^-?[\d,]*\.?\d+$/.test(v)).length / real.length;
+  const dat = real.filter(v => /^\d{4}-\d{2}-\d{2}|^\d{2}[./]\d{2}[./]\d{4}/.test(v)).length / real.length;
+  const kind = dat > 0.7 ? "date" : num > 0.7 ? "number" : "text";
+  return { kind, n: real.length,
+           avgLen: real.reduce((a, v) => a + v.length, 0) / real.length };
+}
+
+function scorePair(sourceName, targetName, sProfile, tType) {
+  const sn = normalize(sourceName), tn = normalize(targetName);
+  const reasons = [];
+  let score = 0;
+
+  if (sn === tn) { score = 0.97; reasons.push("names match exactly"); }
+  else {
+    const sTok = tokens(sourceName), tTok = tokens(targetName);
+    const jw = jaroWinkler(sn, tn);
+    const ed = editRatio(sn, tn);
+    const jc = jaccard(sTok, tTok);
+    const sc = conceptsIn(sn), tc = conceptsIn(tn);
+    let shared = 0;
+    for (const c of sc) if (tc.has(c)) shared++;
+    const syn = shared ? shared / Math.max(sc.size, tc.size) : 0;
+
+    score = 0.30 * jw + 0.18 * ed + 0.24 * jc + 0.28 * syn;
+    if (jc > 0.35) reasons.push("overlapping name tokens");
+    if (syn > 0) { reasons.push("known synonym / abbreviation"); score = Math.max(score, 0.60); }
+    if (jw > 0.9 && !reasons.length) reasons.push("names are nearly the same");
+  }
+
+  if (sProfile && sProfile.kind !== "empty" && tType) {
+    if (sProfile.kind === tType) { score = Math.min(1, score + 0.08); reasons.push(tType === "text" ? "values look like text"
+                                       : `values look like a ${tType}`); }
+    else if (tType !== "text" && sProfile.kind !== "text") score *= 0.75;
+  }
+  return { score: Math.min(1, score), reasons };
+}
+
+function inadmissible(field, values) {
+  const real = values.map(v => String(v ?? "").trim()).filter(Boolean).slice(0, 200);
+  if (!real.length) return null;
+  if (field.type === "number") {
+    const num = real.filter(v => /^-?[\d,]*\.?\d+$/.test(v)).length;
+    if (num / real.length < 0.5) return "holds text, but this field takes a number";
+  }
+  if (field.allowed && field.allowed.length) {
+    const set = new Set(field.allowed.map(a => a.toLowerCase()));
+    if (!real.some(v => set.has(v.toLowerCase())))
+      return "no value here appears in the template's list for this field";
+  }
+  if (field.maxLength) {
+    const over = real.filter(v => v.length > field.maxLength).length;
+    if (over / real.length > 0.9)
+      return `nearly every value exceeds the ${field.maxLength}-character limit`;
+  }
+  return null;
+}
+
+function buildMapping(schema, sourceFields, rows, overrides, memory) {
+  const profiles = new Map();
+  sourceFields.forEach(f => profiles.set(f, profile(rows.map(r => r[f]))));
+
+  // Score each field against both names the template gives it, keep the better.
+  // On a tie the label wins: long compound technical names share generic tokens
+  // ("id", "by", "party") with unrelated columns and score spuriously.
+  const candidates = [];
+  schema.fields.forEach((field, idx) => {
+    let best = { source: null, score: 0, reasons: [] };
+    for (const alias of [field.technical || field.name, field.label || field.technical || field.name]) {
+      for (const src of sourceFields) {
+        const r = scorePair(src, alias, profiles.get(src), field.type);
+        const remembered = memory && memory[`${src}||${alias}`];
+        const score = remembered ? Math.max(r.score, 0.95) : r.score;
+        const reasons = remembered ? ["confirmed on an earlier run"] : r.reasons;
+        if (score >= best.score && score >= 0.35) best = { source: src, score, reasons };
+      }
+    }
+    candidates.push({ idx, field, ...best });
+  });
+
+  // Reject what the data rules out, before confidence decides anything.
+  for (const c of candidates) {
+    if (!c.source) continue;
+    const column = c.source;
+    const why = inadmissible(c.field, rows.map(r => r[column]));
+    if (why) { c.source = null; c.score = 0; c.reasons = [`${column} ${why}`]; }
+  }
+
+  // One source column can only fill one field: the more confident wins.
+  const taken = new Map();
+  [...candidates].sort((a, b) => b.score - a.score).forEach(c => {
+    if (!c.source) return;
+    if (taken.has(c.source)) {
+      c.source = null; c.score = 0;
+      c.reasons = ["another field matched this column more strongly"];
+    } else taken.set(c.source, c.idx);
+  });
+
+  // The operator's choices override everything.
+  for (const c of candidates) {
+    if (!(c.field.name in (overrides || {}))) continue;
+    const chosen = overrides[c.field.name];
+    c.source = chosen || null;
+    c.score = chosen ? 1 : 0;
+    c.reasons = chosen ? ["chosen by you"] : ["you left this unmapped"];
+  }
+
+  const used = new Set(candidates.filter(c => c.source).map(c => c.source));
+  return {
+    rows: candidates.map(c => ({
+      target: c.field.name, source: c.source, confidence: c.score,
+      reasons: c.reasons, required: c.field.required,
+      status: !c.source ? "unmatched" : c.score >= 0.85 ? "auto" : c.score >= 0.5 ? "review" : "low",
+    })),
+    unusedSources: sourceFields.filter(f => !used.has(f)),
+    coverage: candidates.filter(c => c.source).length / (candidates.length || 1),
+  };
+}
+
+/* ==========================================================================
+   VALIDATION and RECONCILIATION
+   ========================================================================== */
+function applyMapping(schema, mapping, rows) {
+  const bySource = new Map(mapping.rows.map(m => [m.target, m.source]));
+  return rows.map(row => {
+    const out = {};
+    for (const f of schema.fields) {
+      const src = bySource.get(f.name);
+      let v = src ? row[src] : "";
+      if (v != null && f.type === "date") v = toIsoDate(v);
+      out[f.name] = v == null ? "" : v;
+    }
+    return out;
+  });
+}
+
+function toIsoDate(v) {
+  const s = String(v).trim();
+  let m = s.match(/^(\d{2})[./](\d{2})[./](\d{4})$/);
+  if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+  m = s.match(/^(\d{4})(\d{2})(\d{2})$/);
+  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  return s;
+}
+
+function validateRows(schema, rows) {
+  const issues = [];
+  rows.forEach((row, i) => {
+    const n = i + 1;
+    for (const f of schema.fields) {
+      const text = String(row[f.name] ?? "").trim();
+      if (!text) { if (f.required) issues.push({ row: n, field: f.name, severity: "error",
+        message: "required by the template but empty", value: "" }); continue; }
+      if (f.maxLength && text.length > f.maxLength) issues.push({ row: n, field: f.name,
+        severity: "error", message: `longer than the template allows (${text.length} > ${f.maxLength})`,
+        value: text.slice(0, 40) });
+      if (f.type === "number" && !/^-?[\d,]*\.?\d+$/.test(text.replace(/ /g, "")))
+        issues.push({ row: n, field: f.name, severity: "error", message: "expected a number",
+                      value: text.slice(0, 40) });
+      if (f.type === "date" && !/^\d{4}-\d{2}-\d{2}$|^\d{2}[./]\d{2}[./]\d{4}$|^\d{8}$/.test(text))
+        issues.push({ row: n, field: f.name, severity: "warning",
+                      message: "does not look like a date SAP will accept", value: text.slice(0, 40) });
+      if (f.allowed && f.allowed.length && !f.allowed.includes(text)) {
+        const near = closest(text, f.allowed);
+        issues.push({ row: n, field: f.name, severity: "error",
+          message: near ? `not an allowed value — did you mean "${near}"?`
+                        : `not one of the template's allowed values (${f.allowed.slice(0, 5).join(", ")})`,
+          value: text.slice(0, 40) });
+      }
+    }
+  });
+
+  const errors = issues.filter(i => i.severity === "error");
+  const badRows = new Set(errors.map(i => i.row));
+  const grouped = new Map();
+  issues.forEach(i => {
+    const k = `${i.field}: ${i.message}`;
+    if (!grouped.has(k)) grouped.set(k, []);
+    grouped.get(k).push(i);
+  });
+  const top = [...grouped.entries()].sort((a, b) => b[1].length - a[1].length).slice(0, 12)
+    .map(([text, group]) => ({
+      count: group.length, text,
+      rows: group.slice(0, 3).map(i => i.row).join(", ") +
+            (group.length > 3 ? ` +${group.length - 3} more` : ""),
+    }));
+
+  return {
+    issues, errors, badRows, top,
+    rowCount: rows.length,
+    cleanRows: rows.length - badRows.size,
+    warnings: issues.filter(i => i.severity === "warning").length,
+    ok: errors.length === 0,
+    summary: `${rows.length} rows | ${rows.length - badRows.size} clean, ${badRows.size} with errors` +
+             ` | ${errors.length} errors, ${issues.length - errors.length} warnings`,
+  };
+}
+
+function closest(text, options) {
+  let best = null, bestScore = 0.5;
+  for (const o of options) {
+    const s = jaroWinkler(text.toLowerCase(), o.toLowerCase());
+    if (s > bestScore) { bestScore = s; best = o; }
+  }
+  return best;
+}
+
+function reconText(ctx) {
+  const w = 74, L = (s) => "  " + s;
+  const out = ["=".repeat(w), "  LOAD RECONCILIATION PACK", "=".repeat(w),
+    L(`Run ID        ${ctx.runId}`), L(`Generated     ${ctx.generated}`),
+    L(`Source        ${ctx.sourceName}`), L(`Template      ${ctx.templateName}`), "",
+    "-".repeat(w), "  RECORD COUNTS", "-".repeat(w),
+    L(`Extracted from source                ${String(ctx.sourceRows).padStart(10)}`),
+    L(`Mapped to the template schema        ${String(ctx.sourceRows).padStart(10)}`),
+    L(`Written to the upload file           ${String(ctx.written).padStart(10)}`)];
+  const gap = ctx.sourceRows - ctx.written;
+  out.push(L(`Difference                           ${String(gap).padStart(10)}` +
+    (gap ? "   <-- INVESTIGATE" : "   (nil — reconciles)")));
+
+  if (ctx.totals.length) {
+    out.push("", "-".repeat(w), "  CONTROL TOTALS  (agree these to SAP after posting)", "-".repeat(w),
+      L(`${"Field".padEnd(28)} ${"Count".padStart(8)}  ${"Total".padStart(18)}`));
+    ctx.totals.forEach(t => out.push(L(`${t.field.padEnd(28)} ${String(t.count).padStart(8)}  ` +
+      `${t.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).padStart(18)}`)));
+  }
+
+  out.push("", "-".repeat(w), "  MAPPING COVERAGE", "-".repeat(w),
+    L(`Template fields matched              ${(Math.round(ctx.coverage * 100) + "%").padStart(10)}`));
+  if (ctx.unmapped.length) {
+    out.push(L(`Template fields with no source (${ctx.unmapped.length}):`));
+    ctx.unmapped.slice(0, 15).forEach(n => out.push(L(`    - ${n}`)));
+  }
+  if (ctx.unused.length) {
+    out.push(L(`Source columns not used (${ctx.unused.length}):`));
+    ctx.unused.slice(0, 15).forEach(n => out.push(L(`    - ${n}`)));
+  }
+
+  out.push("", "-".repeat(w), "  MAPPING APPLIED", "-".repeat(w));
+  ctx.mapping.forEach(m => out.push(L(`${m.target.padEnd(32)} <- ` +
+    `${(m.source || "(none)").padEnd(22)} ${m.source ? Math.round(m.confidence * 100) + "%" : ""}`)));
+
+  out.push("", "-".repeat(w), "  VALIDATION", "-".repeat(w), L(ctx.validation.summary));
+  if (ctx.validation.top.length) {
+    out.push("");
+    ctx.validation.top.forEach(t => out.push(L(
+      `[${String(t.count).padStart(4)}x] ${t.text}  (rows ${t.rows})`)));
+  }
+  if (ctx.notes.length) {
+    out.push("", "-".repeat(w), "  NOTES", "-".repeat(w));
+    ctx.notes.forEach(n => out.push(L(`- ${n}`)));
+  }
+  out.push("", "=".repeat(w),
+    "  Sign-off:  prepared by ______________   reviewed by ______________", "=".repeat(w));
+  return out.join("\n");
+}
+
+function controlTotals(schema, rows) {
+  const out = [];
+  for (const f of schema.fields) {
+    if (f.type !== "number") continue;
+    let count = 0, total = 0;
+    for (const r of rows) {
+      const raw = String(r[f.name] ?? "").replace(/,/g, "").trim();
+      if (!raw) continue;
+      const n = Number(raw);
+      if (Number.isFinite(n)) { total += n; count++; }
+    }
+    if (count) out.push({ field: f.name, count, total });
+  }
+  return out;
+}
+
+function parseCsv(text) {
+  const rows = [];
+  let field = "", row = [], inQuotes = false;
+  const clean = text.replace(/^﻿/, "");
+  for (let i = 0; i < clean.length; i++) {
+    const ch = clean[i];
+    if (inQuotes) {
+      if (ch === '"') { if (clean[i + 1] === '"') { field += '"'; i++; } else inQuotes = false; }
+      else field += ch;
+    } else if (ch === '"') inQuotes = true;
+    else if (ch === ",") { row.push(field); field = ""; }
+    else if (ch === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
+    else if (ch !== "\r") field += ch;
+  }
+  if (field || row.length) { row.push(field); rows.push(row); }
+  if (!rows.length) return { fields: [], rows: [] };
+  const header = rows[0].map(h => h.trim());
+  const body = rows.slice(1).filter(r => r.some(c => (c || "").trim()))
+    .map(r => Object.fromEntries(header.map((h, i) => [h, r[i] ?? ""]).filter(([h]) => h)));
+  return { fields: header.filter(Boolean), rows: body };
+}
+
+class AppError extends Error {}
+
+/* ==========================================================================
+   The page: five steps, in order down the screen.
+   ========================================================================== */
+const $ = (id) => document.getElementById(id);
+const state = {
+  wb: null, sheet: null, schema: null,
+  templateName: "", sourceName: "",
+  sourceFields: [], sourceRows: [],
+  overrides: {}, memory: loadMemory(), mapping: null, mapped: null, validation: null,
+};
+
+function loadMemory() {
+  try { return JSON.parse(localStorage.getItem("sapload.memory") || "{}"); }
+  catch (e) { return {}; }
+}
+function saveMemory() {
+  try { localStorage.setItem("sapload.memory", JSON.stringify(state.memory)); }
+  catch (e) { /* a private window; the tool still works, it just forgets */ }
+}
+function rememberedCount() { return Object.keys(state.memory).length; }
+
+function showError(msg) { $("topError").innerHTML = `<div class="note err">${esc(msg)}</div>`; }
+function clearError() { $("topError").innerHTML = ""; }
+function busy(id, on) { $(id).classList.toggle("hidden", !on); }
+
+/* ---------- file intake ---------- */
+function wireDrop(dropId, inputId, nameId, kind) {
+  const drop = $(dropId), input = $(inputId), nameEl = $(nameId);
+  const open = () => input.click();
+  drop.addEventListener("click", open);
+  drop.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+  });
+  ["dragenter", "dragover"].forEach(ev =>
+    drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach(ev =>
+    drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", e => {
+    if (e.dataTransfer.files.length) take(e.dataTransfer.files[0]);
+  });
+  input.addEventListener("change", () => { if (input.files.length) take(input.files[0]); });
+
+  async function take(file) {
+    try {
+      clearError();
+      if (kind === "template") await loadTemplate(file);
+      else await loadSource(file);
+      drop.classList.add("filled");
+      nameEl.textContent = file.name;
+      nameEl.classList.remove("hidden");
+      $("btnAnalyse").disabled = !(state.wb && state.sourceRows.length);
+    } catch (err) {
+      showError(err instanceof AppError ? err.message
+        : `Could not read ${file.name}. If SAP gave you an "XML Spreadsheet 2003" file, ` +
+          `re-download it as .xlsx or .csv.`);
+    }
+  }
+}
+
+async function loadTemplate(file) {
+  const buf = await file.arrayBuffer();
+  state.wb = await openWorkbook(buf);
+  state.sheet = pickDataSheet(state.wb);
+  state.schema = deriveSchema(state.wb, state.sheet);
+  state.templateName = file.name;
+  if (!state.schema.fields.length)
+    throw new AppError("No columns could be read from that template.");
+}
+
+async function loadSource(file) {
+  let parsed;
+  if (/\.(xlsx|xlsm)$/i.test(file.name)) {
+    const wb = await openWorkbook(await file.arrayBuffer());
+    const sh = wb.sheets[0];
+    const header = (sh.rows[0] || []).map(h => (h || "").trim());
+    const body = sh.rows.slice(1).filter(r => r.some(c => (c || "").trim()))
+      .map(r => Object.fromEntries(header.map((h, i) => [h, r[i] ?? ""]).filter(([h]) => h)));
+    parsed = { fields: header.filter(Boolean), rows: body };
+  } else {
+    parsed = parseCsv(await file.text());
+  }
+  if (!parsed.rows.length) throw new AppError(`${file.name} has no data rows.`);
+  state.sourceFields = parsed.fields;
+  state.sourceRows = parsed.rows;
+  state.sourceName = file.name;
+}
+
+/* ---------- run ---------- */
+$("btnAnalyse").addEventListener("click", () => run("busy"));
+$("btnRemap").addEventListener("click", () => run("busy2"));
+
+function run(spinner) {
+  busy(spinner, true);
+  setTimeout(() => {
+    try {
+      state.mapping = buildMapping(state.schema, state.sourceFields, state.sourceRows,
+                                   state.overrides, state.memory);
+      state.mapped = applyMapping(state.schema, state.mapping, state.sourceRows);
+      state.validation = validateRows(state.schema, state.mapped);
+      renderAll();
+      clearError();
+    } catch (err) {
+      showError(err instanceof AppError ? err.message : String(err));
+    } finally {
+      busy(spinner, false);
+    }
+  }, 20);
+}
+
+function card(v, k, tone) {
+  return `<div class="card ${tone || ""}"><div class="v">${esc(v)}</div><div class="k">${esc(k)}</div></div>`;
+}
+
+function renderAll() {
+  const s = state.schema;
+  $("secSchema").classList.remove("hidden");
+  $("schemaLayout").textContent =
+    `${s.sheetName} · labels row ${s.labelRow === null ? "?" : s.labelRow + 1}` +
+    ` · names row ${s.technicalRow === null ? "?" : s.technicalRow + 1}` +
+    ` · data from row ${s.headerRows + 1}`;
+  const req = s.fields.filter(f => f.required).length;
+  const helped = s.fields.filter(f => f.allowed && f.allowed.length).length;
+  $("schemaCards").innerHTML =
+    card(s.fields.length, "fields in the template") +
+    card(req, "SAP requires", req ? "warn" : "") +
+    card(helped, "with a dropdown", helped ? "good" : "") +
+    card(state.sourceRows.length.toLocaleString(), "rows in your extract");
+  $("schemaNotes").innerHTML = s.notes.map(n => `<div class="note">${esc(n)}</div>`).join("");
+  $("schemaBody").innerHTML = s.fields.map(f => `<tr>
+      <td>${f.required ? '<span class="req" title="required">*</span>' : ""}</td>
+      <td class="mono">${esc(f.name)}</td><td>${esc(f.label || "")}</td>
+      <td>${esc(f.type)}${f.key ? " · key" : ""}</td>
+      <td class="num">${f.maxLength ?? ""}</td>
+      <td class="mono" style="font-size:12px">${
+        f.allowed && f.allowed.length ? esc(f.allowed.join(", ")) : "—"}</td></tr>`).join("");
+
+  const m = state.mapping;
+  $("secMapping").classList.remove("hidden");
+  const tally = { auto: 0, review: 0, low: 0, unmatched: 0 };
+  m.rows.forEach(r => tally[r.status]++);
+  $("mapCards").innerHTML =
+    card(Math.round(m.coverage * 100) + "%", "template fields matched", m.coverage === 1 ? "good" : "warn") +
+    card(tally.auto, "confident", "good") +
+    card(tally.review, "worth a glance", tally.review ? "warn" : "") +
+    card(tally.unmatched + tally.low, "need you", (tally.unmatched + tally.low) ? "bad" : "good");
+
+  $("mapBody").innerHTML = m.rows.map(r => {
+    const opts = ['<option value="">— not mapped —</option>'].concat(
+      state.sourceFields.map(f =>
+        `<option value="${esc(f)}"${f === r.source ? " selected" : ""}>${esc(f)}</option>`)).join("");
+    return `<tr>
+      <td>${r.required ? '<span class="req">*</span>' : ""}</td>
+      <td class="mono">${esc(r.target)}</td>
+      <td><select data-target="${esc(r.target)}">${opts}</select></td>
+      <td><span class="chip ${r.status}">${esc(r.status)}</span>
+          <span class="num" style="margin-left:6px">${r.source ? Math.round(r.confidence * 100) + "%" : "—"}</span></td>
+      <td style="color:var(--ink-3);font-size:12.5px">${esc((r.reasons || []).join("; "))}</td></tr>`;
+  }).join("");
+  $("mapBody").querySelectorAll("select").forEach(sel => {
+    sel.addEventListener("change", () => {
+      state.overrides[sel.dataset.target] = sel.value;
+      sel.classList.add("changed");
+    });
+  });
+
+  const v = state.validation;
+  $("secValidation").classList.remove("hidden");
+  $("valSummary").textContent = v.summary;
+  $("valBanner").innerHTML = v.ok
+    ? `<div class="note ok">Every row passes the checks the template describes.</div>`
+    : `<div class="note err">${v.badRows.size.toLocaleString()} of ${v.rowCount.toLocaleString()}
+       rows would be rejected. Fix them at source, or leave them out at step 5.</div>`;
+  $("valPanel").innerHTML = v.top.length
+    ? v.top.map(t => `<div class="issue"><span class="n">${t.count}×</span>&nbsp;${esc(t.text)}
+        <span style="color:var(--ink-3)">(rows ${esc(t.rows)})</span></div>`).join("")
+    : `<div class="issue" style="color:var(--ink-3)">Nothing to fix.</div>`;
+
+  $("prevHead").innerHTML = s.fields.map(f => `<th>${esc(f.name)}</th>`).join("");
+  $("prevBody").innerHTML = state.mapped.slice(0, 20).map(r =>
+    `<tr>${s.fields.map(f => `<td class="mono" style="font-size:12px">${esc(r[f.name])}</td>`).join("")}</tr>`
+  ).join("");
+
+  $("secBuild").classList.remove("hidden");
+  $("buildOut").innerHTML = "";
+  $("secSchema").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+/* ---------- build ---------- */
+$("btnBuild").addEventListener("click", async () => {
+  busy("busy3", true);
+  try {
+    const s = state.schema, v = state.validation;
+    let rows = state.mapped;
+    const notes = [...s.notes];
+    if ($("optClean").checked && v.badRows.size) {
+      rows = state.mapped.filter((_r, i) => !v.badRows.has(i + 1));
+      notes.push(`${v.badRows.size} row(s) with errors were left out at your request.`);
+    }
+
+    const limit = parseInt($("optMax").value, 10);
+    const size = Number.isFinite(limit) && limit > 0 ? limit : rows.length || 1;
+    const batches = [];
+    for (let i = 0; i < rows.length; i += size) batches.push(rows.slice(i, i + size));
+    if (!batches.length) batches.push([]);
+    if (batches.length > 1) notes.push(`Split into ${batches.length} files of at most ${size} rows.`);
+
+    const stem = state.templateName.replace(/\.(xlsx|xlsm)$/i, "");
+    const links = [];
+    for (let i = 0; i < batches.length; i++) {
+      const cells = batches[i].map(row => {
+        const width = Math.max(...s.fields.map(f => f.column)) + 1;
+        const line = new Array(width).fill("");
+        s.fields.forEach(f => { line[f.column] = row[f.name] ?? ""; });
+        return line;
+      });
+      const blob = fillWorkbook(state.wb, state.sheet, s, cells);
+      const suffix = batches.length === 1 ? "" : `_${String(i + 1).padStart(2, "0")}`;
+      links.push({ name: `${stem}_filled${suffix}.xlsx`, rows: batches[i].length,
+                   url: URL.createObjectURL(blob) });
+    }
+
+    const recon = reconText({
+      runId: Math.abs(hash(`${state.sourceName}|${state.sourceRows.length}|${rows.length}`))
+             .toString(16).padStart(8, "0"),
+      generated: new Date().toISOString().slice(0, 19).replace("T", " "),
+      sourceName: state.sourceName, templateName: state.templateName,
+      sourceRows: state.sourceRows.length, written: rows.length,
+      totals: controlTotals(s, rows), coverage: state.mapping.coverage,
+      unmapped: state.mapping.rows.filter(r => !r.source).map(r => r.target),
+      unused: state.mapping.unusedSources, mapping: state.mapping.rows,
+      validation: v, notes,
+    });
+    const reconUrl = URL.createObjectURL(new Blob([recon], { type: "text/plain" }));
+
+    // Remember only what you chose, and matches already strong enough to apply
+    // without review. A guess nobody looked at must not become a prior.
+    state.mapping.rows.forEach(r => {
+      if (!r.source) return;
+      const confirmed = r.target in state.overrides;
+      if (!confirmed && r.confidence < 0.85) return;
+      const f = state.schema.fields.find(x => x.name === r.target);
+      [f.technical || f.name, f.label || f.name].filter(Boolean).forEach(alias => {
+        state.memory[`${r.source}||${alias}`] = 1;
+      });
+    });
+    saveMemory();
+    $("memory").textContent = rememberedCount()
+      ? `${rememberedCount()} mapping${rememberedCount() === 1 ? "" : "s"} remembered · nothing leaves this computer`
+      : "nothing leaves this computer";
+
+    const held = state.mapped.length - rows.length;
+    $("buildOut").innerHTML =
+      (held ? `<div class="note">${held.toLocaleString()} row(s) with errors were left out.
+               They are listed in the reconciliation pack.</div>` : "") +
+      `<div class="panel">` +
+      links.map(l => `<a class="dl" href="${l.url}" download="${esc(l.name)}">
+          <span class="name">${esc(l.name)}</span>
+          <span class="go">${l.rows.toLocaleString()} rows · Download</span></a>`).join("") +
+      `<a class="dl" href="${reconUrl}" download="${esc(stem)}_reconciliation.txt">
+          <span class="name">${esc(stem)}_reconciliation.txt</span>
+          <span class="go">Reconciliation · Download</span></a></div>
+       <details class="panel" style="margin-top:12px" open>
+         <summary>The reconciliation pack</summary><pre class="recon">${esc(recon)}</pre></details>`;
+  } catch (err) {
+    showError(err instanceof AppError ? err.message : String(err));
+  } finally {
+    busy("busy3", false);
+  }
+});
+
+function hash(s) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return h;
+}
+
+/* ---------- start ---------- */
+wireDrop("dropTemplate", "fileTemplate", "nameTemplate", "template");
+wireDrop("dropSource", "fileSource", "nameSource", "source");
+if (rememberedCount()) {
+  $("memory").textContent =
+    `${rememberedCount()} mappings remembered · nothing leaves this computer`;
+}
+if (!window.DecompressionStream) {
+  showError("This browser is too old to open .xlsx files here. " +
+            "Use a current Chrome, Edge, Firefox or Safari.");
+  $("btnAnalyse").disabled = true;
+}
+
+</script>
+</body>
+</html>
