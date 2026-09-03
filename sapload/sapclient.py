@@ -127,6 +127,17 @@ class S4Client:
             skip += len(rows)
         return out
 
+    def metadata(self, service_path: str) -> str:
+        """Fetch a service's raw $metadata, so field names can be checked.
+
+        This is how a profile stays honest: rather than trusting a field list
+        written months ago, ask the tenant what the entity actually has.
+        """
+        body, _headers = self._request(
+            "GET", service_path.rstrip("/") + "/$metadata",
+            extra_headers={"Accept": "application/xml"}, note="metadata")
+        return body.decode("utf-8", errors="replace")
+
     def post(self, path: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Create one entity. Refused unless posting was enabled for this run."""
         if not self.settings.allow_post:

@@ -140,6 +140,50 @@ def _cmd_connect(args: argparse.Namespace) -> int:
         print()
         return 0
 
+    if args.action == "profiles":
+        from .poster import profiles
+        for key, spec in sorted(profiles().items()):
+            print(f"  {key:<24} {spec.get('label', '')}")
+            print(f"  {'':<24} {spec['service'].rsplit('/', 1)[-1]} · {spec['entity']}")
+            for warning in spec.get("verify", []):
+                print(f"  {'':<24} verify: {warning}")
+            print()
+        return 0
+
+    if args.action in ("check", "post"):
+        from .poster import ProfileError, check, load_profile, post
+        try:
+            profile = load_profile(args.profile or "")
+        except ProfileError as exc:
+            print(f"  {exc}\n")
+            return 2
+
+        fields, rows = read_source(args.sent)
+        if not rows:
+            print(f"  {args.sent} has no data rows.\n")
+            return 2
+
+        if args.action == "check":
+            for result in check(client, profile, fields):
+                print(result.as_text())
+            print()
+            return 0
+
+        try:
+            report = post(client, profile, rows, reference_field=args.reference,
+                          dry_run=args.dry_run, skip_existing=not args.no_skip)
+        except (ProfileError, SapError) as exc:
+            print(f"  {exc}\n")
+            return 1
+        text = report.as_text()
+        if args.out:
+            with open(args.out, "w", encoding="utf-8") as fh:
+                fh.write(text)
+            print(f"  Written to {args.out}\n")
+        else:
+            print(text)
+        return 0 if report.ok else 1
+
     if args.action == "reconcile":
         from .readback import reconcile
         _fields, rows = read_source(args.sent)
@@ -196,7 +240,14 @@ def main(argv: Optional[List[str]] = None) -> int:
     p_build.set_defaults(func=_cmd_build)
 
     p_conn = sub.add_parser("connect", help="talk to S/4HANA Cloud (read-only by default)")
-    p_conn.add_argument("action", choices=["ping", "value-help", "reconcile"])
+    p_conn.add_argument("action",
+                        choices=["ping", "profiles", "value-help", "check",
+                                 "post", "reconcile"])
+    p_conn.add_argument("--profile", help="document profile, e.g. service_order")
+    p_conn.add_argument("--dry-run", action="store_true",
+                        help="show what would be posted without sending anything")
+    p_conn.add_argument("--no-skip", action="store_true",
+                        help="do not skip references already in SAP (rarely right)")
     p_conn.add_argument("--template", help="template to fetch value help for")
     p_conn.add_argument("--cache", help="where to cache fetched value help")
     p_conn.add_argument("--sent", help="the extract that was loaded")
@@ -210,8 +261,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     if args.command == "connect":
         if args.action == "value-help" and not args.template:
             parser.error("connect value-help needs --template")
-        if args.action == "reconcile" and not args.sent:
-            parser.error("connect reconcile needs --sent")
+        if args.action in ("reconcile", "check", "post") and not args.sent:
+            parser.error(f"connect {args.action} needs --sent")
+        if args.action in ("check", "post") and not args.profile:
+            parser.error(f"connect {args.action} needs --profile "
+                         f"(list them with: connect profiles)")
     return args.func(args)
 
 

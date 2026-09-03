@@ -353,5 +353,51 @@
     "confident_from": 0.85,
     "learn_from": 0.85,
     "synonym_floor": 0.6
+  },
+  "documents": {
+    "_comment": "Postable objects. Deliberately thin: the FIELD NAMES come from your own mapping, not from this file, so a profile does not go stale when SAP renames something. Run 'connect post --check' to verify your mapped fields against the tenant's own $metadata before the first real post.",
+    "service_order": {
+      "label": "Service Order",
+      "service": "/sap/opu/odata/sap/API_SERVICE_ORDER_SRV",
+      "entity": "A_ServiceOrder",
+      "entity_type": "A_ServiceOrderType",
+      "document_key": "ServiceOrder",
+      "items": {
+        "navigation": "to_Item",
+        "entity_type": "A_ServiceOrderItemType"
+      },
+      "verify": [
+        "API_SERVICE_ORDER_SRV is deprecated with the 2025 release; confirm whether your tenant serves it or the V4 successor.",
+        "Confirm which field carries your source reference. Deep insert is supported on the header only."
+      ]
+    },
+    "sales_order": {
+      "label": "Sales Order",
+      "service": "/sap/opu/odata/sap/API_SALES_ORDER_SRV",
+      "entity": "A_SalesOrder",
+      "entity_type": "A_SalesOrderType",
+      "document_key": "SalesOrder",
+      "items": {
+        "navigation": "to_Item",
+        "entity_type": "A_SalesOrderItemType"
+      },
+      "verify": [
+        "Both OData V2 and V4 exist for this service; confirm which your tenant uses."
+      ]
+    },
+    "purchase_requisition": {
+      "label": "Purchase Requisition",
+      "service": "/sap/opu/odata/sap/API_PURCHASEREQUISITION_2",
+      "entity": "PurchaseRequisition",
+      "entity_type": "PurchaseRequisitionType",
+      "document_key": "PurchaseRequisition",
+      "items": {
+        "navigation": "_PurchaseRequisitionItem",
+        "entity_type": "PurchaseRequisitionItemType"
+      },
+      "verify": [
+        "OData V4. The predecessor API_PURCHASEREQ_PROCESS_SRV was deprecated with 2402."
+      ]
+    }
   }
 }

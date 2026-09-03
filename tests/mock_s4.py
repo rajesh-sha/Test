@@ -45,6 +45,9 @@ class MockS4:
         self.redirect_to: Optional[str] = None
         self.csrf = "test-csrf-token-value"
         self.require_auth = True
+        self.metadata_xml = ""
+        self.posted: List[dict] = []
+        self.post_fails_for = set()      # references the tenant should reject
         self.cert, self.key = make_cert()
 
         outer = self
@@ -73,6 +76,14 @@ class MockS4:
 
             def do_GET(self):
                 self._record()
+                if self.path.endswith("$metadata"):
+                    body = outer.metadata_xml.encode()
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/xml")
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers()
+                    self.wfile.write(body)
+                    return
                 if outer.require_auth and "authorization" not in {
                         k.lower() for k in self.headers.keys()}:
                     self._send(401, {"error": {"message": {"value": "no credentials"}}})
@@ -108,11 +119,21 @@ class MockS4:
             def do_POST(self):
                 self._record()
                 length = int(self.headers.get("Content-Length") or 0)
-                self.rfile.read(length)
+                raw = self.rfile.read(length)
                 if self.headers.get("X-CSRF-Token") != outer.csrf:
                     self._send(403, {"error": {"message": {"value": "CSRF token invalid"}}})
                     return
-                self._send(201, {"d": {"SupplierInvoice": "5105600001"}})
+                try:
+                    payload = json.loads(raw.decode())
+                except ValueError:
+                    payload = {}
+                outer.posted.append(payload)
+                reference = str(payload.get("ServiceOrderName", ""))
+                if reference in outer.post_fails_for:
+                    self._send(400, {"error": {"message": {"value": "field is not valid"}}})
+                    return
+                self._send(201, {"d": {"ServiceOrder": f"800000{len(outer.posted):02d}",
+                                       "SupplierInvoice": "5105600001"}})
 
         self._server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
