@@ -64,6 +64,26 @@ def _build_index() -> Dict[str, int]:
 _TERM_TO_CONCEPT: Dict[str, int] = _build_index()
 
 
+def register_synonyms(groups: List[List[str]]) -> None:
+    """Teach the matcher a domain vocabulary at runtime.
+
+    Each inner list is a set of terms that mean the same thing.  Calling this
+    is how a caller layers house or industry vocabulary (SAP field names, say)
+    on top of the built-in general business terms without editing this file.
+    Registering the same group twice is harmless.
+    """
+    global _TERM_TO_CONCEPT
+    known = {tuple(sorted(g)) for g in SYNONYM_GROUPS}
+    for group in groups:
+        if tuple(sorted(group)) in known:
+            continue
+        SYNONYM_GROUPS.append(list(group))
+    _TERM_TO_CONCEPT = _build_index()
+    cache_clear = getattr(concepts_in, "cache_clear", None)
+    if cache_clear is not None:      # concepts_in may be memoized
+        cache_clear()
+
+
 def concept_of(term: str) -> int:
     """Concept id for a normalized term, or ``-1`` if unknown."""
     return _TERM_TO_CONCEPT.get(term.strip().lower(), -1)

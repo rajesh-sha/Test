@@ -140,6 +140,147 @@ examples/        runnable demo + sample CSVs
 python -m unittest tests.test_smartmapper -v
 ```
 
+---
+
+# 📄 sapload — fill an SAP upload template, provably
+
+`smartmapper` solves half the problem: given two schemas, wire them together.
+`sapload` supplies the other half for SAP work — **it works out the target
+schema for itself by reading the SAP template**, then validates, fills and
+reconciles.
+
+Nothing is configured per object. Hand it `Supplier Invoice_EN.xlsx`,
+`JournalEntry_Template.xlsx`, or next release's replacement, and it works out
+where the header block ends, which row carries the technical field names, which
+fields are mandatory, how long each may be, and what values each will accept.
+
+```bash
+# What does this template actually want?
+python -m sapload.cli inspect "Supplier Invoice_EN.xlsx"
+
+# Map an extract onto it, validate every row, write the upload file
+python -m sapload.cli build claims.csv "Supplier Invoice_EN.xlsx" upload.xlsx \
+    --memory mappings.json --recon recon.txt
+```
+
+```
+Schema   : 12 fields | 8 required | 3 with value help | data starts at row 6
+Mapping  : 12 target fields | 3 auto, 9 review, 0 low-confidence, 0 unmatched | coverage 100%
+
+  [ 60%] * SupplierInvoiceIDByInvcgParty  <- claim_number
+  [ 90%] * DocumentDate                   <- invoice_dt  [to_iso_date]
+  [ 97%]   CostCenter                     <- cost_centre
+  [ 60%] * GLAccount                      <- gl_acct
+
+Validate : 40 rows | 35 clean, 5 with errors
+  [   2x] DocumentCurrency: not one of the template's allowed values (AUD, NZD, USD)  (rows 5, 29)
+  [   1x] GLAccount: required by the template but empty  (rows 10)
+  [   1x] InvoiceGrossAmount: expected a number  (rows 15)
+  [   1x] DocumentHeaderText: longer than the template allows (57 > 25)  (rows 22)
+```
+
+Try it: `python examples/demo_sapload.py`
+
+## Why read the template rather than the API metadata
+
+SAP's OData `$metadata` is rich on structure and silent on the two things that
+actually stop a document posting. Parsing two real S/4 services
+(`API_SALES_ORDER_SRV`, `API_PURCHASEREQ_PROCESS_SRV`) gives **584 field
+labels, 209 create-eligibility flags — and zero value-list annotations and zero
+non-key mandatory markers.** Every `Nullable="false"` property in both services
+is a key field.
+
+The spreadsheet template carries what the metadata does not:
+
+| Needed to fill a document | In `$metadata` | In the template |
+|---|---|---|
+| Field labels and types | Yes | Yes |
+| **Which fields are mandatory** | **No** | Yes — the marker row |
+| **Allowed values** | **No** | Yes — the dropdowns |
+| Field lengths | Yes | Yes |
+
+So the template is the better source of truth, and it needs no connection, no
+communication arrangement and no credentials to read.
+
+## What it does
+
+| Step | Behaviour |
+|---|---|
+| **Derive** | Header-block detection, technical/label/marker/length rows, types from the data, value help from the dropdowns |
+| **Map** | `smartmapper` plus an SAP finance vocabulary, matching against **both** the technical name and the human label and keeping the better |
+| **Gate** | Structurally impossible matches are dropped before confidence decides — a text column cannot fill a numeric field however well it is named |
+| **Validate** | Rules derived from the template, never hand-written — add a column and it is checked on the next run. Bad codes get a suggestion, not just a rejection |
+| **Fill** | Rewrites only the sheet's data; SAP's styling, dropdowns, column widths and help sheets survive byte-for-byte |
+| **Split** | `--max-rows` keeps each file inside the upload app's ceiling (F2548 caps at 999 journal entries) |
+| **Reconcile** | Counts in/out, control totals per numeric field, coverage, unmapped fields, and a sign-off block |
+
+## Three deliberate design decisions
+
+**Matching against the label as well as the technical name.** A source column
+called `gl_acct` is far closer to the label "G/L Account" than to `GLAccount`.
+Running both passes and keeping the better one lifted coverage from 67% to 92%
+on the worked example, and on a tie the label wins — long compound technical
+names share generic tokens (`id`, `by`, `party`) with unrelated columns and
+score spuriously.
+
+**Memory only learns what a human would stand behind.** Reviewer overrides are
+always remembered; everything else must clear `--learn-threshold` (0.85 by
+default). Auto-learning an unreviewed 60% guess is how a tool like this quietly
+entrenches a wrong mapping — the guess becomes a prior, the prior raises the
+score, and by run three nobody questions it. This was not hypothetical: an early
+run poisoned its own memory and silently reinstated a bad match.
+
+**Filtering the hypothesis space beats scoring it harder.** Before confidence
+decides anything, candidates that the *data* rules out are dropped — a column of
+free text cannot fill a numeric field, and a column whose values never appear in
+the template's dropdown is not that field. This is the largest measured accuracy
+lever in the schema-matching literature, and it involves no model at all.
+
+**Writing is a surgical edit, not a round-trip.** The original zip is copied
+entry-for-entry and only the target sheet's `<sheetData>` is replaced.
+Round-tripping through a spreadsheet library silently destroys the very things
+the parser depends on — ExcelJS drops data validation on read-write, openpyxl
+loses images — and in an SAP template the dropdowns *are* the value help.
+
+## Extending it
+
+- **House vocabulary:** `sapload.vocabulary.extend([["your term", "our term"]])`
+- **New object:** nothing to do. Point it at the template.
+- **Client-specific templates:** `--sheet` if the data sheet is not auto-detected.
+
+## Scope
+
+Built for **recurring, post-go-live, business-user loads** through SAP's own
+spreadsheet upload apps. It is not a cutover tool — initial migration belongs in
+the SAP S/4HANA Migration Cockpit, which has full object coverage and SAP
+support. It never connects to SAP: a person uploads a file they have already
+seen validated, which keeps the human control point auditors expect.
+
+## Known limits
+
+- Migration Cockpit templates are fully self-describing (hidden rows carry
+  structure, technical name, type and length; `*` marks mandatory, `k` key).
+  The Fiori app templates carry technical column names but **not** types,
+  lengths or mandatory markers — against those, the derived schema is thinner
+  and the notes say so.
+- SAP sometimes delivers a template as Excel 2003 XML (SpreadsheetML) with an
+  `.xlsx` extension. That is plain XML, not a zip; the tool detects it and says
+  what to do rather than failing obscurely.
+- Per-file row ceilings differ per app and are not published in the template, so
+  `--max-rows` is yours to set.
+- **Untested:** what the upload app does with a mid-file failure — whether rows
+  before the bad one stay posted. Confirm with a deliberate 10-row file
+  containing a known bad row before relying on re-submission behaviour.
+
+## Tests
+
+```bash
+python -m unittest tests.test_sapload -v    # 36 tests
+python -m unittest tests.test_smartmapper   # 23 tests
+```
+
+---
+
 ## Design notes & references
 
 The ensemble design follows the consensus in automated schema-matching
